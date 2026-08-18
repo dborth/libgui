@@ -28,8 +28,8 @@
  *
 */
 
-#ifndef LIBWIIGUI_H
-#define LIBWIIGUI_H
+#ifndef LIBGUI_H
+#define LIBGUI_H
 
 #include <gccore.h>
 #include <malloc.h>
@@ -121,18 +121,18 @@ typedef struct _gamepaddata {
 	s16 substickY;
 } GamePadData;
 
-#include "gui_sound.h"
-#include "gui_trigger.h"
-#include "gui_element.h"
-#include "gui_window.h"
-#include "gui_imagedata.h"
-#include "gui_image.h"
-#include "gui_text.h"
-#include "gui_tooltip.h"
-#include "gui_button.h"
-#include "gui_keyboard.h"
-#include "gui_optionbrowser.h"
-#include "gui_filebrowser.h"
+#include "GuiSound.h"
+#include "GuiTrigger.h"
+#include "GuiElement.h"
+#include "GuiWindow.h"
+#include "GuiImagedata.h"
+#include "GuiImage.h"
+#include "GuiText.h"
+#include "GuiTooltip.h"
+#include "GuiButton.h"
+#include "GuiKeyboard.h"
+#include "GuiOptionBrowser.h"
+#include "GuiFileBrowser.h"
 
 extern GuiTrigger userInput[4];
 
