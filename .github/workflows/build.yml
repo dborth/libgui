@@ -10,7 +10,7 @@ jobs:
       id-token: write
       pages: write
     runs-on: ubuntu-latest
-    container: devkitpro/devkitppc:latest
+    container: ghcr.io/extremscorner/libogc2:latest
 
     steps:
     - name: Checkout libgui repo
