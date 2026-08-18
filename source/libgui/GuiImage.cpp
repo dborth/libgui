@@ -1,14 +1,14 @@
 /****************************************************************************
  * libgui
  *
- * Tantric 2009
+ * Daryl Borth 2009-2026
  *
- * gui_image.cpp
+ * GuiImage.cpp
  *
  * GUI class definitions
  ***************************************************************************/
 
-#include "gui.h"
+#include "Gui.h"
 /**
  * Constructor for the GuiImage class.
  */

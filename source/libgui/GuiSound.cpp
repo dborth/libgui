@@ -1,14 +1,14 @@
 /****************************************************************************
  * libgui
  *
- * Tantric 2009
+ * Daryl Borth 2009-2026
  *
- * gui_sound.cpp
+ * GuiSound.cpp
  *
  * GUI class definitions
  ***************************************************************************/
 
-#include "gui.h"
+#include "Gui.h"
 
 /**
  * Constructor for the GuiSound class.
@@ -123,7 +123,7 @@ bool GuiSound::isPlaying()
 	if(ASND_StatusVoice(voice) == SND_WORKING || ASND_StatusVoice(voice) == SND_WAITING)
 		return true;
 	else
-		return false;
+	return false;
 }
 
 void GuiSound::setVolume(int vol)

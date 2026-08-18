@@ -1,14 +1,14 @@
 /****************************************************************************
  * libgui
  *
- * Tantric 2009
+ * Daryl Borth 2009-2026
  *
- * gui_text.cpp
+ * GuiText.cpp
  *
  * GUI class definitions
  ***************************************************************************/
 
-#include "gui.h"
+#include "Gui.h"
 #include "../gettext.h"
 
 static GXColor presetColor = (GXColor){255, 255, 255, 255};

@@ -1,14 +1,14 @@
 /****************************************************************************
  * libgui
  *
- * Tantric 2009
+ * Daryl Borth 2009-2026
  *
- * gui_imagedata.cpp
+ * GuiImageData.cpp
  *
  * GUI class definitions
  ***************************************************************************/
 
-#include "gui.h"
+#include "Gui.h"
 
 /**
  * Constructor for the GuiImageData class.

@@ -1,15 +1,15 @@
 /****************************************************************************
  * libgui
  *
- * Tantric 2009
+ * Daryl Borth 2009-2026
  *
- * gui_filebrowser.cpp
+ * GuiFileBrowser.cpp
  *
  * GUI class definitions
  ***************************************************************************/
 
 #include "gui.h"
-#include "filebrowser.h"
+#include "../filebrowser.h"
 
 /**
  * Constructor for the GuiFileBrowser class.
@@ -190,7 +190,7 @@ void GuiFileBrowser::resetState()
 void GuiFileBrowser::triggerUpdate()
 {
 	int newIndex = browser.selIndex-browser.pageIndex;
-
+	
 	if(newIndex >= FILE_PAGESIZE)
 		newIndex = FILE_PAGESIZE-1;
 	else if(newIndex < 0)

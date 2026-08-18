@@ -1,14 +1,14 @@
 /****************************************************************************
  * libgui
  *
- * Tantric 2009
+ * Daryl Borth 2009-2026
  *
- * gui_keyboard.cpp
+ * GuiKeyboard.cpp
  *
  * GUI class definitions
  ***************************************************************************/
 
-#include "gui.h"
+#include "Gui.h"
 
 #define KB_FONTSIZE 20
 
@@ -269,8 +269,7 @@ void GuiKeyboard::update(GuiTrigger * t)
 
 	for (u8 i = 0; i < _elements.size(); i++)
 	{
-		try	{ _elements.at(i)->update(t); }
-		catch (const std::exception& e) { }
+		_elements.at(i)->update(t);
 	}
 
 	bool update = false;
