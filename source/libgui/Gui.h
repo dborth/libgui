@@ -40,15 +40,12 @@
 #include <wchar.h>
 #include <math.h>
 #include <asndlib.h>
-#include <wiiuse/wpad.h>
 
 #include "video.h"
 #include "filelist.h"
-#include "input.h"
 #include "pngu.h"
 #include "FreeTypeGX.h"
 #include "oggplayer.h"
-#include "wiidrc.h"
 
 extern FreeTypeGX *fontSystem[];
 
@@ -77,6 +74,8 @@ enum class SCROLL {
 	HORIZONTAL
 };
 
+#include "GuiInput.h"
+#include "GuiInputController.h"
 #include "GuiTrigger.h"
 #include "GuiElement.h"
 #include "GuiWindow.h"

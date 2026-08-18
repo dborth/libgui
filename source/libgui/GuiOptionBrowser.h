@@ -27,7 +27,7 @@ class GuiOptionBrowser : public GuiElement
 	void draw() override;
 		void triggerUpdate();
 		void resetText();
-		void update(GuiTrigger * t);
+		void update(GuiInputController * c);
 		GuiText * optionVal[OPTION_PAGESIZE];
 	protected:
 		int optionIndex[OPTION_PAGESIZE];
@@ -60,7 +60,6 @@ class GuiOptionBrowser : public GuiElement
 		GuiSound * btnSoundOver;
 		GuiSound * btnSoundClick;
 		GuiTrigger * trigA;
-		GuiTrigger * trig2;
 
 		bool listChanged;
 };

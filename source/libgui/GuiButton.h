@@ -1,7 +1,13 @@
-#ifndef GUIBUTTON_H
-#define GUIBUTTON_H
+/****************************************************************************
+ * libgui
+ * Daryl Borth 2009-2026
+ * GuiButton.h
+ ***************************************************************************/
 
-#include "Gui.h"
+#ifndef GUI_BUTTON_H
+#define GUI_BUTTON_H
+
+#define MAX_BTN_LABELS	3
 
 //!Display, manage, and manipulate buttons in the GUI. Buttons can have images, icons, text, and sound set (all of which are optional)
 class GuiButton : public GuiElement
@@ -72,8 +78,8 @@ class GuiButton : public GuiElement
 		//!Resets the text for all contained elements
 		void resetText();
 		//!Constantly called to allow the GuiButton to respond to updated input data
-		//!\param t Pointer to a GuiTrigger, containing the current input data from PAD/WPAD
-		void update(GuiTrigger * t);
+		//!\param c Pointer to a GuiInputController, containing the current input data
+		void update(GuiInputController * c);
 	protected:
 		GuiImage * image; //!< Button image (default)
 		GuiImage * imageOver; //!< Button image for STATE::SELECTED
@@ -83,10 +89,10 @@ class GuiButton : public GuiElement
 		GuiImage * iconOver; //!< Button icon for STATE::SELECTED
 		GuiImage * iconHold; //!< Button icon for STATE::HELD
 		GuiImage * iconClick; //!< Button icon for STATE::CLICKED
-		GuiText * label[3]; //!< Label(s) to display (default)
-		GuiText * labelOver[3]; //!< Label(s) to display for STATE::SELECTED
-		GuiText * labelHold[3]; //!< Label(s) to display for STATE::HELD
-		GuiText * labelClick[3]; //!< Label(s) to display for STATE::CLICKED
+		GuiText * label[MAX_BTN_LABELS]; //!< Label(s) to display (default)
+		GuiText * labelOver[MAX_BTN_LABELS]; //!< Label(s) to display for STATE::SELECTED
+		GuiText * labelHold[MAX_BTN_LABELS]; //!< Label(s) to display for STATE::HELD
+		GuiText * labelClick[MAX_BTN_LABELS]; //!< Label(s) to display for STATE::CLICKED
 		GuiSound * soundOver; //!< Sound to play for STATE::SELECTED
 		GuiSound * soundHold; //!< Sound to play for STATE::HELD
 		GuiSound * soundClick; //!< Sound to play for STATE::CLICKED

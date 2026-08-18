@@ -1,18 +1,11 @@
 /****************************************************************************
  * libgui
- *
  * Daryl Borth 2009-2026
- *
  * GuiSound.cpp
- *
- * GUI class definitions
  ***************************************************************************/
 
 #include "Gui.h"
 
-/**
- * Constructor for the GuiSound class.
- */
 GuiSound::GuiSound(const u8 * s, s32 l, SOUND t)
 {
 	sound = s;
@@ -23,20 +16,14 @@ GuiSound::GuiSound(const u8 * s, s32 l, SOUND t)
 	loop = false;
 }
 
-/**
- * Destructor for the GuiSound class.
- */
 GuiSound::~GuiSound()
 {
-	#ifndef NO_SOUND
 	if(type == SOUND::OGG)
 		StopOgg();
-	#endif
 }
 
 void GuiSound::play()
 {
-	#ifndef NO_SOUND
 	int vol;
 
 	switch(type)
@@ -58,12 +45,10 @@ void GuiSound::play()
 		SetVolumeOgg(255*(volume/100.0));
 		break;
 	}
-	#endif
 }
 
 void GuiSound::stop()
 {
-	#ifndef NO_SOUND
 	if(voice < 0)
 		return;
 
@@ -77,12 +62,10 @@ void GuiSound::stop()
 		StopOgg();
 		break;
 	}
-	#endif
 }
 
 void GuiSound::pause()
 {
-	#ifndef NO_SOUND
 	if(voice < 0)
 		return;
 
@@ -96,12 +79,10 @@ void GuiSound::pause()
 		PauseOgg(1);
 		break;
 	}
-	#endif
 }
 
 void GuiSound::resume()
 {
-	#ifndef NO_SOUND
 	if(voice < 0)
 		return;
 
@@ -115,7 +96,6 @@ void GuiSound::resume()
 		PauseOgg(0);
 		break;
 	}
-	#endif
 }
 
 bool GuiSound::isPlaying()
@@ -128,7 +108,6 @@ bool GuiSound::isPlaying()
 
 void GuiSound::setVolume(int vol)
 {
-	#ifndef NO_SOUND
 	volume = vol;
 
 	if(voice < 0)
@@ -146,7 +125,6 @@ void GuiSound::setVolume(int vol)
 		SetVolumeOgg(255*(volume/100.0));
 		break;
 	}
-	#endif
 }
 
 void GuiSound::setLoop(bool l)

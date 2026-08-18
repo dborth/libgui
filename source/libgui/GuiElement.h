@@ -1,7 +1,5 @@
-#ifndef GUIELEMENT_H
-#define GUIELEMENT_H
-
-#include "Gui.h"
+#ifndef GUI_ELEMENT_H
+#define GUI_ELEMENT_H
 
 #define MAX_TRIGGERS 5
 
@@ -198,15 +196,15 @@ class GuiElement
 		virtual void setAlignment(ALIGN_H hor, ALIGN_V vert);
 		//!Called when the language has changed, to obtain new text values for all text elements
 		virtual void resetText();
-		//!Called constantly to allow the element to respond to the current input data
-		//!\param t Pointer to a GuiTrigger, containing the current input data from PAD/WPAD
-		virtual void update(GuiTrigger * t);
+		///!Called constantly to allow the element to respond to the current input data
+		//!\param c Pointer to a GuiInputController, containing the current input data
+		virtual void update(GuiInputController * c);
 		//!Called constantly to redraw the element
 	virtual void draw() = 0;
 		//!Called constantly to redraw the element's tooltip
 		virtual void drawTooltip();
 	protected:
-	GuiTrigger * trigger[MAX_TRIGGERS]; //!< GuiTriggers (input actions) that this element responds to
+		GuiTrigger * trigger[MAX_TRIGGERS]; //!< GuiTriggers (input actions) that this element responds to
 		UpdateCallback updateCB; //!< Callback function to call when this element is updated
 		GuiElement * parentElement; //!< Parent element
 		int focus; //!< Element focus (-1 = focus disabled, 0 = not focused, 1 = focused)
@@ -242,4 +240,4 @@ class GuiElement
 		bool rumble; //!< Wiimote rumble (on/off) - set to on when this element requests a rumble event
 };
 
-#endif // GUIELEMENT_H
+#endif // GUI_ELEMENT_H

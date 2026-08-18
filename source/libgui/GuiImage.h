@@ -1,7 +1,11 @@
-#ifndef GUIIMAGE_H
-#define GUIIMAGE_H
+/****************************************************************************
+ * libgui
+ * Daryl Borth 2009-2026
+ * GuiImage.h
+ ***************************************************************************/
 
-#include "Gui.h"
+#ifndef GUI_IMAGE_H
+#define GUI_IMAGE_H
 
 enum class IMAGE {
 	TEXTURE,
@@ -76,4 +80,4 @@ class GuiImage : public GuiElement
 		int stripe; //!< Alpha value (0-255) to apply a stripe effect to the texture
 };
 
-#endif // GUIIMAGE_H
+#endif // GUI_IMAGE_H

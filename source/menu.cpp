@@ -80,7 +80,7 @@ WindowPrompt(const char *title, const char *msg, const char *btn1Label, const ch
 	GuiImageData btnOutline(button_png);
 	GuiImageData btnOutlineOver(button_over_png);
 	GuiTrigger trigA;
-	trigA.setSimpleTrigger(-1, WPAD_BUTTON_A | WPAD_CLASSIC_BUTTON_A, PAD_BUTTON_A);
+	trigA.setPrimaryTrigger();
 
 	GuiImageData dialogBox(dialogue_box_png);
 	GuiImage dialogBoxImg(&dialogBox);
@@ -188,20 +188,18 @@ UpdateGUI (void *arg)
 			UpdatePads();
 			mainWindow->draw();
 
-			#ifdef HW_RVL
 			for(i=3; i >= 0; i--) // so that player 1's cursor appears on top!
 			{
-				if(userInput[i].wpad->ir.valid)
-					Menu_DrawImg(userInput[i].wpad->ir.x-48, userInput[i].wpad->ir.y-48,
-						96, 96, pointer[i]->getImage(), userInput[i].wpad->ir.angle, 1, 1, 255);
+				if(userInput[i]->getPadData().validPointer)
+					Menu_DrawImg(userInput[i]->getPadData().cursor_x-48, userInput[i]->getPadData().cursor_y-48,
+						96, 96, pointer[i]->getImage(), userInput[i]->getPadData().cursor_angle, 1, 1, 255);
 				DoRumble(i);
 			}
-			#endif
 
 			Menu_Render();
 
 			for(i=0; i < 4; i++)
-				mainWindow->update(&userInput[i]);
+				mainWindow->update(userInput[i]);
 
 			if(ExitRequested)
 			{
@@ -245,7 +243,7 @@ static void OnScreenKeyboard(char * var, u16 maxlen)
 	GuiImageData btnOutline(button_png);
 	GuiImageData btnOutlineOver(button_over_png);
 	GuiTrigger trigA;
-	trigA.setSimpleTrigger(-1, WPAD_BUTTON_A | WPAD_CLASSIC_BUTTON_A, PAD_BUTTON_A);
+	trigA.setPrimaryTrigger();
 
 	GuiText okBtnTxt("OK", 22, (GXColor){0, 0, 0, 255});
 	GuiImage okBtnImg(&btnOutline);
@@ -339,8 +337,8 @@ static int MenuBrowseDevice()
 	titleTxt.setPosition(100,50);
 
 	GuiTrigger trigA, trigB;
-	trigA.setSimpleTrigger(-1, WPAD_BUTTON_A | WPAD_CLASSIC_BUTTON_A, PAD_BUTTON_A);
-	trigB.setButtonOnlyTrigger(-1, WPAD_BUTTON_B | WPAD_CLASSIC_BUTTON_B, PAD_BUTTON_B);
+	trigA.setPrimaryTrigger();
+	trigB.setSecondaryTrigger();
 
 	GuiFileBrowser fileBrowser(552, 248);
 	fileBrowser.setAlignment(ALIGN_H::CENTRE, ALIGN_V::TOP);
@@ -433,9 +431,9 @@ static int MenuSettings()
 	GuiImageData btnLargeOutlineOver(button_large_over_png);
 
 	GuiTrigger trigA;
-	trigA.setSimpleTrigger(-1, WPAD_BUTTON_A | WPAD_CLASSIC_BUTTON_A, PAD_BUTTON_A);
+	trigA.setPrimaryTrigger();
 	GuiTrigger trigHome;
-	trigHome.setButtonOnlyTrigger(-1, WPAD_BUTTON_HOME | WPAD_CLASSIC_BUTTON_HOME, 0);
+	trigHome.setButtonOnlyTrigger(-1, GUI_BTN_HOME);
 
 	GuiText fileBtnTxt("File Browser", 22, (GXColor){0, 0, 0, 255});
 	fileBtnTxt.setWrap(true, btnLargeOutline.getWidth()-30);
@@ -636,8 +634,8 @@ static int MenuSettingsFile()
 	GuiImageData btnOutlineOver(button_over_png);
 
 	GuiTrigger trigA, trigB;
-	trigA.setSimpleTrigger(-1, WPAD_BUTTON_A | WPAD_CLASSIC_BUTTON_A, PAD_BUTTON_A);
-	trigB.setButtonOnlyTrigger(-1, WPAD_BUTTON_B | WPAD_CLASSIC_BUTTON_B, PAD_BUTTON_B);
+	trigA.setPrimaryTrigger();
+	trigB.setSecondaryTrigger();
 
 	GuiText backBtnTxt("Go Back", 22, (GXColor){0, 0, 0, 255});
 	GuiImage backBtnImg(&btnOutline);
@@ -782,7 +780,7 @@ void MainMenu(int menu)
 	mainWindow->append(bgImg);
 
 	GuiTrigger trigA;
-	trigA.setSimpleTrigger(-1, WPAD_BUTTON_A | WPAD_CLASSIC_BUTTON_A, PAD_BUTTON_A);
+	trigA.setPrimaryTrigger();
 
 	ResumeGui();
 

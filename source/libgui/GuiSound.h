@@ -1,7 +1,11 @@
-#ifndef GUISOUND_H
-#define GUISOUND_H
+/****************************************************************************
+ * libgui
+ * Daryl Borth 2009-2026
+ * GuiSound.h
+ ***************************************************************************/
 
-#include "Gui.h"
+#ifndef GUI_SOUND_H
+#define GUI_SOUND_H
 
 enum class SOUND {
 	PCM,
@@ -45,4 +49,4 @@ class GuiSound
 		bool loop; //!< Loop sound playback
 };
 
-#endif // GUISOUND_H
+#endif // GUI_SOUND_H

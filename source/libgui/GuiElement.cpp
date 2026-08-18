@@ -10,9 +10,6 @@
 
 #include "Gui.h"
 
-/**
- * Constructor for the Object class.
- */
 GuiElement::GuiElement()
 {
 	xoffset = 0;
@@ -54,9 +51,6 @@ GuiElement::GuiElement()
 	alignmentHor = ALIGN_H::LEFT;
 }
 
-/**
- * Destructor for the GuiElement class.
- */
 GuiElement::~GuiElement()
 {
 }
@@ -537,9 +531,9 @@ void GuiElement::updateEffects()
 	}
 }
 
-void GuiElement::update(GuiTrigger * t)
+void GuiElement::update(GuiInputController * controller)
 {
-	(void)t; //unused
+	(void)controller; //unused
 
 	if(updateCB)
 		updateCB(this);

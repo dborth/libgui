@@ -1,7 +1,11 @@
-#ifndef GUITEXT_H
-#define GUITEXT_H
+/****************************************************************************
+ * libgui
+ * Daryl Borth 2009-2026
+ * GuiText.h
+ ***************************************************************************/
 
-#include "Gui.h"
+#ifndef GUI_TEXT_H
+#define GUI_TEXT_H
 
 //!Display, manage, and manipulate text in the GUI
 class GuiText : public GuiElement
@@ -80,4 +84,4 @@ class GuiText : public GuiElement
 		bool wrap; //!< Wrapping toggle
 };
 
-#endif // GUITEXT_H
+#endif // GUI_TEXT_H

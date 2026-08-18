@@ -13,6 +13,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <wiiuse/wpad.h>
+#include <ogc/machine/processor.h>
 
 #include "input.h"
 #include "libgui/Gui.h"
@@ -39,18 +40,9 @@ ResetVideo_Menu()
 	f32 yscale;
 	u32 xfbHeight;
 
-	VIDEO_Configure (vmode);
-	VIDEO_Flush();
-	VIDEO_WaitVSync();
-	if (vmode->viTVMode & VI_NON_INTERLACE)
-		VIDEO_WaitVSync();
-	else
-		while (VIDEO_GetNextField())
-			VIDEO_WaitVSync();
-
 	// clears the bg to color and clears the z buffer
 	GXColor background = {0, 0, 0, 255};
-	GX_SetCopyClear (background, 0x00ffffff);
+	GX_SetCopyClear (background, GX_MAX_Z24);
 
 	yscale = GX_GetYScaleFactor(vmode->efbHeight,vmode->xfbHeight);
 	xfbHeight = GX_SetDispCopyYScale(yscale);
@@ -109,18 +101,36 @@ void
 InitVideo ()
 {
 	VIDEO_Init();
+
+	#ifdef HW_RVL
+	if (CONF_GetAspectRatio() == CONF_ASPECT_16_9 && (*(u32*)(0xCD8005A0) >> 16) == 0xCAFE) // Wii U
+	{
+	write32(0xd8006a0, 0x30000004), mask32(0xd8006a8, 0, 2);
+	}
+	#endif
+	
 	vmode = VIDEO_GetPreferredMode(nullptr); // get default video mode
 
-	// widescreen fix
-	if(CONF_GetAspectRatio() == CONF_ASPECT_16_9)
-		vmode->viWidth = VI_MAX_WIDTH_PAL;
+	#ifdef HW_RVL
+	if (CONF_GetAspectRatio() == CONF_ASPECT_16_9)
+		vmode->viWidth = 678;
+	else
+		vmode->viWidth = 672;
+
+	if((vmode->viTVMode >> 2) == VI_NTSC)
+	{
+		vmode->viXOrigin = (VI_MAX_WIDTH_NTSC - vmode->viWidth) / 2;
+		vmode->viYOrigin = (VI_MAX_HEIGHT_NTSC - vmode->viHeight) / 2;
+	}
+	else
+	{
+		vmode->viXOrigin = (VI_MAX_WIDTH_PAL - vmode->viWidth) / 2;
+		vmode->viYOrigin = (VI_MAX_HEIGHT_PAL - vmode->viHeight) / 2;
+	}
+	#endif
 
 	VIDEO_Configure (vmode);
-
-	screenheight = 480;
-	screenwidth = vmode->fbWidth;
-
-	// Allocate the video buffers
+	
 	xfb[0] = (u32 *) SYS_AllocateFramebuffer (vmode);
 	xfb[1] = (u32 *) SYS_AllocateFramebuffer (vmode);
 	DCInvalidateRange(xfb[0], VIDEO_GetFrameBufferSize(vmode));
@@ -128,10 +138,6 @@ InitVideo ()
 	xfb[0] = (u32 *) MEM_K0_TO_K1 (xfb[0]);
 	xfb[1] = (u32 *) MEM_K0_TO_K1 (xfb[1]);
 
-	// A console is always useful while debugging
-	console_init (xfb[0], 20, 64, vmode->fbWidth, vmode->xfbHeight, vmode->fbWidth * 2);
-
-	// Clear framebuffers etc.
 	VIDEO_ClearFrameBuffer (vmode, xfb[0], COLOR_BLACK);
 	VIDEO_ClearFrameBuffer (vmode, xfb[1], COLOR_BLACK);
 	VIDEO_SetNextFramebuffer (xfb[0]);
@@ -141,17 +147,19 @@ InitVideo ()
 	VIDEO_WaitVSync ();
 	if (vmode->viTVMode & VI_NON_INTERLACE)
 		VIDEO_WaitVSync ();
+	
+	screenheight = 480;
+	screenwidth = vmode->fbWidth;
 
 	// Initialize GX
 	GXColor background = { 0, 0, 0, 0xff };
 	memset (&gp_fifo, 0, DEFAULT_FIFO_SIZE);
 	GX_Init (&gp_fifo, DEFAULT_FIFO_SIZE);
-	GX_SetCopyClear (background, 0x00ffffff);
+	GX_SetCopyClear (background, GX_MAX_Z24);
 	GX_SetDispCopyGamma (GX_GM_1_0);
 	GX_SetCullMode (GX_CULL_NONE);
-	
+
 	ResetVideo_Menu();
-	// Finally, the video is up and ready for use :)
 }
 
 /****************************************************************************
@@ -182,8 +190,7 @@ void Menu_Render()
 	GX_DrawDone();
 	VIDEO_SetNextFramebuffer(xfb[whichfb]);
 	VIDEO_Flush();
-	VIDEO_WaitVSync();
-	FrameTimer++;
+	VIDEO_WaitForFlush();
 }
 
 /****************************************************************************
@@ -210,8 +217,7 @@ void Menu_DrawImg(f32 xpos, f32 ypos, u16 width, u16 height, u8 data[],
 	width  >>= 1;
 	height >>= 1;
 
-	guMtxIdentity (m1);
-	guMtxScaleApply(m1,m1,scaleX,scaleY,1.0);
+	guMtxScale(m1, scaleX, scaleY, 1.0);
 	guVector axis = (guVector) {0 , 0, 1 };
 	guMtxRotAxisDeg (m2, &axis, degrees);
 	guMtxConcat(m2,m1,m);

@@ -1,7 +1,11 @@
-#ifndef GUITOOLTIP_H
-#define GUITOOLTIP_H
+/****************************************************************************
+ * libgui
+ * Daryl Borth 2009-2026
+ * GuiTooltip.h
+ ***************************************************************************/
 
-#include "Gui.h"
+#ifndef GUI_TOOLTIP_H
+#define GUI_TOOLTIP_H
 
 //!Display, manage, and manipulate tooltips in the GUI
 class GuiTooltip : public GuiElement
@@ -29,4 +33,4 @@ class GuiTooltip : public GuiElement
 		GuiText *text; //!< Tooltip text
 };
 
-#endif // GUITOOLTIP_H
+#endif // GUI_TOOLTIP_H

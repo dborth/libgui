@@ -1,8 +1,6 @@
 #ifndef GUIKEYBOARD_H
 #define GUIKEYBOARD_H
 
-#include "Gui.h"
-
 constexpr int KB_ROWS = 4;
 constexpr int KB_COLUMNS = 11;
 
@@ -18,7 +16,7 @@ class GuiKeyboard : public GuiWindow
 	public:
 		GuiKeyboard(char * t, u32 m);
 		~GuiKeyboard();
-		void update(GuiTrigger * t);
+		void update(GuiInputController * c);
 		char kbtextstr[256];
 	protected:
 		u32 kbtextmaxlen;
@@ -55,7 +53,6 @@ class GuiKeyboard : public GuiWindow
 		GuiSound * keySoundOver;
 		GuiSound * keySoundClick;
 		GuiTrigger * trigA;
-		GuiTrigger * trig2;
 		Key keys[KB_ROWS][KB_COLUMNS]; // two chars = less space than one pointer
 };
 
