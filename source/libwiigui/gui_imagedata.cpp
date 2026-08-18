@@ -35,17 +35,17 @@ GuiImageData::~GuiImageData()
 	}
 }
 
-u8 * GuiImageData::GetImage()
+u8 * GuiImageData::getImage()
 {
 	return data;
 }
 
-int GuiImageData::GetWidth()
+int GuiImageData::getWidth()
 {
 	return width;
 }
 
-int GuiImageData::GetHeight()
+int GuiImageData::getHeight()
 {
 	return height;
 }

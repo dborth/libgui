@@ -17,22 +17,22 @@ public:
 	//!Destructor
 	~GuiSound();
 	//!Start sound playback
-	void Play();
+	void play();
 	//!Stop sound playback
-	void Stop();
+	void stop();
 	//!Pause sound playback
-	void Pause();
+	void pause();
 	//!Resume sound playback
-	void Resume();
+	void resume();
 	//!Checks if the sound is currently playing
 	//!\return true if sound is playing, false otherwise
-	bool IsPlaying();
+	bool isPlaying();
 	//!Set sound volume
 	//!\param v Sound volume (0-100)
-	void SetVolume(int v);
+	void setVolume(int v);
 	//!Set the sound to loop playback (only applies to OGG)
 	//!\param l Loop (true to loop)
-	void SetLoop(bool l);
+	void setLoop(bool l);
 protected:
 	const u8 * sound; //!< Pointer to the sound data
 	SOUND type; //!< Sound format type (PCM or OGG)

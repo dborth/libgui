@@ -34,7 +34,7 @@ GuiSound::~GuiSound()
 	#endif
 }
 
-void GuiSound::Play()
+void GuiSound::play()
 {
 	#ifndef NO_SOUND
 	int vol;
@@ -61,7 +61,7 @@ void GuiSound::Play()
 	#endif
 }
 
-void GuiSound::Stop()
+void GuiSound::stop()
 {
 	#ifndef NO_SOUND
 	if(voice < 0)
@@ -80,7 +80,7 @@ void GuiSound::Stop()
 	#endif
 }
 
-void GuiSound::Pause()
+void GuiSound::pause()
 {
 	#ifndef NO_SOUND
 	if(voice < 0)
@@ -99,7 +99,7 @@ void GuiSound::Pause()
 	#endif
 }
 
-void GuiSound::Resume()
+void GuiSound::resume()
 {
 	#ifndef NO_SOUND
 	if(voice < 0)
@@ -118,7 +118,7 @@ void GuiSound::Resume()
 	#endif
 }
 
-bool GuiSound::IsPlaying()
+bool GuiSound::isPlaying()
 {
 	if(ASND_StatusVoice(voice) == SND_WORKING || ASND_StatusVoice(voice) == SND_WAITING)
 		return true;
@@ -126,7 +126,7 @@ bool GuiSound::IsPlaying()
 		return false;
 }
 
-void GuiSound::SetVolume(int vol)
+void GuiSound::setVolume(int vol)
 {
 	#ifndef NO_SOUND
 	volume = vol;
@@ -149,7 +149,7 @@ void GuiSound::SetVolume(int vol)
 	#endif
 }
 
-void GuiSound::SetLoop(bool l)
+void GuiSound::setLoop(bool l)
 {
 	loop = l;
 }

@@ -10,12 +10,12 @@ public:
 	//!Destructor
 	~GuiTooltip();
 	//!Gets the element's current scale
-	float GetScale();
+	float getScale();
 	//!Sets the text of the GuiTooltip element
 	//!\param t Text
-	void SetText(const char * t);
+	void setText(const char * t);
 	//!Constantly called to draw the GuiTooltip
-	void DrawTooltip();
+	void drawTooltip();
 
 	time_t time1, time2; //!< Tooltip times
 

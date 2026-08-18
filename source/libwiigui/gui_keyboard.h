@@ -13,7 +13,7 @@ class GuiKeyboard : public GuiWindow {
 public:
 	GuiKeyboard(char * t, u32 m);
 	~GuiKeyboard();
-	void Update(GuiTrigger * t);
+	void update(GuiTrigger * t);
 	char kbtextstr[256];
 protected:
 	u32 kbtextmaxlen;

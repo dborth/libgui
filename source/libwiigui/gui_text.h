@@ -17,12 +17,12 @@ public:
 	~GuiText();
 	//!Sets the text of the GuiText element
 	//!\param t Text
-	void SetText(const char * t);
+	void setText(const char * t);
 	//!Sets the text of the GuiText element
 	//!\param t UTF-8 Text
-	void SetWText(wchar_t * t);
+	void setWText(wchar_t * t);
 	//!Gets the translated text length of the GuiText element
-	int GetLength();
+	int getLength();
 	//!Sets up preset values to be used by GuiText(t)
 	//!Useful when printing multiple text elements, all with the same attributes set
 	//!\param sz Font size
@@ -31,36 +31,36 @@ public:
 	//!\param s Font size
 	//!\param h Text alignment (horizontal)
 	//!\param v Text alignment (vertical)
-	static void SetPresets(int sz, GXColor c, int w, u16 s, ALIGN_H h, ALIGN_V v);
+	static void setPresets(int sz, GXColor c, int w, u16 s, ALIGN_H h, ALIGN_V v);
 	//!Sets the font size
 	//!\param s Font size
-	void SetFontSize(int s);
+	void setFontSize(int s);
 	//!Sets the maximum width of the drawn texture image
 	//!\param w Maximum width
-	void SetMaxWidth(int w);
+	void setMaxWidth(int w);
 	//!Gets the width of the text when rendered
-	int GetTextWidth();
+	int getTextWidth();
 	//!Enables/disables text scrolling
 	//!\param s Scrolling on/off
-	void SetScroll(SCROLL s);
+	void setScroll(SCROLL s);
 	//!Enables/disables text wrapping
 	//!\param w Wrapping on/off
 	//!\param width Maximum width (0 to disable)
-	void SetWrap(bool w, int width = 0);
+	void setWrap(bool w, int width = 0);
 	//!Sets the font color
 	//!\param c Font color
-	void SetColor(GXColor c);
+	void setColor(GXColor c);
 	//!Sets the FreeTypeGX style attributes
 	//!\param s Style attributes
-	void SetStyle(u16 s);
+	void setStyle(u16 s);
 	//!Sets the text alignment
 	//!\param hor Horizontal alignment (LEFT, RIGHT, CENTRE)
 	//!\param vert Vertical alignment (TOP, BOTTOM, MIDDLE)
-	void SetAlignment(ALIGN_H hor, ALIGN_V vert);
+	void setAlignment(ALIGN_H hor, ALIGN_V vert);
 	//!Updates the text to the selected language
-	void ResetText();
+	void resetText();
 	//!Constantly called to draw the text
-	void Draw() override;
+	void draw() override;
 protected:
 	GXColor color; //!< Font color
 	wchar_t* text; //!< Translated Unicode text value

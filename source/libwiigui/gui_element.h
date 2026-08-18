@@ -12,182 +12,182 @@ public:
 	virtual ~GuiElement();
 	//!Set the element's parent
 	//!\param e Pointer to parent element
-	void SetParent(GuiElement * e);
+	void setParent(GuiElement * e);
 	//!Gets the element's parent
 	//!\return Pointer to parent element
-	GuiElement * GetParent();
+	GuiElement * getParent();
 	//!Gets the current leftmost coordinate of the element
 	//!Considers horizontal alignment, x offset, width, and parent element's GetLeft() / GetWidth() values
 	//!\return left coordinate
-	int GetLeft();
+	int getLeft();
 	//!Gets the current topmost coordinate of the element
 	//!Considers vertical alignment, y offset, height, and parent element's GetTop() / GetHeight() values
 	//!\return top coordinate
-	int GetTop();
+	int getTop();
 	//!Sets the minimum y offset of the element
 	//!\param y Y offset
-	void SetMinY(int y);
+	void setMinY(int y);
 	//!Gets the minimum y offset of the element
 	//!\return Minimum Y offset
-	int GetMinY();
+	int getMinY();
 	//!Sets the maximum y offset of the element
 	//!\param y Y offset
-	void SetMaxY(int y);
+	void setMaxY(int y);
 	//!Gets the maximum y offset of the element
 	//!\return Maximum Y offset
-	int GetMaxY();
+	int getMaxY();
 	//!Sets the minimum x offset of the element
 	//!\param x X offset
-	void SetMinX(int x);
+	void setMinX(int x);
 	//!Gets the minimum x offset of the element
 	//!\return Minimum X offset
-	int GetMinX();
+	int getMinX();
 	//!Sets the maximum x offset of the element
 	//!\param x X offset
-	void SetMaxX(int x);
+	void setMaxX(int x);
 	//!Gets the maximum x offset of the element
 	//!\return Maximum X offset
-	int GetMaxX();
+	int getMaxX();
 	//!Gets the current width of the element. Does not currently consider the scale
 	//!\return width
-	int GetWidth();
+	int getWidth();
 	//!Gets the height of the element. Does not currently consider the scale
 	//!\return height
-	int GetHeight();
+	int getHeight();
 	//!Sets the size (width/height) of the element
 	//!\param w Width of element
 	//!\param h Height of element
-	void SetSize(int w, int h);
+	void setSize(int w, int h);
 	//!Checks whether or not the element is visible
 	//!\return true if visible, false otherwise
-	bool IsVisible();
+	bool isVisible();
 	//!Checks whether or not the element is selectable
 	//!\return true if selectable, false otherwise
-	bool IsSelectable();
+	bool isSelectable();
 	//!Checks whether or not the element is clickable
 	//!\return true if clickable, false otherwise
-	bool IsClickable();
+	bool isClickable();
 	//!Checks whether or not the element is holdable
 	//!\return true if holdable, false otherwise
-	bool IsHoldable();
+	bool isHoldable();
 	//!Sets whether or not the element is selectable
 	//!\param s Selectable
-	void SetSelectable(bool s);
+	void setSelectable(bool s);
 	//!Sets whether or not the element is clickable
 	//!\param c Clickable
-	void SetClickable(bool c);
+	void setClickable(bool c);
 	//!Sets whether or not the element is holdable
 	//!\param h Holdable
-	void SetHoldable(bool h);
+	void setHoldable(bool h);
 	//!Gets the element's current state
 	//!\return state
-	STATE GetState();
+	STATE getState();
 	//!Gets the controller channel that last changed the element's state
 	//!\return Channel number (0-3, -1 = no channel)
-	int GetStateChan();
+	int getStateChan();
 	//!Sets the element's alpha value
 	//!\param a alpha value
-	void SetAlpha(int a);
+	void setAlpha(int a);
 	//!Gets the element's alpha value
 	//!Considers alpha, alphaDyn, and the parent element's GetAlpha() value
 	//!\return alpha
-	int GetAlpha();
+	int getAlpha();
 	//!Sets the element's x and y scale
 	//!\param s scale (1 is 100%)
-	void SetScale(float s);
+	void setScale(float s);
 	//!Sets the element's x scale
 	//!\param s scale (1 is 100%)
-	void SetScaleX(float s);
+	void setScaleX(float s);
 	//!Sets the element's y scale
 	//!\param s scale (1 is 100%)
-	void SetScaleY(float s);
+	void setScaleY(float s);
 	//!Sets the element's x and y scale, using the provided max width/height
 	//!\param w Maximum width
 	//!\param h Maximum height
-	void SetScale(int w, int h);
+	void setScale(int w, int h);
 	//!Gets the element's current scale
 	//!Considers scale, scaleDyn, and the parent element's GetScale() value
-	float GetScale();
+	float getScale();
 	//!Gets the element's current x scale
 	//!Considers scale, scaleDyn, and the parent element's GetScale() value
-	float GetScaleX();
+	float getScaleX();
 	//!Gets the element's current y scale
 	//!Considers scale, scaleDyn, and the parent element's GetScale() value
-	float GetScaleY();
+	float getScaleY();
 	//!Set a new GuiTrigger for the element
 	//!\param t Pointer to GuiTrigger
-	void SetTrigger(GuiTrigger * t);
+	void setTrigger(GuiTrigger * t);
 	//!\overload
 	//!\param i Index of trigger array to set
 	//!\param t Pointer to GuiTrigger
-	void SetTrigger(u8 i, GuiTrigger * t);
+	void setTrigger(u8 i, GuiTrigger * t);
 	//!Checks whether rumble was requested by the element
 	//!\return true is rumble was requested, false otherwise
-	bool Rumble();
+	bool isRumble();
 	//!Sets whether or not the element is requesting a rumble event
 	//!\param r true if requesting rumble, false if not
-	void SetRumble(bool r);
+	void setRumble(bool r);
 	//!Set an effect for the element
 	//!\param e Effect to enable
 	//!\param a Amount of the effect (usage varies on effect)
 	//!\param t Target amount of the effect (usage varies on effect)
-	void SetEffect(int e, int a, int t = 0);
+	void setEffect(int e, int a, int t = 0);
 	//!Sets an effect to be enabled on wiimote cursor over
 	//!\param e Effect to enable
 	//!\param a Amount of the effect (usage varies on effect)
 	//!\param t Target amount of the effect (usage varies on effect)
-	void SetEffectOnOver(int e, int a, int t = 0);
+	void setEffectOnOver(int e, int a, int t = 0);
 	//!Shortcut to SetEffectOnOver(EFFECT_SCALE, 4, 110)
-	void SetEffectGrow();
+	void setEffectGrow();
 	//!Gets the current element effects
 	//!\return element effects
-	int GetEffect();
+	int getEffect();
 	//!Checks whether the specified coordinates are within the element's boundaries
 	//!\param x X coordinate
 	//!\param y Y coordinate
 	//!\return true if contained within, false otherwise
-	bool IsInside(int x, int y);
+	bool isInside(int x, int y);
 	//!Sets the element's position
 	//!\param x X coordinate
 	//!\param y Y coordinate
-	void SetPosition(int x, int y);
+	void setPosition(int x, int y);
 	//!Updates the element's effects (dynamic values)
 	//!Called by Draw(), used for animation purposes
-	void UpdateEffects();
+	void updateEffects();
 	//!Sets a function to called after after Update()
 	//!Callback function can be used to response to changes in the state of the element, and/or update the element's attributes
-	void SetUpdateCallback(UpdateCallback u);
+	void setUpdateCallback(UpdateCallback u);
 	//!Checks whether the element is in focus
 	//!\return true if element is in focus, false otherwise
-	int IsFocused();
+	int isFocused();
 	//!Sets the element's visibility
 	//!\param v Visibility (true = visible)
-	virtual void SetVisible(bool v);
+	virtual void setVisible(bool v);
 	//!Sets the element's focus
 	//!\param f Focus (true = in focus)
-	virtual void SetFocus(int f);
+	virtual void setFocus(int f);
 	//!Sets the element's state
 	//!\param s State (STATE::DEFAULT, STATE::SELECTED, STATE::CLICKED, STATE::DISABLED)
 	//!\param c Controller channel (0-3, -1 = none)
-	virtual void SetState(STATE s, int c = -1);
+	virtual void setState(STATE s, int c = -1);
 	//!Resets the element's state to STATE::DEFAULT
-	virtual void ResetState();
+	virtual void resetState();
 	//!Gets whether or not the element is in STATE::SELECTED
 	//!\return true if selected, false otherwise
-	virtual int GetSelected();
+	virtual int getSelected();
 	//!Sets the element's alignment respective to its parent element
 	//!\param hor Horizontal alignment (LEFT, RIGHT, CENTRE)
 	//!\param vert Vertical alignment (TOP, BOTTOM, MIDDLE)
-	virtual void SetAlignment(ALIGN_H hor, ALIGN_V vert);
+	virtual void setAlignment(ALIGN_H hor, ALIGN_V vert);
 	//!Called when the language has changed, to obtain new text values for all text elements
-	virtual void ResetText();
+	virtual void resetText();
 	//!Called constantly to allow the element to respond to the current input data
 	//!\param t Pointer to a GuiTrigger, containing the current input data from PAD/WPAD
-	virtual void Update(GuiTrigger * t);
+	virtual void update(GuiTrigger * t);
 	//!Called constantly to redraw the element
-	virtual void Draw() = 0;
+	virtual void draw() = 0;
 	//!Called constantly to redraw the element's tooltip
-	virtual void DrawTooltip();
+	virtual void drawTooltip();
 protected:
 	GuiTrigger * trigger[MAX_TRIGGERS]; //!< GuiTriggers (input actions) that this element responds to
 	UpdateCallback updateCB; //!< Callback function to call when this element is updated

@@ -20,25 +20,25 @@ public:
 	//!\param wiibtns Wii controller trigger button(s) - classic controller buttons are considered separately
 	//!\param gcbtns GameCube controller trigger button(s)
 	//!\param wiidrcbtns Wii U Gamepad trigger button(s)
-	void SetSimpleTrigger(s32 ch, u32 wiibtns, u16 gcbtns = 0, u16 wiidrcbtns = 0);
+	void setSimpleTrigger(s32 ch, u32 wiibtns, u16 gcbtns = 0, u16 wiidrcbtns = 0);
 	//!Sets a held trigger. Requires: element is selected, and trigger button is pressed
 	//!\param ch Controller channel number
 	//!\param wiibtns Wii controller trigger button(s) - classic controller buttons are considered separately
 	//!\param gcbtns GameCube controller trigger button(s)
 	//!\param wiidrcbtns Wii U Gamepad trigger button(s)
-	void SetHeldTrigger(s32 ch, u32 wiibtns, u16 gcbtns = 0, u16 wiidrcbtns = 0);
+	void setHeldTrigger(s32 ch, u32 wiibtns, u16 gcbtns = 0, u16 wiidrcbtns = 0);
 	//!Sets a button-only trigger. Requires: Trigger button is pressed
 	//!\param ch Controller channel number
 	//!\param wiibtns Wii controller trigger button(s) - classic controller buttons are considered separately
 	//!\param gcbtns GameCube controller trigger button(s)
 	//!\param wiidrcbtns Wii U Gamepad trigger button(s)
-	void SetButtonOnlyTrigger(s32 ch, u32 wiibtns, u16 gcbtns = 0, u16 wiidrcbtns = 0);
+	void setButtonOnlyTrigger(s32 ch, u32 wiibtns, u16 gcbtns = 0, u16 wiidrcbtns = 0);
 	//!Sets a button-only trigger. Requires: trigger button is pressed and parent window of element is in focus
 	//!\param ch Controller channel number
 	//!\param wiibtns Wii controller trigger button(s) - classic controller buttons are considered separately
 	//!\param gcbtns GameCube controller trigger button(s)
 	//!\param wiidrcbtns Wii U Gamepad trigger button(s)
-	void SetButtonOnlyInFocusTrigger(s32 ch, u32 wiibtns, u16 gcbtns = 0, u16 wiidrcbtns = 0);
+	void setButtonOnlyInFocusTrigger(s32 ch, u32 wiibtns, u16 gcbtns = 0, u16 wiidrcbtns = 0);
 	//!Get X or Y value from Wii Joystick (classic, nunchuk) input
 	//!\param stick Controller stick (left = 0, right = 1)
 	//!\param axis Controller stick axis (x-axis = 0, y-axis = 1)
@@ -57,16 +57,16 @@ public:
 	void TurnWiimote(bool sideways);
 	//!Move menu selection left (via pad/joystick). Allows scroll delay and button overriding
 	//!\return true if selection should be moved left, false otherwise
-	bool Left();
+	bool left();
 	//!Move menu selection right (via pad/joystick). Allows scroll delay and button overriding
 	//!\return true if selection should be moved right, false otherwise
-	bool Right();
+	bool right();
 	//!Move menu selection up (via pad/joystick). Allows scroll delay and button overriding
 	//!\return true if selection should be moved up, false otherwise
-	bool Up();
+	bool up();
 	//!Move menu selection down (via pad/joystick). Allows scroll delay and button overriding
 	//!\return true if selection should be moved down, false otherwise
-	bool Down();
+	bool down();
 
 	WPADData wpaddata; //!< Wii controller trigger data
 	PADData pad; //!< GameCube controller trigger data

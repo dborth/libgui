@@ -14,13 +14,13 @@ public:
 	~GuiImageData();
 	//!Gets a pointer to the image data
 	//!\return pointer to image data
-	u8 * GetImage();
+	u8 * getImage();
 	//!Gets the image width
 	//!\return image width
-	int GetWidth();
+	int getWidth();
 	//!Gets the image height
 	//!\return image height
-	int GetHeight();
+	int getHeight();
 protected:
 	u8 * data; //!< Image data
 	int height; //!< Height of image

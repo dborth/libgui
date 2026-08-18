@@ -6,11 +6,11 @@ class GuiFileBrowser : public GuiElement {
 public:
 	GuiFileBrowser(int w, int h);
 	~GuiFileBrowser();
-	void ResetState();
-	void SetFocus(int f);
-	void Draw() override;
-	void TriggerUpdate();
-	void Update(GuiTrigger * t);
+	void resetState();
+	void setFocus(int f);
+	void draw() override;
+	void triggerUpdate();
+	void update(GuiTrigger * t);
 	GuiButton * fileList[FILE_PAGESIZE];
 protected:
 	GuiText * fileListText[FILE_PAGESIZE];

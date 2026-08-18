@@ -12,16 +12,16 @@ class GuiOptionBrowser : public GuiElement {
 public:
 	GuiOptionBrowser(int w, int h, OptionList * l);
 	~GuiOptionBrowser();
-	void SetCol1Position(int x);
-	void SetCol2Position(int x);
-	int FindMenuItem(int c, int d);
-	int GetClickedOption();
-	void ResetState();
-	void SetFocus(int f);
-	void Draw() override;
-	void TriggerUpdate();
-	void ResetText();
-	void Update(GuiTrigger * t);
+	void setCol1Position(int x);
+	void setCol2Position(int x);
+	int findMenuItem(int c, int d);
+	int getClickedOption();
+	void resetState();
+	void setFocus(int f);
+	void draw() override;
+	void triggerUpdate();
+	void resetText();
+	void update(GuiTrigger * t);
 	GuiText * optionVal[PAGESIZE];
 protected:
 	int optionIndex[PAGESIZE];

@@ -74,93 +74,93 @@ WindowPrompt(const char *title, const char *msg, const char *btn1Label, const ch
 	int choice = -1;
 
 	GuiWindow promptWindow(448,288);
-	promptWindow.SetAlignment(ALIGN_H::CENTRE, ALIGN_V::MIDDLE);
-	promptWindow.SetPosition(0, -10);
+	promptWindow.setAlignment(ALIGN_H::CENTRE, ALIGN_V::MIDDLE);
+	promptWindow.setPosition(0, -10);
 	GuiSound btnSoundOver(button_over_pcm, button_over_pcm_size, SOUND::PCM);
 	GuiImageData btnOutline(button_png);
 	GuiImageData btnOutlineOver(button_over_png);
 	GuiTrigger trigA;
-	trigA.SetSimpleTrigger(-1, WPAD_BUTTON_A | WPAD_CLASSIC_BUTTON_A, PAD_BUTTON_A);
+	trigA.setSimpleTrigger(-1, WPAD_BUTTON_A | WPAD_CLASSIC_BUTTON_A, PAD_BUTTON_A);
 
 	GuiImageData dialogBox(dialogue_box_png);
 	GuiImage dialogBoxImg(&dialogBox);
 
 	GuiText titleTxt(title, 26, (GXColor){0, 0, 0, 255});
-	titleTxt.SetAlignment(ALIGN_H::CENTRE, ALIGN_V::TOP);
-	titleTxt.SetPosition(0,40);
+	titleTxt.setAlignment(ALIGN_H::CENTRE, ALIGN_V::TOP);
+	titleTxt.setPosition(0,40);
 	GuiText msgTxt(msg, 22, (GXColor){0, 0, 0, 255});
-	msgTxt.SetAlignment(ALIGN_H::CENTRE, ALIGN_V::MIDDLE);
-	msgTxt.SetPosition(0,-20);
-	msgTxt.SetWrap(true, 400);
+	msgTxt.setAlignment(ALIGN_H::CENTRE, ALIGN_V::MIDDLE);
+	msgTxt.setPosition(0,-20);
+	msgTxt.setWrap(true, 400);
 
 	GuiText btn1Txt(btn1Label, 22, (GXColor){0, 0, 0, 255});
 	GuiImage btn1Img(&btnOutline);
 	GuiImage btn1ImgOver(&btnOutlineOver);
-	GuiButton btn1(btnOutline.GetWidth(), btnOutline.GetHeight());
+	GuiButton btn1(btnOutline.getWidth(), btnOutline.getHeight());
 
 	if(btn2Label)
 	{
-		btn1.SetAlignment(ALIGN_H::LEFT, ALIGN_V::BOTTOM);
-		btn1.SetPosition(20, -25);
+		btn1.setAlignment(ALIGN_H::LEFT, ALIGN_V::BOTTOM);
+		btn1.setPosition(20, -25);
 	}
 	else
 	{
-		btn1.SetAlignment(ALIGN_H::CENTRE, ALIGN_V::BOTTOM);
-		btn1.SetPosition(0, -25);
+		btn1.setAlignment(ALIGN_H::CENTRE, ALIGN_V::BOTTOM);
+		btn1.setPosition(0, -25);
 	}
 
-	btn1.SetLabel(&btn1Txt);
-	btn1.SetImage(&btn1Img);
-	btn1.SetImageOver(&btn1ImgOver);
-	btn1.SetSoundOver(&btnSoundOver);
-	btn1.SetTrigger(&trigA);
-	btn1.SetState(STATE::SELECTED);
-	btn1.SetEffectGrow();
+	btn1.setLabel(&btn1Txt);
+	btn1.setImage(&btn1Img);
+	btn1.setImageOver(&btn1ImgOver);
+	btn1.setSoundOver(&btnSoundOver);
+	btn1.setTrigger(&trigA);
+	btn1.setState(STATE::SELECTED);
+	btn1.setEffectGrow();
 
 	GuiText btn2Txt(btn2Label, 22, (GXColor){0, 0, 0, 255});
 	GuiImage btn2Img(&btnOutline);
 	GuiImage btn2ImgOver(&btnOutlineOver);
-	GuiButton btn2(btnOutline.GetWidth(), btnOutline.GetHeight());
-	btn2.SetAlignment(ALIGN_H::RIGHT, ALIGN_V::BOTTOM);
-	btn2.SetPosition(-20, -25);
-	btn2.SetLabel(&btn2Txt);
-	btn2.SetImage(&btn2Img);
-	btn2.SetImageOver(&btn2ImgOver);
-	btn2.SetSoundOver(&btnSoundOver);
-	btn2.SetTrigger(&trigA);
-	btn2.SetEffectGrow();
+	GuiButton btn2(btnOutline.getWidth(), btnOutline.getHeight());
+	btn2.setAlignment(ALIGN_H::RIGHT, ALIGN_V::BOTTOM);
+	btn2.setPosition(-20, -25);
+	btn2.setLabel(&btn2Txt);
+	btn2.setImage(&btn2Img);
+	btn2.setImageOver(&btn2ImgOver);
+	btn2.setSoundOver(&btnSoundOver);
+	btn2.setTrigger(&trigA);
+	btn2.setEffectGrow();
 
-	promptWindow.Append(&dialogBoxImg);
-	promptWindow.Append(&titleTxt);
-	promptWindow.Append(&msgTxt);
-	promptWindow.Append(&btn1);
+	promptWindow.append(&dialogBoxImg);
+	promptWindow.append(&titleTxt);
+	promptWindow.append(&msgTxt);
+	promptWindow.append(&btn1);
 
 	if(btn2Label)
-		promptWindow.Append(&btn2);
+		promptWindow.append(&btn2);
 
-	promptWindow.SetEffect(EFFECT::SLIDE_TOP | EFFECT::SLIDE_IN, 50);
+	promptWindow.setEffect(EFFECT::SLIDE_TOP | EFFECT::SLIDE_IN, 50);
 	HaltGui();
-	mainWindow->SetState(STATE::DISABLED);
-	mainWindow->Append(&promptWindow);
-	mainWindow->ChangeFocus(&promptWindow);
+	mainWindow->setState(STATE::DISABLED);
+	mainWindow->append(&promptWindow);
+	mainWindow->changeFocus(&promptWindow);
 	ResumeGui();
 
 	while(choice == -1)
 	{
 		usleep(THREAD_SLEEP);
 
-		if(btn1.GetState() == STATE::CLICKED)
+		if(btn1.getState() == STATE::CLICKED)
 			choice = 1;
-		else if(btn2.GetState() == STATE::CLICKED)
+		else if(btn2.getState() == STATE::CLICKED)
 			choice = 0;
 	}
 
-	promptWindow.SetEffect(EFFECT::SLIDE_TOP | EFFECT::SLIDE_OUT, 50);
-	while(promptWindow.GetEffect() > 0)
+	promptWindow.setEffect(EFFECT::SLIDE_TOP | EFFECT::SLIDE_OUT, 50);
+	while(promptWindow.getEffect() > 0)
 		usleep(THREAD_SLEEP);
 	HaltGui();
-	mainWindow->Remove(&promptWindow);
-	mainWindow->SetState(STATE::DEFAULT);
+	mainWindow->remove(&promptWindow);
+	mainWindow->setState(STATE::DEFAULT);
 	ResumeGui();
 	return choice;
 }
@@ -186,14 +186,14 @@ UpdateGUI (void *arg)
 		else
 		{
 			UpdatePads();
-			mainWindow->Draw();
+			mainWindow->draw();
 
 			#ifdef HW_RVL
 			for(i=3; i >= 0; i--) // so that player 1's cursor appears on top!
 			{
 				if(userInput[i].wpad->ir.valid)
 					Menu_DrawImg(userInput[i].wpad->ir.x-48, userInput[i].wpad->ir.y-48,
-						96, 96, pointer[i]->GetImage(), userInput[i].wpad->ir.angle, 1, 1, 255);
+						96, 96, pointer[i]->getImage(), userInput[i].wpad->ir.angle, 1, 1, 255);
 				DoRumble(i);
 			}
 			#endif
@@ -201,13 +201,13 @@ UpdateGUI (void *arg)
 			Menu_Render();
 
 			for(i=0; i < 4; i++)
-				mainWindow->Update(&userInput[i]);
+				mainWindow->update(&userInput[i]);
 
 			if(ExitRequested)
 			{
 				for(i = 0; i <= 255; i += 15)
 				{
-					mainWindow->Draw();
+					mainWindow->draw();
 					Menu_DrawRectangle(0,0,screenwidth,screenheight,(GXColor){0, 0, 0, (u8)i},1);
 					Menu_Render();
 				}
@@ -245,52 +245,52 @@ static void OnScreenKeyboard(char * var, u16 maxlen)
 	GuiImageData btnOutline(button_png);
 	GuiImageData btnOutlineOver(button_over_png);
 	GuiTrigger trigA;
-	trigA.SetSimpleTrigger(-1, WPAD_BUTTON_A | WPAD_CLASSIC_BUTTON_A, PAD_BUTTON_A);
+	trigA.setSimpleTrigger(-1, WPAD_BUTTON_A | WPAD_CLASSIC_BUTTON_A, PAD_BUTTON_A);
 
 	GuiText okBtnTxt("OK", 22, (GXColor){0, 0, 0, 255});
 	GuiImage okBtnImg(&btnOutline);
 	GuiImage okBtnImgOver(&btnOutlineOver);
-	GuiButton okBtn(btnOutline.GetWidth(), btnOutline.GetHeight());
+	GuiButton okBtn(btnOutline.getWidth(), btnOutline.getHeight());
 
-	okBtn.SetAlignment(ALIGN_H::LEFT, ALIGN_V::BOTTOM);
-	okBtn.SetPosition(25, -25);
+	okBtn.setAlignment(ALIGN_H::LEFT, ALIGN_V::BOTTOM);
+	okBtn.setPosition(25, -25);
 
-	okBtn.SetLabel(&okBtnTxt);
-	okBtn.SetImage(&okBtnImg);
-	okBtn.SetImageOver(&okBtnImgOver);
-	okBtn.SetSoundOver(&btnSoundOver);
-	okBtn.SetTrigger(&trigA);
-	okBtn.SetEffectGrow();
+	okBtn.setLabel(&okBtnTxt);
+	okBtn.setImage(&okBtnImg);
+	okBtn.setImageOver(&okBtnImgOver);
+	okBtn.setSoundOver(&btnSoundOver);
+	okBtn.setTrigger(&trigA);
+	okBtn.setEffectGrow();
 
 	GuiText cancelBtnTxt("Cancel", 22, (GXColor){0, 0, 0, 255});
 	GuiImage cancelBtnImg(&btnOutline);
 	GuiImage cancelBtnImgOver(&btnOutlineOver);
-	GuiButton cancelBtn(btnOutline.GetWidth(), btnOutline.GetHeight());
-	cancelBtn.SetAlignment(ALIGN_H::RIGHT, ALIGN_V::BOTTOM);
-	cancelBtn.SetPosition(-25, -25);
-	cancelBtn.SetLabel(&cancelBtnTxt);
-	cancelBtn.SetImage(&cancelBtnImg);
-	cancelBtn.SetImageOver(&cancelBtnImgOver);
-	cancelBtn.SetSoundOver(&btnSoundOver);
-	cancelBtn.SetTrigger(&trigA);
-	cancelBtn.SetEffectGrow();
+	GuiButton cancelBtn(btnOutline.getWidth(), btnOutline.getHeight());
+	cancelBtn.setAlignment(ALIGN_H::RIGHT, ALIGN_V::BOTTOM);
+	cancelBtn.setPosition(-25, -25);
+	cancelBtn.setLabel(&cancelBtnTxt);
+	cancelBtn.setImage(&cancelBtnImg);
+	cancelBtn.setImageOver(&cancelBtnImgOver);
+	cancelBtn.setSoundOver(&btnSoundOver);
+	cancelBtn.setTrigger(&trigA);
+	cancelBtn.setEffectGrow();
 
-	keyboard.Append(&okBtn);
-	keyboard.Append(&cancelBtn);
+	keyboard.append(&okBtn);
+	keyboard.append(&cancelBtn);
 
 	HaltGui();
-	mainWindow->SetState(STATE::DISABLED);
-	mainWindow->Append(&keyboard);
-	mainWindow->ChangeFocus(&keyboard);
+	mainWindow->setState(STATE::DISABLED);
+	mainWindow->append(&keyboard);
+	mainWindow->changeFocus(&keyboard);
 	ResumeGui();
 
 	while(save == -1)
 	{
 		usleep(THREAD_SLEEP);
 
-		if(okBtn.GetState() == STATE::CLICKED)
+		if(okBtn.getState() == STATE::CLICKED)
 			save = 1;
-		else if(cancelBtn.GetState() == STATE::CLICKED)
+		else if(cancelBtn.getState() == STATE::CLICKED)
 			save = 0;
 	}
 
@@ -300,8 +300,8 @@ static void OnScreenKeyboard(char * var, u16 maxlen)
 	}
 
 	HaltGui();
-	mainWindow->Remove(&keyboard);
-	mainWindow->SetState(STATE::DEFAULT);
+	mainWindow->remove(&keyboard);
+	mainWindow->setState(STATE::DEFAULT);
 	ResumeGui();
 }
 
@@ -335,39 +335,39 @@ static int MenuBrowseDevice()
 	sprintf(title, "Browse Files");
 
 	GuiText titleTxt(title, 28, (GXColor){255, 255, 255, 255});
-	titleTxt.SetAlignment(ALIGN_H::LEFT, ALIGN_V::TOP);
-	titleTxt.SetPosition(100,50);
+	titleTxt.setAlignment(ALIGN_H::LEFT, ALIGN_V::TOP);
+	titleTxt.setPosition(100,50);
 
 	GuiTrigger trigA, trigB;
-	trigA.SetSimpleTrigger(-1, WPAD_BUTTON_A | WPAD_CLASSIC_BUTTON_A, PAD_BUTTON_A);
-	trigB.SetButtonOnlyTrigger(-1, WPAD_BUTTON_B | WPAD_CLASSIC_BUTTON_B, PAD_BUTTON_B);
+	trigA.setSimpleTrigger(-1, WPAD_BUTTON_A | WPAD_CLASSIC_BUTTON_A, PAD_BUTTON_A);
+	trigB.setButtonOnlyTrigger(-1, WPAD_BUTTON_B | WPAD_CLASSIC_BUTTON_B, PAD_BUTTON_B);
 
 	GuiFileBrowser fileBrowser(552, 248);
-	fileBrowser.SetAlignment(ALIGN_H::CENTRE, ALIGN_V::TOP);
-	fileBrowser.SetPosition(0, 100);
+	fileBrowser.setAlignment(ALIGN_H::CENTRE, ALIGN_V::TOP);
+	fileBrowser.setPosition(0, 100);
 
 	GuiImageData btnOutline(button_png);
 	GuiImageData btnOutlineOver(button_over_png);
 	GuiText backBtnTxt("Go Back", 24, (GXColor){0, 0, 0, 255});
 	GuiImage backBtnImg(&btnOutline);
 	GuiImage backBtnImgOver(&btnOutlineOver);
-	GuiButton backBtn(btnOutline.GetWidth(), btnOutline.GetHeight());
-	backBtn.SetAlignment(ALIGN_H::LEFT, ALIGN_V::BOTTOM);
-	backBtn.SetPosition(30, -35);
-	backBtn.SetLabel(&backBtnTxt);
-	backBtn.SetImage(&backBtnImg);
-	backBtn.SetImageOver(&backBtnImgOver);
-	backBtn.SetTrigger(&trigA);
-	backBtn.SetTrigger(&trigB);
-	backBtn.SetEffectGrow();
+	GuiButton backBtn(btnOutline.getWidth(), btnOutline.getHeight());
+	backBtn.setAlignment(ALIGN_H::LEFT, ALIGN_V::BOTTOM);
+	backBtn.setPosition(30, -35);
+	backBtn.setLabel(&backBtnTxt);
+	backBtn.setImage(&backBtnImg);
+	backBtn.setImageOver(&backBtnImgOver);
+	backBtn.setTrigger(&trigA);
+	backBtn.setTrigger(&trigB);
+	backBtn.setEffectGrow();
 
 	GuiWindow buttonWindow(screenwidth, screenheight);
-	buttonWindow.Append(&backBtn);
+	buttonWindow.append(&backBtn);
 
 	HaltGui();
-	mainWindow->Append(&titleTxt);
-	mainWindow->Append(&fileBrowser);
-	mainWindow->Append(&buttonWindow);
+	mainWindow->append(&titleTxt);
+	mainWindow->append(&fileBrowser);
+	mainWindow->append(&buttonWindow);
 	ResumeGui();
 
 	while(menu == MENU_NONE)
@@ -378,17 +378,17 @@ static int MenuBrowseDevice()
 		// set MENU_EXIT if A button pressed on a file
 		for(i=0; i < FILE_PAGESIZE; i++)
 		{
-			if(fileBrowser.fileList[i]->GetState() == STATE::CLICKED)
+			if(fileBrowser.fileList[i]->getState() == STATE::CLICKED)
 			{
-				fileBrowser.fileList[i]->ResetState();
+				fileBrowser.fileList[i]->resetState();
 				// check corresponding browser entry
 				if(browserList[browser.selIndex].isdir)
 				{
 					if(BrowserChangeFolder())
 					{
-						fileBrowser.ResetState();
-						fileBrowser.fileList[0]->SetState(STATE::SELECTED);
-						fileBrowser.TriggerUpdate();
+						fileBrowser.resetState();
+						fileBrowser.fileList[0]->setState(STATE::SELECTED);
+						fileBrowser.triggerUpdate();
 					}
 					else
 					{
@@ -399,19 +399,19 @@ static int MenuBrowseDevice()
 				else
 				{
 					ShutoffRumble();
-					mainWindow->SetState(STATE::DISABLED);
+					mainWindow->setState(STATE::DISABLED);
 					// load file
-					mainWindow->SetState(STATE::DEFAULT);
+					mainWindow->setState(STATE::DEFAULT);
 				}
 			}
 		}
-		if(backBtn.GetState() == STATE::CLICKED)
+		if(backBtn.getState() == STATE::CLICKED)
 			menu = MENU_SETTINGS;
 	}
 	HaltGui();
-	mainWindow->Remove(&titleTxt);
-	mainWindow->Remove(&buttonWindow);
-	mainWindow->Remove(&fileBrowser);
+	mainWindow->remove(&titleTxt);
+	mainWindow->remove(&buttonWindow);
+	mainWindow->remove(&fileBrowser);
 	return menu;
 }
 
@@ -423,8 +423,8 @@ static int MenuSettings()
 	int menu = MENU_NONE;
 
 	GuiText titleTxt("Settings", 28, (GXColor){255, 255, 255, 255});
-	titleTxt.SetAlignment(ALIGN_H::LEFT, ALIGN_V::TOP);
-	titleTxt.SetPosition(50,50);
+	titleTxt.setAlignment(ALIGN_H::LEFT, ALIGN_V::TOP);
+	titleTxt.setPosition(50,50);
 
 	GuiSound btnSoundOver(button_over_pcm, button_over_pcm_size, SOUND::PCM);
 	GuiImageData btnOutline(button_png);
@@ -433,128 +433,128 @@ static int MenuSettings()
 	GuiImageData btnLargeOutlineOver(button_large_over_png);
 
 	GuiTrigger trigA;
-	trigA.SetSimpleTrigger(-1, WPAD_BUTTON_A | WPAD_CLASSIC_BUTTON_A, PAD_BUTTON_A);
+	trigA.setSimpleTrigger(-1, WPAD_BUTTON_A | WPAD_CLASSIC_BUTTON_A, PAD_BUTTON_A);
 	GuiTrigger trigHome;
-	trigHome.SetButtonOnlyTrigger(-1, WPAD_BUTTON_HOME | WPAD_CLASSIC_BUTTON_HOME, 0);
+	trigHome.setButtonOnlyTrigger(-1, WPAD_BUTTON_HOME | WPAD_CLASSIC_BUTTON_HOME, 0);
 
 	GuiText fileBtnTxt("File Browser", 22, (GXColor){0, 0, 0, 255});
-	fileBtnTxt.SetWrap(true, btnLargeOutline.GetWidth()-30);
+	fileBtnTxt.setWrap(true, btnLargeOutline.getWidth()-30);
 	GuiImage fileBtnImg(&btnLargeOutline);
 	GuiImage fileBtnImgOver(&btnLargeOutlineOver);
-	GuiButton fileBtn(btnLargeOutline.GetWidth(), btnLargeOutline.GetHeight());
-	fileBtn.SetAlignment(ALIGN_H::LEFT, ALIGN_V::TOP);
-	fileBtn.SetPosition(50, 120);
-	fileBtn.SetLabel(&fileBtnTxt);
-	fileBtn.SetImage(&fileBtnImg);
-	fileBtn.SetImageOver(&fileBtnImgOver);
-	fileBtn.SetSoundOver(&btnSoundOver);
-	fileBtn.SetTrigger(&trigA);
-	fileBtn.SetEffectGrow();
+	GuiButton fileBtn(btnLargeOutline.getWidth(), btnLargeOutline.getHeight());
+	fileBtn.setAlignment(ALIGN_H::LEFT, ALIGN_V::TOP);
+	fileBtn.setPosition(50, 120);
+	fileBtn.setLabel(&fileBtnTxt);
+	fileBtn.setImage(&fileBtnImg);
+	fileBtn.setImageOver(&fileBtnImgOver);
+	fileBtn.setSoundOver(&btnSoundOver);
+	fileBtn.setTrigger(&trigA);
+	fileBtn.setEffectGrow();
 
 	GuiText videoBtnTxt("Video", 22, (GXColor){0, 0, 0, 255});
-	videoBtnTxt.SetWrap(true, btnLargeOutline.GetWidth()-30);
+	videoBtnTxt.setWrap(true, btnLargeOutline.getWidth()-30);
 	GuiImage videoBtnImg(&btnLargeOutline);
 	GuiImage videoBtnImgOver(&btnLargeOutlineOver);
-	GuiButton videoBtn(btnLargeOutline.GetWidth(), btnLargeOutline.GetHeight());
-	videoBtn.SetAlignment(ALIGN_H::CENTRE, ALIGN_V::TOP);
-	videoBtn.SetPosition(0, 120);
-	videoBtn.SetLabel(&videoBtnTxt);
-	videoBtn.SetImage(&videoBtnImg);
-	videoBtn.SetImageOver(&videoBtnImgOver);
-	videoBtn.SetSoundOver(&btnSoundOver);
-	videoBtn.SetTrigger(&trigA);
-	videoBtn.SetEffectGrow();
+	GuiButton videoBtn(btnLargeOutline.getWidth(), btnLargeOutline.getHeight());
+	videoBtn.setAlignment(ALIGN_H::CENTRE, ALIGN_V::TOP);
+	videoBtn.setPosition(0, 120);
+	videoBtn.setLabel(&videoBtnTxt);
+	videoBtn.setImage(&videoBtnImg);
+	videoBtn.setImageOver(&videoBtnImgOver);
+	videoBtn.setSoundOver(&btnSoundOver);
+	videoBtn.setTrigger(&trigA);
+	videoBtn.setEffectGrow();
 
 	GuiText savingBtnTxt1("Saving", 22, (GXColor){0, 0, 0, 255});
 	GuiText savingBtnTxt2("&", 18, (GXColor){0, 0, 0, 255});
 	GuiText savingBtnTxt3("Loading", 22, (GXColor){0, 0, 0, 255});
-	savingBtnTxt1.SetPosition(0, -20);
-	savingBtnTxt3.SetPosition(0, +20);
+	savingBtnTxt1.setPosition(0, -20);
+	savingBtnTxt3.setPosition(0, +20);
 	GuiImage savingBtnImg(&btnLargeOutline);
 	GuiImage savingBtnImgOver(&btnLargeOutlineOver);
-	GuiButton savingBtn(btnLargeOutline.GetWidth(), btnLargeOutline.GetHeight());
-	savingBtn.SetAlignment(ALIGN_H::RIGHT, ALIGN_V::TOP);
-	savingBtn.SetPosition(-50, 120);
-	savingBtn.SetLabel(&savingBtnTxt1, 0);
-	savingBtn.SetLabel(&savingBtnTxt2, 1);
-	savingBtn.SetLabel(&savingBtnTxt3, 2);
-	savingBtn.SetImage(&savingBtnImg);
-	savingBtn.SetImageOver(&savingBtnImgOver);
-	savingBtn.SetSoundOver(&btnSoundOver);
-	savingBtn.SetTrigger(&trigA);
-	savingBtn.SetEffectGrow();
+	GuiButton savingBtn(btnLargeOutline.getWidth(), btnLargeOutline.getHeight());
+	savingBtn.setAlignment(ALIGN_H::RIGHT, ALIGN_V::TOP);
+	savingBtn.setPosition(-50, 120);
+	savingBtn.setLabel(&savingBtnTxt1, 0);
+	savingBtn.setLabel(&savingBtnTxt2, 1);
+	savingBtn.setLabel(&savingBtnTxt3, 2);
+	savingBtn.setImage(&savingBtnImg);
+	savingBtn.setImageOver(&savingBtnImgOver);
+	savingBtn.setSoundOver(&btnSoundOver);
+	savingBtn.setTrigger(&trigA);
+	savingBtn.setEffectGrow();
 
 	GuiText menuBtnTxt("Menu", 22, (GXColor){0, 0, 0, 255});
-	menuBtnTxt.SetWrap(true, btnLargeOutline.GetWidth()-30);
+	menuBtnTxt.setWrap(true, btnLargeOutline.getWidth()-30);
 	GuiImage menuBtnImg(&btnLargeOutline);
 	GuiImage menuBtnImgOver(&btnLargeOutlineOver);
-	GuiButton menuBtn(btnLargeOutline.GetWidth(), btnLargeOutline.GetHeight());
-	menuBtn.SetAlignment(ALIGN_H::CENTRE, ALIGN_V::TOP);
-	menuBtn.SetPosition(-125, 250);
-	menuBtn.SetLabel(&menuBtnTxt);
-	menuBtn.SetImage(&menuBtnImg);
-	menuBtn.SetImageOver(&menuBtnImgOver);
-	menuBtn.SetSoundOver(&btnSoundOver);
-	menuBtn.SetTrigger(&trigA);
-	menuBtn.SetEffectGrow();
+	GuiButton menuBtn(btnLargeOutline.getWidth(), btnLargeOutline.getHeight());
+	menuBtn.setAlignment(ALIGN_H::CENTRE, ALIGN_V::TOP);
+	menuBtn.setPosition(-125, 250);
+	menuBtn.setLabel(&menuBtnTxt);
+	menuBtn.setImage(&menuBtnImg);
+	menuBtn.setImageOver(&menuBtnImgOver);
+	menuBtn.setSoundOver(&btnSoundOver);
+	menuBtn.setTrigger(&trigA);
+	menuBtn.setEffectGrow();
 
 	GuiText networkBtnTxt("Network", 22, (GXColor){0, 0, 0, 255});
-	networkBtnTxt.SetWrap(true, btnLargeOutline.GetWidth()-30);
+	networkBtnTxt.setWrap(true, btnLargeOutline.getWidth()-30);
 	GuiImage networkBtnImg(&btnLargeOutline);
 	GuiImage networkBtnImgOver(&btnLargeOutlineOver);
-	GuiButton networkBtn(btnLargeOutline.GetWidth(), btnLargeOutline.GetHeight());
-	networkBtn.SetAlignment(ALIGN_H::CENTRE, ALIGN_V::TOP);
-	networkBtn.SetPosition(125, 250);
-	networkBtn.SetLabel(&networkBtnTxt);
-	networkBtn.SetImage(&networkBtnImg);
-	networkBtn.SetImageOver(&networkBtnImgOver);
-	networkBtn.SetSoundOver(&btnSoundOver);
-	networkBtn.SetTrigger(&trigA);
-	networkBtn.SetEffectGrow();
+	GuiButton networkBtn(btnLargeOutline.getWidth(), btnLargeOutline.getHeight());
+	networkBtn.setAlignment(ALIGN_H::CENTRE, ALIGN_V::TOP);
+	networkBtn.setPosition(125, 250);
+	networkBtn.setLabel(&networkBtnTxt);
+	networkBtn.setImage(&networkBtnImg);
+	networkBtn.setImageOver(&networkBtnImgOver);
+	networkBtn.setSoundOver(&btnSoundOver);
+	networkBtn.setTrigger(&trigA);
+	networkBtn.setEffectGrow();
 
 	GuiText exitBtnTxt("Exit", 22, (GXColor){0, 0, 0, 255});
 	GuiImage exitBtnImg(&btnOutline);
 	GuiImage exitBtnImgOver(&btnOutlineOver);
-	GuiButton exitBtn(btnOutline.GetWidth(), btnOutline.GetHeight());
-	exitBtn.SetAlignment(ALIGN_H::LEFT, ALIGN_V::BOTTOM);
-	exitBtn.SetPosition(100, -35);
-	exitBtn.SetLabel(&exitBtnTxt);
-	exitBtn.SetImage(&exitBtnImg);
-	exitBtn.SetImageOver(&exitBtnImgOver);
-	exitBtn.SetSoundOver(&btnSoundOver);
-	exitBtn.SetTrigger(&trigA);
-	exitBtn.SetTrigger(&trigHome);
-	exitBtn.SetEffectGrow();
+	GuiButton exitBtn(btnOutline.getWidth(), btnOutline.getHeight());
+	exitBtn.setAlignment(ALIGN_H::LEFT, ALIGN_V::BOTTOM);
+	exitBtn.setPosition(100, -35);
+	exitBtn.setLabel(&exitBtnTxt);
+	exitBtn.setImage(&exitBtnImg);
+	exitBtn.setImageOver(&exitBtnImgOver);
+	exitBtn.setSoundOver(&btnSoundOver);
+	exitBtn.setTrigger(&trigA);
+	exitBtn.setTrigger(&trigHome);
+	exitBtn.setEffectGrow();
 
 	GuiText resetBtnTxt("Reset Settings", 22, (GXColor){0, 0, 0, 255});
 	GuiImage resetBtnImg(&btnOutline);
 	GuiImage resetBtnImgOver(&btnOutlineOver);
-	GuiButton resetBtn(btnOutline.GetWidth(), btnOutline.GetHeight());
-	resetBtn.SetAlignment(ALIGN_H::RIGHT, ALIGN_V::BOTTOM);
-	resetBtn.SetPosition(-100, -35);
-	resetBtn.SetLabel(&resetBtnTxt);
-	resetBtn.SetImage(&resetBtnImg);
-	resetBtn.SetImageOver(&resetBtnImgOver);
-	resetBtn.SetSoundOver(&btnSoundOver);
-	resetBtn.SetTrigger(&trigA);
-	resetBtn.SetEffectGrow();
+	GuiButton resetBtn(btnOutline.getWidth(), btnOutline.getHeight());
+	resetBtn.setAlignment(ALIGN_H::RIGHT, ALIGN_V::BOTTOM);
+	resetBtn.setPosition(-100, -35);
+	resetBtn.setLabel(&resetBtnTxt);
+	resetBtn.setImage(&resetBtnImg);
+	resetBtn.setImageOver(&resetBtnImgOver);
+	resetBtn.setSoundOver(&btnSoundOver);
+	resetBtn.setTrigger(&trigA);
+	resetBtn.setEffectGrow();
 
 	HaltGui();
 	GuiWindow w(screenwidth, screenheight);
-	w.Append(&titleTxt);
-	w.Append(&fileBtn);
-	w.Append(&videoBtn);
-	w.Append(&savingBtn);
-	w.Append(&menuBtn);
+	w.append(&titleTxt);
+	w.append(&fileBtn);
+	w.append(&videoBtn);
+	w.append(&savingBtn);
+	w.append(&menuBtn);
 
 #ifdef HW_RVL
-	w.Append(&networkBtn);
+	w.append(&networkBtn);
 #endif
 
-	w.Append(&exitBtn);
-	w.Append(&resetBtn);
+	w.append(&exitBtn);
+	w.append(&resetBtn);
 
-	mainWindow->Append(&w);
+	mainWindow->append(&w);
 
 	ResumeGui();
 
@@ -562,33 +562,33 @@ static int MenuSettings()
 	{
 		usleep(THREAD_SLEEP);
 
-		if(fileBtn.GetState() == STATE::CLICKED)
+		if(fileBtn.getState() == STATE::CLICKED)
 		{
 			menu = MENU_BROWSE_DEVICE;
 		}
-		else if(videoBtn.GetState() == STATE::CLICKED)
+		else if(videoBtn.getState() == STATE::CLICKED)
 		{
 			menu = MENU_SETTINGS_FILE;
 		}
-		else if(savingBtn.GetState() == STATE::CLICKED)
+		else if(savingBtn.getState() == STATE::CLICKED)
 		{
 			menu = MENU_SETTINGS_FILE;
 		}
-		else if(menuBtn.GetState() == STATE::CLICKED)
+		else if(menuBtn.getState() == STATE::CLICKED)
 		{
 			menu = MENU_SETTINGS_FILE;
 		}
-		else if(networkBtn.GetState() == STATE::CLICKED)
+		else if(networkBtn.getState() == STATE::CLICKED)
 		{
 			menu = MENU_SETTINGS_FILE;
 		}
-		else if(exitBtn.GetState() == STATE::CLICKED)
+		else if(exitBtn.getState() == STATE::CLICKED)
 		{
 			menu = MENU_EXIT;
 		}
-		else if(resetBtn.GetState() == STATE::CLICKED)
+		else if(resetBtn.getState() == STATE::CLICKED)
 		{
-			resetBtn.ResetState();
+			resetBtn.resetState();
 
 			int choice = WindowPrompt(
 				"Reset Settings",
@@ -603,7 +603,7 @@ static int MenuSettings()
 	}
 
 	HaltGui();
-	mainWindow->Remove(&w);
+	mainWindow->remove(&w);
 	return menu;
 }
 
@@ -628,49 +628,49 @@ static int MenuSettingsFile()
 	options.length = i;
 
 	GuiText titleTxt("Settings - Saving & Loading", 28, (GXColor){255, 255, 255, 255});
-	titleTxt.SetAlignment(ALIGN_H::LEFT, ALIGN_V::TOP);
-	titleTxt.SetPosition(50,50);
+	titleTxt.setAlignment(ALIGN_H::LEFT, ALIGN_V::TOP);
+	titleTxt.setPosition(50,50);
 
 	GuiSound btnSoundOver(button_over_pcm, button_over_pcm_size, SOUND::PCM);
 	GuiImageData btnOutline(button_png);
 	GuiImageData btnOutlineOver(button_over_png);
 
 	GuiTrigger trigA, trigB;
-	trigA.SetSimpleTrigger(-1, WPAD_BUTTON_A | WPAD_CLASSIC_BUTTON_A, PAD_BUTTON_A);
-	trigB.SetButtonOnlyTrigger(-1, WPAD_BUTTON_B | WPAD_CLASSIC_BUTTON_B, PAD_BUTTON_B);
+	trigA.setSimpleTrigger(-1, WPAD_BUTTON_A | WPAD_CLASSIC_BUTTON_A, PAD_BUTTON_A);
+	trigB.setButtonOnlyTrigger(-1, WPAD_BUTTON_B | WPAD_CLASSIC_BUTTON_B, PAD_BUTTON_B);
 
 	GuiText backBtnTxt("Go Back", 22, (GXColor){0, 0, 0, 255});
 	GuiImage backBtnImg(&btnOutline);
 	GuiImage backBtnImgOver(&btnOutlineOver);
-	GuiButton backBtn(btnOutline.GetWidth(), btnOutline.GetHeight());
-	backBtn.SetAlignment(ALIGN_H::LEFT, ALIGN_V::BOTTOM);
-	backBtn.SetPosition(100, -35);
-	backBtn.SetLabel(&backBtnTxt);
-	backBtn.SetImage(&backBtnImg);
-	backBtn.SetImageOver(&backBtnImgOver);
-	backBtn.SetSoundOver(&btnSoundOver);
-	backBtn.SetTrigger(&trigA);
-	backBtn.SetTrigger(&trigB);
-	backBtn.SetEffectGrow();
+	GuiButton backBtn(btnOutline.getWidth(), btnOutline.getHeight());
+	backBtn.setAlignment(ALIGN_H::LEFT, ALIGN_V::BOTTOM);
+	backBtn.setPosition(100, -35);
+	backBtn.setLabel(&backBtnTxt);
+	backBtn.setImage(&backBtnImg);
+	backBtn.setImageOver(&backBtnImgOver);
+	backBtn.setSoundOver(&btnSoundOver);
+	backBtn.setTrigger(&trigA);
+	backBtn.setTrigger(&trigB);
+	backBtn.setEffectGrow();
 
 	GuiOptionBrowser optionBrowser(552, 248, &options);
-	optionBrowser.SetPosition(0, 108);
-	optionBrowser.SetAlignment(ALIGN_H::CENTRE, ALIGN_V::TOP);
-	optionBrowser.SetCol2Position(185);
+	optionBrowser.setPosition(0, 108);
+	optionBrowser.setAlignment(ALIGN_H::CENTRE, ALIGN_V::TOP);
+	optionBrowser.setCol2Position(185);
 
 	HaltGui();
 	GuiWindow w(screenwidth, screenheight);
-	w.Append(&backBtn);
-	mainWindow->Append(&optionBrowser);
-	mainWindow->Append(&w);
-	mainWindow->Append(&titleTxt);
+	w.append(&backBtn);
+	mainWindow->append(&optionBrowser);
+	mainWindow->append(&w);
+	mainWindow->append(&titleTxt);
 	ResumeGui();
 
 	while(menu == MENU_NONE)
 	{
 		usleep(THREAD_SLEEP);
 
-		ret = optionBrowser.GetClickedOption();
+		ret = optionBrowser.getClickedOption();
 
 		switch (ret)
 		{
@@ -746,18 +746,18 @@ static int MenuSettingsFile()
 			else if (Settings.AutoSave == 1) sprintf (options.value[6],"Some");
 			else if (Settings.AutoSave == 2) sprintf (options.value[6],"All");
 
-			optionBrowser.TriggerUpdate();
+			optionBrowser.triggerUpdate();
 		}
 
-		if(backBtn.GetState() == STATE::CLICKED)
+		if(backBtn.getState() == STATE::CLICKED)
 		{
 			menu = MENU_SETTINGS;
 		}
 	}
 	HaltGui();
-	mainWindow->Remove(&optionBrowser);
-	mainWindow->Remove(&w);
-	mainWindow->Remove(&titleTxt);
+	mainWindow->remove(&optionBrowser);
+	mainWindow->remove(&w);
+	mainWindow->remove(&titleTxt);
 	return menu;
 }
 
@@ -778,17 +778,17 @@ void MainMenu(int menu)
 	mainWindow = new GuiWindow(screenwidth, screenheight);
 
 	bgImg = new GuiImage(screenwidth, screenheight, (GXColor){50, 50, 50, 255});
-	bgImg->ColorStripe(30);
-	mainWindow->Append(bgImg);
+	bgImg->colorStripe(30);
+	mainWindow->append(bgImg);
 
 	GuiTrigger trigA;
-	trigA.SetSimpleTrigger(-1, WPAD_BUTTON_A | WPAD_CLASSIC_BUTTON_A, PAD_BUTTON_A);
+	trigA.setSimpleTrigger(-1, WPAD_BUTTON_A | WPAD_CLASSIC_BUTTON_A, PAD_BUTTON_A);
 
 	ResumeGui();
 
 	bgMusic = new GuiSound(bg_music_ogg, bg_music_ogg_size, SOUND::OGG);
-	bgMusic->SetVolume(50);
-	bgMusic->Play(); // startup music
+	bgMusic->setVolume(50);
+	bgMusic->play(); // startup music
 
 	while(currentMenu != MENU_EXIT)
 	{
@@ -815,7 +815,7 @@ void MainMenu(int menu)
 
 	HaltGui();
 
-	bgMusic->Stop();
+	bgMusic->stop();
 	delete bgMusic;
 	delete bgImg;
 	delete mainWindow;
