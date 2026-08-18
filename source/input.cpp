@@ -18,7 +18,7 @@
 #include "menu.h"
 #include "video.h"
 #include "input.h"
-#include "libgui/gui.h"
+#include "libgui/Gui.h"
 
 int rumbleRequest[4] = {0,0,0,0};
 GuiTrigger userInput[4];

@@ -14,7 +14,7 @@
 #include <string.h>
 #include <wiiuse/wpad.h>
 
-#include "libgui/gui.h"
+#include "libgui/Gui.h"
 #include "menu.h"
 #include "demo.h"
 #include "input.h"
