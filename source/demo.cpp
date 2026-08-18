@@ -1,9 +1,9 @@
 /****************************************************************************
- * libwiigui Template
+ * libgui Template
  * Tantric 2009
  *
  * demo.cpp
- * Basic template/demonstration of libwiigui capabilities. For a
+ * Basic template/demonstration of libgui capabilities. For a
  * full-featured app using many more extensions, check out Snes9x GX.
  ***************************************************************************/
 
@@ -39,9 +39,9 @@ DefaultSettings()
 {
 	Settings.LoadMethod = METHOD_AUTO;
 	Settings.SaveMethod = METHOD_AUTO;
-	sprintf (Settings.Folder1,"libwiigui/first folder");
-	sprintf (Settings.Folder2,"libwiigui/second folder");
-	sprintf (Settings.Folder3,"libwiigui/third folder");
+	sprintf (Settings.Folder1,"libgui/first folder");
+	sprintf (Settings.Folder2,"libgui/second folder");
+	sprintf (Settings.Folder3,"libgui/third folder");
 	Settings.AutoLoad = 1;
 	Settings.AutoSave = 1;
 }

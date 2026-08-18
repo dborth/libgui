@@ -1,7 +1,7 @@
-/*!\mainpage libwiigui Documentation
+/*!\mainpage libgui Documentation
  *
  * \section Introduction
- * libwiigui is a GUI library for the Wii, created to help structure the
+ * libgui is a GUI library for the Wii, created to help structure the
  * design of a complicated GUI interface, and to enable an author to create
  * a sophisticated, feature-rich GUI. It was originally conceived and written
  * after I started to design a GUI for Snes9x GX, and found libwiisprite and
@@ -18,8 +18,8 @@
 
  * \section Contact
  * If you have any suggestions for the library or documentation, or want to
- * contribute, please visit the libwiigui website:
- * http://code.google.com/p/libwiigui/
+ * contribute, please visit the libgui website:
+ * http://code.google.com/p/libgui/
 
  * \section Credits
  * This library was wholly designed and written by Tantric. Thanks to the

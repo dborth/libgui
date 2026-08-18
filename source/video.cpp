@@ -1,5 +1,5 @@
 /****************************************************************************
- * libwiigui Template
+ * libgui Template
  * Tantric 2009
  *
  * video.cpp
@@ -15,7 +15,7 @@
 #include <wiiuse/wpad.h>
 
 #include "input.h"
-#include "libwiigui/gui.h"
+#include "libgui/gui.h"
 
 #define DEFAULT_FIFO_SIZE 256 * 1024
 static u32 *xfb[2] = { nullptr, nullptr }; // Double buffered

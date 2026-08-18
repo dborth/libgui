@@ -1,7 +1,7 @@
-## libwiigui 1.07
-https://github.com/dborth/libwiigui (Under GPL License)
+## libgui 1.07
+https://github.com/dborth/libgui (Under GPL License)
 
-libwiigui is a GUI library for the Wii, created to help structure the
+libgui is a GUI library for the Wii, created to help structure the
 design of a complicated GUI interface, and to enable an author to create
 a sophisticated, feature-rich GUI. It was originally conceived and written
 after I started to design a GUI for Snes9x GX, and found libwiisprite and
@@ -22,13 +22,13 @@ source code for Snes9x GX, FCE Ultra GX, and Visual Boy Advance GX.
 ### Contact
 
 If you have any suggestions for the library or documentation, or want to
-contribute, please visit the libwiigui website:
-https://github.com/dborth/libwiigui
+contribute, please visit the libgui website:
+https://github.com/dborth/libgui
 
 
 ### Documentation
 
-See the included doxygen documentation - http://dborth.github.io/libwiigui/
+See the included doxygen documentation - http://dborth.github.io/libgui/
 
 
 ### Credits

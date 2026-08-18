@@ -1,5 +1,5 @@
 /****************************************************************************
- * libwiigui Template
+ * libgui Template
  * Tantric 2009
  *
  * input.cpp
@@ -18,7 +18,7 @@
 #include "menu.h"
 #include "video.h"
 #include "input.h"
-#include "libwiigui/gui.h"
+#include "libgui/gui.h"
 
 int rumbleRequest[4] = {0,0,0,0};
 GuiTrigger userInput[4];

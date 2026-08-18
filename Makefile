@@ -17,9 +17,9 @@ export	FREETYPE_LIBS	:=	`$(DEVKITPRO)/portlibs/ppc/bin/powerpc-eabi-pkg-config -
 # SOURCES is a list of directories containing source code
 # INCLUDES is a list of directories containing extra header files
 #---------------------------------------------------------------------------------
-TARGET		:=	libwiigui-demo
+TARGET		:=	libgui-demo
 BUILD		:=	build
-SOURCES		:=	source source/libwiigui source/images source/fonts source/sounds \
+SOURCES		:=	source source/libgui source/images source/fonts source/sounds \
 				source/lang
 INCLUDES	:=	source
 

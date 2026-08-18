@@ -1,5 +1,5 @@
 /****************************************************************************
- * libwiigui Template
+ * libgui Template
  * Tantric 2009
  *
  * video.h

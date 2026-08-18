@@ -1,5 +1,5 @@
 /****************************************************************************
- * libwiigui Template
+ * libgui Template
  * Tantric 2009
  *
  * menu.cpp
@@ -14,7 +14,7 @@
 #include <string.h>
 #include <wiiuse/wpad.h>
 
-#include "libwiigui/gui.h"
+#include "libgui/gui.h"
 #include "menu.h"
 #include "demo.h"
 #include "input.h"

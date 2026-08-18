@@ -1,4 +1,4 @@
-name: libwiigui demo
+name: libgui demo
 
 on: [push, pull_request]
 
@@ -13,7 +13,7 @@ jobs:
     container: devkitpro/devkitppc:latest
 
     steps:
-    - name: Checkout libwiigui repo
+    - name: Checkout libgui repo
       uses: actions/checkout@v4
       with:
         fetch-depth: 0
@@ -43,12 +43,12 @@ jobs:
     - name: Copy artifacts
       run: |
         mkdir -p dist
-        cp libwiigui-demo.dol dist
+        cp libgui-demo.dol dist
       
     - name: Upload artifacts
       uses: actions/upload-artifact@v4
       with:
-        name: libwiigui
+        name: libgui
         path: |
           dist/
 
@@ -59,7 +59,7 @@ jobs:
     if: github.ref == 'refs/heads/master'
 
     steps:
-    - name: Checkout libwiigui repo
+    - name: Checkout libgui repo
       uses: actions/checkout@v4
       with:
         fetch-depth: 0
@@ -71,8 +71,8 @@ jobs:
 
     - name: Re-zip artifact
       run: |
-        cd dist/libwiigui
-        zip -r ../libwiigui.zip *
+        cd dist/libgui
+        zip -r ../libgui.zip *
 
     - name: Update Git Tag
       run: |
