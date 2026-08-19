@@ -2,13 +2,14 @@ name: libgui demo
 
 on: [push, pull_request]
 
+permissions:
+  contents: write
+  id-token: write
+  pages: write
+
 jobs:
   build:
-    name: Build
-    permissions:
-      contents: read
-      id-token: write
-      pages: write
+    name: Build (${{ matrix.image }})
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -18,18 +19,27 @@ jobs:
     steps:
     - name: Checkout libgui repo
       uses: actions/checkout@v4
-      with:
-        fetch-depth: 0
 
     - name: Build Wii
       if: ${{ matrix.image == 'Wii' }}
-      run: |
-        make -f Makefile.wii -j3
+      run: make -f Makefile.wii -j3
         
     - name: Build GameCube
       if: ${{ matrix.image == 'GameCube' }}
-      run: |
-        make -f Makefile.gc -j3
+      run: make -f Makefile.gc -j3
+
+    - name: Upload binary artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: libgui-${{ matrix.image }}
+        path: "*.dol"
+
+  docs:
+    name: Documentation
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout libgui repo
+      uses: actions/checkout@v4
 
     - name: Update documentation
       uses: mattnotmitt/doxygen-action@v1.9.5
@@ -48,19 +58,6 @@ jobs:
     - name: Deploy to GitHub Pages
       id: deployment
       uses: actions/deploy-pages@v4
-        
-    - name: Copy artifacts
-      run: |
-        mkdir -p dist
-        cp libgui-wii-demo.dol dist
-        cp libgui-gc-demo.dol dist
-      
-    - name: Upload artifacts
-      uses: actions/upload-artifact@v4
-      with:
-        name: libgui
-        path: |
-          dist/
 
   release:
     name: Release
@@ -78,11 +75,13 @@ jobs:
       uses: actions/download-artifact@v4
       with:
         path: dist
+        pattern: libgui-*
+        merge-multiple: true
 
     - name: Re-zip artifact
       run: |
-        cd dist/libgui
-        zip -r ../libgui.zip *
+        cd dist
+        zip -r libgui.zip *.dol
 
     - name: Update Git Tag
       run: |
@@ -97,4 +96,4 @@ jobs:
         removeArtifacts: true
         replacesArtifacts: false
         tag: Pre-release
-        artifacts: "dist/*.zip"
+        artifacts: "dist/libgui.zip"
