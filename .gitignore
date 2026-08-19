@@ -4,3 +4,5 @@ build/
 /.project
 /.settings/
 /.cproject
+/build_gc/
+/build_wii/

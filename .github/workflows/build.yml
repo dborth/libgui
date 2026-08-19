@@ -10,6 +10,9 @@ jobs:
       id-token: write
       pages: write
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        image: ["Wii", "GameCube"]
     container: ghcr.io/extremscorner/libogc2:latest
 
     steps:
@@ -18,9 +21,15 @@ jobs:
       with:
         fetch-depth: 0
 
-    - name: Compile
+    - name: Build Wii
+      if: ${{ matrix.image == 'Wii' }}
       run: |
-        make -f Makefile
+        make -f Makefile.wii -j3
+        
+    - name: Build GameCube
+      if: ${{ matrix.image == 'GameCube' }}
+      run: |
+        make -f Makefile.gc -j3
 
     - name: Update documentation
       uses: mattnotmitt/doxygen-action@v1.9.5
@@ -43,7 +52,8 @@ jobs:
     - name: Copy artifacts
       run: |
         mkdir -p dist
-        cp libgui-demo.dol dist
+        cp libgui-wii-demo.dol dist
+        cp libgui-gc-demo.dol dist
       
     - name: Upload artifacts
       uses: actions/upload-artifact@v4

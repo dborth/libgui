@@ -51,6 +51,7 @@ static uint32_t MapPADToGeneric(uint32_t pad_btns)
 	return mask;
 }
 
+#ifdef HW_RVL
 static uint32_t MapWPADToGeneric(uint32_t wpad_btns)
 {
 	uint32_t mask = GUI_BTN_NONE;
@@ -118,6 +119,7 @@ static float NormalizeWPADAnalog(int pos, int min, int max, int center)
 		return clampf((float)offset / (float)(center - min), -1.0f, 0.0f);
 	}
 }
+#endif
 
 /****************************************************************************
  * UpdatePads
@@ -151,6 +153,12 @@ void UpdatePads()
 		float padSubX   = clampf((float)PAD_SubStickX(i) / 128.0f, -1.0f, 1.0f);
 		float padSubY   = clampf((float)PAD_SubStickY(i) / 128.0f, -1.0f, 1.0f);
 
+		#ifdef HW_DOL
+		padData.stickX = padStickX;
+		padData.stickY = padStickY;
+		padData.substickX = padSubX;
+		padData.substickY = padSubY;
+		#else
 		// Process Wiimote/Classic
 		padData.buttons_d |= MapWPADToGeneric(WPAD_ButtonsDown(i));
 		padData.buttons_h |= MapWPADToGeneric(WPAD_ButtonsHeld(i));
@@ -198,7 +206,6 @@ void UpdatePads()
 		float drcStickX = 0.0f, drcStickY = 0.0f;
 		float drcSubX = 0.0f, drcSubY = 0.0f;
 
-		#ifdef HW_RVL
 		if(i == 0 && WiiDRC_Inited() && WiiDRC_Connected()) {
 			padData.buttons_d |= MapWiiUGamepadToGeneric(WiiDRC_ButtonsDown());
 			padData.buttons_h |= MapWiiUGamepadToGeneric(WiiDRC_ButtonsHeld());
@@ -208,7 +215,6 @@ void UpdatePads()
 			drcSubX   = clampf((float)WiiDRC_rStickX() / 128.0f, -1.0f, 1.0f);
 			drcSubY   = clampf((float)WiiDRC_rStickY() / 128.0f, -1.0f, 1.0f);
 		}
-		#endif
 
 		// Merge Analog Sticks (Priority Magnitude Logic)
 		// Takes the stick with the strongest input to prevent resting drift
@@ -225,6 +231,7 @@ void UpdatePads()
 		padData.stickY = MergeAnalog(padStickY, wpadStickY, drcStickY);
 		padData.substickX = MergeAnalog(padSubX, wpadSubX, drcSubX);
 		padData.substickY = MergeAnalog(padSubY, wpadSubY, drcSubY);
+		#endif
 
 		// Push the finalized, merged payload to the controller abstraction
 		userInput[i]->update(padData, deltaTime);
@@ -238,11 +245,12 @@ void UpdatePads()
 void SetupPads()
 {
 	PAD_Init();
-	WPAD_Init();
 
-	// Configure WPAD to provide Buttons, Accelerometer, and IR data
+	#ifdef HW_RVL
+	WPAD_Init();
 	WPAD_SetDataFormat(WPAD_CHAN_ALL, WPAD_FMT_BTNS_ACC_IR);
 	WPAD_SetVRes(WPAD_CHAN_ALL, screenwidth, screenheight);
+	#endif
 
 	for(int i = 0; i < 4; i++)
 	{
@@ -257,11 +265,13 @@ void SetupPads()
  ***************************************************************************/
 void ShutoffRumble()
 {
+	#ifdef HW_RVL
 	for(int i = 0; i < 4; i++)
 	{
 		WPAD_Rumble(i, 0);
 		rumbleCount[i] = 0;
 	}
+	#endif
 }
 
 /****************************************************************************
@@ -269,6 +279,7 @@ void ShutoffRumble()
  ***************************************************************************/
 void DoRumble(int i)
 {
+	#ifdef HW_RVL
 	if(rumbleRequest[i] && rumbleCount[i] < 3)
 	{
 		WPAD_Rumble(i, 1); // Rumble ON
@@ -285,4 +296,5 @@ void DoRumble(int i)
 			rumbleCount[i]--;
 		WPAD_Rumble(i, 0); // Rumble OFF
 	}
+	#endif
 }
