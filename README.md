@@ -6,7 +6,7 @@ design of a complicated GUI interface, and to enable an author to create
 a sophisticated, feature-rich GUI. It was originally conceived and written
 after I started to design a GUI for Snes9x GX, and found libwiisprite and
 GRRLIB inadequate for the purpose. It uses GX for drawing, and makes use
-of PNGU for displaying images and FreeTypeGX for text. It was designed to
+of PNGU for displaying images and FreeType for text. It was designed to
 be flexible and is easy to modify - don't be afraid to change the way it
 works or expand it to suit your GUI's purposes! If you do, and you think
 your changes might benefit others, please share them so they might be
@@ -34,7 +34,7 @@ See the included doxygen documentation - http://dborth.github.io/libgui/
 ### Credits
 
 This library was wholly designed and written by Tantric. Thanks to the
-authors of PNGU and FreeTypeGX, of which this library makes use. Thanks
+authors of PNGU and FreeType, of which this library makes use. Thanks
 also to the authors of GRRLIB and libwiisprite for laying the foundations.
 Thanks to mvit for the artwork and Peter de Man for the music used in the
 template.

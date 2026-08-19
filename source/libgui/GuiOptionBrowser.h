@@ -1,7 +1,10 @@
-#ifndef GUIOPTIONBROWSER_H
-#define GUIOPTIONBROWSER_H
-
-#include "Gui.h"
+/****************************************************************************
+ * libgui
+ *
+ * Daryl Borth 2009-2026
+ * GuiOptionBrowser.h
+ ***************************************************************************/
+#pragma once
 
 #define MAX_OPTIONS 			150
 #define OPTION_PAGESIZE 		8
@@ -63,5 +66,3 @@ class GuiOptionBrowser : public GuiElement
 
 		bool listChanged;
 };
-
-#endif // GUIOPTIONBROWSER_H

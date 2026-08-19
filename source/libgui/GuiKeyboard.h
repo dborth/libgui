@@ -1,5 +1,10 @@
-#ifndef GUIKEYBOARD_H
-#define GUIKEYBOARD_H
+/****************************************************************************
+ * libgui
+ *
+ * Daryl Borth 2009-2026
+ * GuiKeyboard.h
+ ***************************************************************************/
+#pragma once
 
 constexpr int KB_ROWS = 4;
 constexpr int KB_COLUMNS = 11;
@@ -55,5 +60,3 @@ class GuiKeyboard : public GuiWindow
 		GuiTrigger * trigA;
 		Key keys[KB_ROWS][KB_COLUMNS]; // two chars = less space than one pointer
 };
-
-#endif // GUIKEYBOARD_H

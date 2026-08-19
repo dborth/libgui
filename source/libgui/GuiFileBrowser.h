@@ -3,9 +3,7 @@
  * Daryl Borth 2009-2026
  * GuiFileBrowser.h
  ***************************************************************************/
-
-#ifndef GUI_FILE_BROWSER_H
-#define GUI_FILE_BROWSER_H
+#pragma once
 
 #define FILE_PAGESIZE 			10
 
@@ -59,5 +57,3 @@ class GuiFileBrowser : public GuiElement
 		int numEntries;
 		bool listChanged;
 };
-
-#endif // GUIFILEBROWSER_H

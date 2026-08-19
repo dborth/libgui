@@ -3,9 +3,7 @@
  * Daryl Borth 2009-2026
  * GuiButton.h
  ***************************************************************************/
-
-#ifndef GUI_BUTTON_H
-#define GUI_BUTTON_H
+#pragma once
 
 #define MAX_BTN_LABELS	3
 
@@ -98,5 +96,3 @@ class GuiButton : public GuiElement
 		GuiSound * soundClick; //!< Sound to play for STATE::CLICKED
 		GuiTooltip * tooltip; //!< Tooltip to display on over
 };
-
-#endif // GUIBUTTON_H

@@ -16,16 +16,17 @@
 #include <wiiuse/wpad.h>
 #include <fat.h>
 
-#include "FreeTypeGX.h"
 #include "video.h"
 #include "audio.h"
 #include "menu.h"
 #include "input.h"
 #include "filelist.h"
 #include "demo.h"
+#include "WiiGlyphRenderer.h"
 
 struct SSettings Settings;
 int ExitRequested = 0;
+GuiTextRenderer* fontSystem;
 
 void ExitApp()
 {
@@ -55,7 +56,10 @@ main(int argc, char *argv[])
 	SetupPads(); // Initialize input
 	InitAudio(); // Initialize audio
 	fatInitDefault(); // Initialize file system
-	InitFreeType((u8*)font_ttf, font_ttf_size); // Initialize font system
+
+	IGlyphRenderer* backendRenderer = new WiiGlyphRenderer(GX_VTXFMT1);
+	fontSystem = new GuiTextRenderer(font_ttf, font_ttf_size, backendRenderer);
+
 	InitGUIThreads(); // Initialize GUI
 
 	DefaultSettings();

@@ -7,8 +7,7 @@
  * Handles device-specific translation (like sideways Wiimote mapping) 
  * and repeat-delay logic for UI navigation.
  ***************************************************************************/
-#ifndef GUI_INPUT_CONTROLLER_H
-#define GUI_INPUT_CONTROLLER_H
+#pragma once
 
 #include "GuiInput.h"
 
@@ -65,5 +64,3 @@ private:
 
 extern GuiInputController* userInput[4];
 extern int rumbleRequest[4];
-
-#endif // GUI_INPUT_CONTROLLER_H

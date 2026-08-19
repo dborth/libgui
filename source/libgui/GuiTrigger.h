@@ -6,8 +6,7 @@
  * Menu input trigger management.
  * Acts as a generic UI condition matcher for GuiElements
  ***************************************************************************/
-#ifndef GUI_TRIGGER_H
-#define GUI_TRIGGER_H
+#pragma once
 
 #include <cstdint>
 
@@ -72,5 +71,3 @@ private:
 	//! Dynamically calculates the required bitmask based on orientation
 	uint32_t resolveMask(const GuiInputController* controller) const;
 };
-
-#endif // GUI_TRIGGER_H

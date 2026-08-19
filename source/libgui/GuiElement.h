@@ -1,5 +1,9 @@
-#ifndef GUI_ELEMENT_H
-#define GUI_ELEMENT_H
+/****************************************************************************
+ * libgui
+ * Daryl Borth 2009-2026
+ * GuiElement.h
+ ***************************************************************************/
+#pragma once
 
 #define MAX_TRIGGERS 5
 
@@ -239,5 +243,3 @@ class GuiElement
 		bool visible; //!< Visibility of the element. If false, Draw() is skipped
 		bool rumble; //!< Wiimote rumble (on/off) - set to on when this element requests a rumble event
 };
-
-#endif // GUI_ELEMENT_H

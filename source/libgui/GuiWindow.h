@@ -3,9 +3,7 @@
  * Daryl Borth 2009-2026
  * GuiWindow.h
  ***************************************************************************/
-
-#ifndef GUI_WINDOW_H
-#define GUI_WINDOW_H
+#pragma once
 
 //!Allows GuiElements to be grouped together into a "window"
 class GuiWindow : public GuiElement
@@ -85,5 +83,3 @@ class GuiWindow : public GuiElement
 	protected:
 		std::vector<GuiElement*> _elements; //!< Contains all elements within the GuiWindow
 };
-
-#endif // GUI_WINDOW_H

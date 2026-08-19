@@ -5,8 +5,7 @@
  *
  * Platform-agnostic input structures
  ***************************************************************************/
-#ifndef GUI_INPUT_H
-#define GUI_INPUT_H
+#pragma once
 
 #include <cstdint>
 
@@ -68,5 +67,3 @@ struct GuiInputPadData {
 		stickX(0.0f), stickY(0.0f),
 		substickX(0.0f), substickY(0.0f) {}
 };
-
-#endif // GUI_INPUT_H

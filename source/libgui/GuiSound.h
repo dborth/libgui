@@ -3,9 +3,7 @@
  * Daryl Borth 2009-2026
  * GuiSound.h
  ***************************************************************************/
-
-#ifndef GUI_SOUND_H
-#define GUI_SOUND_H
+#pragma once
 
 enum class SOUND {
 	PCM,
@@ -48,5 +46,3 @@ class GuiSound
 		s32 volume; //!< Sound volume (0-100)
 		bool loop; //!< Loop sound playback
 };
-
-#endif // GUI_SOUND_H
