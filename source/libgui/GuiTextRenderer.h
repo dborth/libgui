@@ -96,7 +96,7 @@ private:
 	GlyphData* cacheGlyphData(wchar_t charCode, int16_t pixelSize);
 
 public:
-	GuiTextRenderer(const uint8_t* fontBuffer, FT_Long bufferSize, IGlyphRenderer* glyphRenderer, bool lastFace = false);
+	GuiTextRenderer(const uint8_t* fontBuffer, FT_Long bufferSize, IGlyphRenderer* glyphRenderer);
 	~GuiTextRenderer();
 
 	void setPixelSize(int16_t pixelSize);
@@ -118,3 +118,4 @@ public:
 };
 
 extern GuiTextRenderer *fontSystem;
+extern IGlyphRenderer* glyphRenderer;

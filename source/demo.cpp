@@ -27,7 +27,6 @@
 
 struct SSettings Settings;
 int ExitRequested = 0;
-GuiTextRenderer* fontSystem;
 
 void ExitApp()
 {
@@ -58,8 +57,8 @@ main(int argc, char *argv[])
 	InitAudio(); // Initialize audio
 	fatInitDefault(); // Initialize file system
 
-	IGlyphRenderer* backendRenderer = new WiiGlyphRenderer(GX_VTXFMT1);
-	fontSystem = new GuiTextRenderer(font_ttf, font_ttf_size, backendRenderer);
+	glyphRenderer = new WiiGlyphRenderer(GX_VTXFMT1);
+	fontSystem = new GuiTextRenderer(font_ttf, font_ttf_size, glyphRenderer);
 	textTranslator->loadLanguage(en_lang, en_lang_size);
 
 	InitGUIThreads(); // Initialize GUI

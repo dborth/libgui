@@ -8,20 +8,13 @@
 #include <cstdlib>
 #include <cstring>
 
-GuiTextRenderer::GuiTextRenderer(const uint8_t* fontBuffer, FT_Long bufferSize, IGlyphRenderer* glyphRenderer, bool lastFace)
+GuiTextRenderer* fontSystem;
+
+GuiTextRenderer::GuiTextRenderer(const uint8_t* fontBuffer, FT_Long bufferSize, IGlyphRenderer* glyphRenderer)
     : currentPixelSize(0), renderer(glyphRenderer)
 {
 	FT_Init_FreeType(&ftLibrary);
-
-	int32_t faceIndex = 0;
-	if (lastFace) {
-		FT_New_Memory_Face(ftLibrary, (FT_Byte*)fontBuffer, bufferSize, -1, &ftFace);
-		faceIndex = ftFace->num_faces - 1;
-		FT_Done_Face(ftFace);
-		ftFace = nullptr;
-	}
-
-	FT_New_Memory_Face(ftLibrary, (FT_Byte*)fontBuffer, bufferSize, faceIndex, &ftFace);
+	FT_New_Memory_Face(ftLibrary, (FT_Byte*)fontBuffer, bufferSize, 0, &ftFace);
 	ftKerningEnabled = FT_HAS_KERNING(ftFace);
 }
 
