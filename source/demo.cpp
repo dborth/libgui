@@ -22,6 +22,7 @@
 #include "input.h"
 #include "filelist.h"
 #include "demo.h"
+#include "libgui/Gui.h"
 #include "WiiGlyphRenderer.h"
 
 struct SSettings Settings;
@@ -59,6 +60,7 @@ main(int argc, char *argv[])
 
 	IGlyphRenderer* backendRenderer = new WiiGlyphRenderer(GX_VTXFMT1);
 	fontSystem = new GuiTextRenderer(font_ttf, font_ttf_size, backendRenderer);
+	textTranslator->loadLanguage(en_lang, en_lang_size);
 
 	InitGUIThreads(); // Initialize GUI
 

@@ -5,8 +5,8 @@
  ***************************************************************************/
 
 #include "Gui.h"
-#include "../gettext.h"
 
+GuiTextTranslator* textTranslator = new GuiTextTranslator();
 static GuiColor presetColor = (GuiColor){255, 255, 255, 255};
 static int currentSize = 0;
 static int presetSize = 0;
@@ -43,7 +43,7 @@ GuiText::GuiText(const char * t, int s, GuiColor c)
 	if(t)
 	{
 		origText = strdup(t);
-		text = GuiTextRenderer::charToWideChar(gettext(t));
+		text = getText(t);
 	}
 
 	for(int i=0; i < 20; i++)
@@ -75,7 +75,7 @@ GuiText::GuiText(const char * t)
 	if(t)
 	{
 		origText = strdup(t);
-		text = GuiTextRenderer::charToWideChar(gettext(t));
+		text = getText(t);
 	}
 
 	for(int i=0; i < 20; i++)
@@ -98,6 +98,10 @@ GuiText::~GuiText()
 			if(textDyn[i])
 				delete[] textDyn[i];
 	}
+}
+
+wchar_t* GuiText::getText(const char *t) const {
+	return GuiTextRenderer::charToWideChar(textTranslator->getText(t));
 }
 
 void GuiText::setText(const char * t)
@@ -123,7 +127,7 @@ void GuiText::setText(const char * t)
 	if(t)
 	{
 		origText = strdup(t);
-		text = GuiTextRenderer::charToWideChar(gettext(t));
+		text = getText(t);
 	}
 }
 
@@ -289,7 +293,7 @@ void GuiText::resetText()
 	if(text)
 		delete[] text;
 
-	text = GuiTextRenderer::charToWideChar(gettext(origText));
+	text = getText(origText);
 
 	for(int i=0; i < textDynNum; i++)
 	{

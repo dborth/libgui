@@ -66,7 +66,7 @@ class GuiText : public GuiElement
 		void resetText();
 		//!Constantly called to draw the text
 	void draw() override;
-	protected:
+	private:
 		GuiColor color; //!< Font color
 		wchar_t* text; //!< Translated Unicode text value
 		wchar_t *textDyn[20]; //!< Text value, if max width, scrolling, or wrapping enabled
@@ -80,4 +80,8 @@ class GuiText : public GuiElement
 		int textScrollDelay; //!< Scrolling speed
 		u16 style; //!< GuiTextRenderer style attributes
 		bool wrap; //!< Wrapping toggle
+
+		wchar_t* getText(const char *text) const;
 };
+
+extern GuiTextTranslator* textTranslator;
