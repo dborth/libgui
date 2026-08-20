@@ -54,6 +54,16 @@ bool GuiInputController::processDirection(uint32_t logicalButtonMask, float stic
 	return false;
 }
 
+bool GuiInputController::isPrimaryPressed() const {
+	uint32_t targetBtn = sideways ? GUI_BTN_2 : GUI_BTN_A;
+	return (currentData.buttons_d & targetBtn);
+}
+
+bool GuiInputController::isSecondaryPressed() const {
+	uint32_t targetBtn = sideways ? GUI_BTN_1 : GUI_BTN_B;
+	return (currentData.buttons_d & targetBtn);
+}
+
 bool GuiInputController::isPressed(uint32_t logicalButtonMask) const {
 	return (currentData.buttons_d & logicalButtonMask);
 }

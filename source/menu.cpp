@@ -189,6 +189,7 @@ UpdateGUI (void *arg)
 			UpdatePads();
 			mainWindow->draw();
 
+			#ifdef HW_RVL
 			for(i=3; i >= 0; i--) // so that player 1's cursor appears on top!
 			{
 				if(userInput[i]->getPadData().validPointer)
@@ -196,6 +197,7 @@ UpdateGUI (void *arg)
 						96, 96, pointer[i]->getImage(), userInput[i]->getPadData().cursor_angle, 1, 1, 255);
 				DoRumble(i);
 			}
+			#endif
 
 			Menu_Render();
 

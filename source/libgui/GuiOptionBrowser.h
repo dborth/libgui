@@ -27,7 +27,7 @@ class GuiOptionBrowser : public GuiElement
 		int getClickedOption();
 		void resetState();
 		void setFocus(int f);
-	void draw() override;
+		void draw() override;
 		void triggerUpdate();
 		void resetText();
 		void update(GuiInputController * c);

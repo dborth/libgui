@@ -127,13 +127,13 @@ static float NormalizeWPADAnalog(int pos, int min, int max, int center)
  ***************************************************************************/
 void UpdatePads()
 {
-	PAD_ScanPads();
 	#ifdef HW_RVL
 	WPAD_ScanPads();
 	WiiDRC_ScanPads();
 	#endif
 
-	// For now, assuming a standard 60Hz UI update loop (16.6ms).
+	PAD_ScanPads();
+
 	float deltaTime = 1.0f / 60.0f;
 
 	for(int i = 0; i < 4; i++)
@@ -143,95 +143,124 @@ void UpdatePads()
 		GuiInputPadData padData;
 
 		// Process GameCube Controller
-		padData.buttons_d |= MapPADToGeneric(PAD_ButtonsDown(i));
-		padData.buttons_h |= MapPADToGeneric(PAD_ButtonsHeld(i));
-		padData.buttons_r |= MapPADToGeneric(PAD_ButtonsUp(i));
+		padData.hw_connected[GUI_HW_GAMECUBE] = true;
+		padData.hw_buttons_d[GUI_HW_GAMECUBE] = MapPADToGeneric(PAD_ButtonsDown(i));
+		padData.hw_buttons_h[GUI_HW_GAMECUBE] = MapPADToGeneric(PAD_ButtonsHeld(i));
+		padData.hw_buttons_r[GUI_HW_GAMECUBE] = MapPADToGeneric(PAD_ButtonsUp(i));
+		padData.hw_stickX[GUI_HW_GAMECUBE] = clampf((float)PAD_StickX(i) / 128.0f, -1.0f, 1.0f);
+		padData.hw_stickY[GUI_HW_GAMECUBE] = clampf((float)PAD_StickY(i) / 128.0f, -1.0f, 1.0f);
+		padData.hw_substickX[GUI_HW_GAMECUBE] = clampf((float)PAD_SubStickX(i) / 128.0f, -1.0f, 1.0f);
+		padData.hw_substickY[GUI_HW_GAMECUBE] = clampf((float)PAD_SubStickY(i) / 128.0f, -1.0f, 1.0f);
 
-		// Normalize GC sticks
-		float padStickX = clampf((float)PAD_StickX(i) / 128.0f, -1.0f, 1.0f);
-		float padStickY = clampf((float)PAD_StickY(i) / 128.0f, -1.0f, 1.0f);
-		float padSubX   = clampf((float)PAD_SubStickX(i) / 128.0f, -1.0f, 1.0f);
-		float padSubY   = clampf((float)PAD_SubStickY(i) / 128.0f, -1.0f, 1.0f);
+		#ifdef HW_RVL
+		// Process Wiimote and Extensions
+		uint32_t exp_type = 0;
+		if (WPAD_Probe(i, &exp_type) == WPAD_ERR_NONE)
+		{
+			WPADData* wpad = WPAD_Data(i);
+			if (wpad != nullptr)
+			{
+				uint32_t wpadDown = MapWPADToGeneric(wpad->btns_d);
+				uint32_t wpadHeld = MapWPADToGeneric(wpad->btns_h);
+				uint32_t wpadUp   = MapWPADToGeneric(wpad->btns_u);
 
-		#ifdef HW_DOL
-		padData.stickX = padStickX;
-		padData.stickY = padStickY;
-		padData.substickX = padSubX;
-		padData.substickY = padSubY;
-		#else
-		// Process Wiimote/Classic
-		padData.buttons_d |= MapWPADToGeneric(WPAD_ButtonsDown(i));
-		padData.buttons_h |= MapWPADToGeneric(WPAD_ButtonsHeld(i));
-		padData.buttons_r |= MapWPADToGeneric(WPAD_ButtonsUp(i));
+				padData.hw_gforceX[GUI_HW_WIIMOTE] = wpad->gforce.x;
+				padData.hw_gforceY[GUI_HW_WIIMOTE] = wpad->gforce.y;
+				padData.hw_gforceZ[GUI_HW_WIIMOTE] = wpad->gforce.z;
+				padData.hw_pitch[GUI_HW_WIIMOTE]   = wpad->orient.pitch;
+				padData.hw_roll[GUI_HW_WIIMOTE]    = wpad->orient.roll;
+				padData.hw_yaw[GUI_HW_WIIMOTE]     = wpad->orient.yaw;
 
-		WPADData * wpad = WPAD_Data(i);
-		float wpadStickX = 0.0f, wpadStickY = 0.0f;
-		float wpadSubX = 0.0f, wpadSubY = 0.0f;
+				if (wpad->ir.valid) {
+					padData.validPointer = true;
+					padData.isTouch = false;
+					padData.cursor_x = wpad->ir.x;
+					padData.cursor_y = wpad->ir.y;
+					padData.cursor_angle = wpad->ir.angle;
+				}
 
-		if (wpad != nullptr) {
-			// IR Processing
-			if (wpad->ir.valid) {
-				padData.validPointer = true;
-				padData.isTouch = false;
-				padData.cursor_x = wpad->ir.x;
-				padData.cursor_y = wpad->ir.y;
-				padData.cursor_angle = wpad->ir.angle;
+				if (exp_type == WPAD_EXP_NONE) {
+					padData.hw_connected[GUI_HW_WIIMOTE] = true;
+					padData.hw_buttons_d[GUI_HW_WIIMOTE] = wpadDown;
+					padData.hw_buttons_h[GUI_HW_WIIMOTE] = wpadHeld;
+					padData.hw_buttons_r[GUI_HW_WIIMOTE] = wpadUp;
+					userInput[i]->setSideways(fabs(wpad->gforce.x) > fabs(wpad->gforce.y));
+				}
+				else if (exp_type == WPAD_EXP_NUNCHUK) {
+					padData.hw_connected[GUI_HW_NUNCHUK] = true;
+					padData.hw_buttons_d[GUI_HW_NUNCHUK] = wpadDown;
+					padData.hw_buttons_h[GUI_HW_NUNCHUK] = wpadHeld;
+					padData.hw_buttons_r[GUI_HW_NUNCHUK] = wpadUp;
+					joystick_t* js = &wpad->exp.nunchuk.js;
+					padData.hw_stickX[GUI_HW_NUNCHUK] = NormalizeWPADAnalog(js->pos.x, js->min.x, js->max.x, js->center.x);
+					padData.hw_stickY[GUI_HW_NUNCHUK] = NormalizeWPADAnalog(js->pos.y, js->min.y, js->max.y, js->center.y);
+
+					padData.hw_gforceX[GUI_HW_NUNCHUK] = wpad->exp.nunchuk.gforce.x;
+					padData.hw_gforceY[GUI_HW_NUNCHUK] = wpad->exp.nunchuk.gforce.y;
+					padData.hw_gforceZ[GUI_HW_NUNCHUK] = wpad->exp.nunchuk.gforce.z;
+					padData.hw_pitch[GUI_HW_NUNCHUK]   = wpad->exp.nunchuk.orient.pitch;
+					padData.hw_roll[GUI_HW_NUNCHUK]    = wpad->exp.nunchuk.orient.roll;
+					padData.hw_yaw[GUI_HW_NUNCHUK]     = wpad->exp.nunchuk.orient.yaw;
+
+					userInput[i]->setSideways(false);
+				}
+				else if (exp_type == WPAD_EXP_CLASSIC) {
+					bool isWUPC = (wpad->exp.classic.type == 2);
+					int hw = isWUPC ? GUI_HW_WUPC : GUI_HW_CLASSIC;
+
+					padData.hw_connected[hw] = true;
+					padData.hw_buttons_d[hw] = wpadDown;
+					padData.hw_buttons_h[hw] = wpadHeld;
+					padData.hw_buttons_r[hw] = wpadUp;
+
+					joystick_t* ljs = &wpad->exp.classic.ljs;
+					joystick_t* rjs = &wpad->exp.classic.rjs;
+					padData.hw_stickX[hw] = NormalizeWPADAnalog(ljs->pos.x, ljs->min.x, ljs->max.x, ljs->center.x);
+					padData.hw_stickY[hw] = NormalizeWPADAnalog(ljs->pos.y, ljs->min.y, ljs->max.y, ljs->center.y);
+					padData.hw_substickX[hw] = NormalizeWPADAnalog(rjs->pos.x, rjs->min.x, rjs->max.x, rjs->center.x);
+					padData.hw_substickY[hw] = NormalizeWPADAnalog(rjs->pos.y, rjs->min.y, rjs->max.y, rjs->center.y);
+					userInput[i]->setSideways(false);
+				}
 			}
-
-			// Extract WPAD Analog Sticks (Nunchuk & Classic)
-			if (wpad->exp.type == WPAD_EXP_NUNCHUK) {
-				joystick_t* js = &wpad->exp.nunchuk.js;
-				wpadStickX = NormalizeWPADAnalog(js->pos.x, js->min.x, js->max.x, js->center.x);
-				wpadStickY = NormalizeWPADAnalog(js->pos.y, js->min.y, js->max.y, js->center.y);
-			}
-			else if (wpad->exp.type == WPAD_EXP_CLASSIC) {
-				joystick_t* ljs = &wpad->exp.classic.ljs;
-				joystick_t* rjs = &wpad->exp.classic.rjs;
-				wpadStickX = NormalizeWPADAnalog(ljs->pos.x, ljs->min.x, ljs->max.x, ljs->center.x);
-				wpadStickY = NormalizeWPADAnalog(ljs->pos.y, ljs->min.y, ljs->max.y, ljs->center.y);
-				wpadSubX = NormalizeWPADAnalog(rjs->pos.x, rjs->min.x, rjs->max.x, rjs->center.x);
-				wpadSubY = NormalizeWPADAnalog(rjs->pos.y, rjs->min.y, rjs->max.y, rjs->center.y);
-			}
-
-			// Detect Wiimote orientation via accelerometer gravity vector
-			if (wpad->exp.type == WPAD_EXP_NONE) {
-				bool isHorizontal = (fabs(wpad->gforce.x) > fabs(wpad->gforce.y));
-				userInput[i]->setSideways(isHorizontal);
-			} else {
-				userInput[i]->setSideways(false);
-			}
+		} else {
+			userInput[i]->setSideways(false);
 		}
 
 		// Process Wii U Gamepad
-		float drcStickX = 0.0f, drcStickY = 0.0f;
-		float drcSubX = 0.0f, drcSubY = 0.0f;
-
 		if(i == 0 && WiiDRC_Inited() && WiiDRC_Connected()) {
-			padData.buttons_d |= MapWiiUGamepadToGeneric(WiiDRC_ButtonsDown());
-			padData.buttons_h |= MapWiiUGamepadToGeneric(WiiDRC_ButtonsHeld());
-			padData.buttons_r |= MapWiiUGamepadToGeneric(WiiDRC_ButtonsUp());
-			drcStickX = clampf((float)WiiDRC_lStickX() / 128.0f, -1.0f, 1.0f);
-			drcStickY = clampf((float)WiiDRC_lStickY() / 128.0f, -1.0f, 1.0f);
-			drcSubX   = clampf((float)WiiDRC_rStickX() / 128.0f, -1.0f, 1.0f);
-			drcSubY   = clampf((float)WiiDRC_rStickY() / 128.0f, -1.0f, 1.0f);
+			padData.hw_connected[GUI_HW_DRC] = true;
+			padData.hw_buttons_d[GUI_HW_DRC] = MapWiiUGamepadToGeneric(WiiDRC_ButtonsDown());
+			padData.hw_buttons_h[GUI_HW_DRC] = MapWiiUGamepadToGeneric(WiiDRC_ButtonsHeld());
+			padData.hw_buttons_r[GUI_HW_DRC] = MapWiiUGamepadToGeneric(WiiDRC_ButtonsUp());
+			padData.hw_stickX[GUI_HW_DRC] = clampf((float)WiiDRC_lStickX() / 128.0f, -1.0f, 1.0f);
+			padData.hw_stickY[GUI_HW_DRC] = clampf((float)WiiDRC_lStickY() / 128.0f, -1.0f, 1.0f);
+			padData.hw_substickX[GUI_HW_DRC] = clampf((float)WiiDRC_rStickX() / 128.0f, -1.0f, 1.0f);
+			padData.hw_substickY[GUI_HW_DRC] = clampf((float)WiiDRC_rStickY() / 128.0f, -1.0f, 1.0f);
 		}
-
-		// Merge Analog Sticks (Priority Magnitude Logic)
-		// Takes the stick with the strongest input to prevent resting drift
-		// from secondary plugged-in controllers from overriding active ones.
-		auto MergeAnalog = [](float gc, float wpad, float drc) -> float {
-			float max_val = 0.0f;
-			if (std::abs(gc) > std::abs(max_val)) max_val = gc;
-			if (std::abs(wpad) > std::abs(max_val)) max_val = wpad;
-			if (std::abs(drc) > std::abs(max_val)) max_val = drc;
-			return max_val;
-		};
-
-		padData.stickX = MergeAnalog(padStickX, wpadStickX, drcStickX);
-		padData.stickY = MergeAnalog(padStickY, wpadStickY, drcStickY);
-		padData.substickX = MergeAnalog(padSubX, wpadSubX, drcSubX);
-		padData.substickY = MergeAnalog(padSubY, wpadSubY, drcSubY);
 		#endif
+
+		// Merge into unified aggregate state for UI Elements
+		for (uint32_t hw = 0; hw < GUI_HW_MAX; hw++)
+		{
+			if (padData.hw_connected[hw])
+			{
+				padData.buttons_d |= padData.hw_buttons_d[hw];
+				padData.buttons_h |= padData.hw_buttons_h[hw];
+				padData.buttons_r |= padData.hw_buttons_r[hw];
+
+				if (std::abs(padData.hw_stickX[hw]) > std::abs(padData.stickX)) padData.stickX = padData.hw_stickX[hw];
+				if (std::abs(padData.hw_stickY[hw]) > std::abs(padData.stickY)) padData.stickY = padData.hw_stickY[hw];
+				if (std::abs(padData.hw_substickX[hw]) > std::abs(padData.substickX)) padData.substickX = padData.hw_substickX[hw];
+				if (std::abs(padData.hw_substickY[hw]) > std::abs(padData.substickY)) padData.substickY = padData.hw_substickY[hw];
+
+				if (std::abs(padData.hw_gforceX[hw]) > std::abs(padData.gforceX)) padData.gforceX = padData.hw_gforceX[hw];
+				if (std::abs(padData.hw_gforceY[hw]) > std::abs(padData.gforceY)) padData.gforceY = padData.hw_gforceY[hw];
+				if (std::abs(padData.hw_gforceZ[hw]) > std::abs(padData.gforceZ)) padData.gforceZ = padData.hw_gforceZ[hw];
+				if (std::abs(padData.hw_pitch[hw]) > std::abs(padData.pitch)) padData.pitch = padData.hw_pitch[hw];
+				if (std::abs(padData.hw_roll[hw]) > std::abs(padData.roll)) padData.roll = padData.hw_roll[hw];
+				if (std::abs(padData.hw_yaw[hw]) > std::abs(padData.yaw)) padData.yaw = padData.hw_yaw[hw];
+			}
+		}
 
 		// Push the finalized, merged payload to the controller abstraction
 		userInput[i]->update(padData, deltaTime);

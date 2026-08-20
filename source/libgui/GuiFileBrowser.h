@@ -15,14 +15,14 @@ class GuiFileBrowser : public GuiElement
 		~GuiFileBrowser();
 		void resetState();
 		void setFocus(int f);
-	void draw() override;
+		void draw() override;
 		void triggerUpdate();
 		void update(GuiInputController * c);
 		GuiButton * fileList[FILE_PAGESIZE];
 	protected:
 		GuiText * fileListText[FILE_PAGESIZE];
 		GuiImage * fileListBg[FILE_PAGESIZE];
-	GuiImage * fileListFolder[FILE_PAGESIZE];
+		GuiImage * fileListFolder[FILE_PAGESIZE];
 
 		GuiButton * arrowUpBtn;
 		GuiButton * arrowDownBtn;
@@ -39,7 +39,7 @@ class GuiFileBrowser : public GuiElement
 
 		GuiImageData * bgFileSelection;
 		GuiImageData * bgFileSelectionEntry;
-	GuiImageData * fileFolder;
+		GuiImageData * fileFolder;
 		GuiImageData * scrollbar;
 		GuiImageData * arrowDown;
 		GuiImageData * arrowDownOver;

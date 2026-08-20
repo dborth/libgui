@@ -192,7 +192,6 @@ void GuiButton::update(GuiInputController * controller)
 	else if(parentElement && parentElement->getState() == STATE::DISABLED)
 		return;
 
-	// Fetch unified pad data (cursor coordinates, touch states, etc.)
 	auto pad = controller->getPadData();
 	int currentChan = controller->getChannel();
 

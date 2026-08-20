@@ -70,7 +70,7 @@ class GuiButton : public GuiElement
 		//!\param t Tooltip
 		void setTooltip(GuiTooltip * t);
 		//!Constantly called to draw the GuiButton
-	void draw() override;
+		void draw() override;
 		//!Constantly called to draw the GuiButton's tooltip
 		void drawTooltip();
 		//!Resets the text for all contained elements

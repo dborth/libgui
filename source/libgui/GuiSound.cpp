@@ -103,7 +103,7 @@ bool GuiSound::isPlaying()
 	if(ASND_StatusVoice(voice) == SND_WORKING || ASND_StatusVoice(voice) == SND_WAITING)
 		return true;
 	else
-	return false;
+		return false;
 }
 
 void GuiSound::setVolume(int vol)

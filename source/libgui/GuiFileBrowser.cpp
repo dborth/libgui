@@ -364,7 +364,7 @@ void GuiFileBrowser::update(GuiInputController * controller)
 		else if(focus && i == selectedItem && fileList[i]->getState() == STATE::DEFAULT)
 			fileList[selectedItem]->setState(STATE::SELECTED, currentChan);
 
-        // Update delegates cursor checking to the element itself natively now
+        // Update delegates cursor checking to the element itself
 		fileList[i]->update(controller);
 
 		if(fileList[i]->getState() == STATE::SELECTED)

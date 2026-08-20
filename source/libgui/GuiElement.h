@@ -195,16 +195,16 @@ class GuiElement
 		//!\return true if selected, false otherwise
 		virtual int getSelected();
 		//!Sets the element's alignment respective to its parent element
-	//!\param hor Horizontal alignment (LEFT, RIGHT, CENTRE)
-	//!\param vert Vertical alignment (TOP, BOTTOM, MIDDLE)
+		//!\param hor Horizontal alignment (LEFT, RIGHT, CENTRE)
+		//!\param vert Vertical alignment (TOP, BOTTOM, MIDDLE)
 		virtual void setAlignment(ALIGN_H hor, ALIGN_V vert);
 		//!Called when the language has changed, to obtain new text values for all text elements
 		virtual void resetText();
-		///!Called constantly to allow the element to respond to the current input data
+		//!Called constantly to allow the element to respond to the current input data
 		//!\param c Pointer to a GuiInputController, containing the current input data
 		virtual void update(GuiInputController * c);
 		//!Called constantly to redraw the element
-	virtual void draw() = 0;
+		virtual void draw() = 0;
 		//!Called constantly to redraw the element's tooltip
 		virtual void drawTooltip();
 	protected:

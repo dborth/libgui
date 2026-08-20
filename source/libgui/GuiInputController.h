@@ -33,6 +33,8 @@ public:
 
 	bool isPressed(uint32_t logicalButtonMask) const;
 	bool isHeld(uint32_t logicalButtonMask) const;
+	bool isPrimaryPressed() const;
+	bool isSecondaryPressed() const;
 
 	//! Navigation Helpers (Accounts for orientation and scroll delays)
 	bool up() const;

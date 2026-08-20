@@ -212,7 +212,7 @@ void GuiWindow::toggleFocus(GuiInputController * controller)
 	}
 
 	// change focus
-	else if(controller->isPressed(GUI_BTN_B))
+	else if(controller->isSecondaryPressed())
 	{
 		for (i = found; i < elemSize; ++i)
 		{

@@ -41,7 +41,7 @@ class GuiImage : public GuiElement
 		//!\param t Number of times to draw the image
 		void setTile(int t);
 		//!Constantly called to draw the image
-	void draw() override;
+		void draw() override;
 		//!Gets the image data
 		//!\return pointer to image data
 		u8 * getImage();
