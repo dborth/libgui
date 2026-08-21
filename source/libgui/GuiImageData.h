@@ -5,7 +5,9 @@
  ***************************************************************************/
 #pragma once
 
-//!Converts image data into GX-useable RGBA8. Currently designed for use only with PNG files
+//!Decodes compressed image data (PNG) into a generic RGBA8 buffer, and
+//!(if imageSystem is set) an attached platform-native texture created
+//!from it. Currently designed for use only with PNG files.
 class GuiImageData
 {
 	public:
@@ -17,9 +19,14 @@ class GuiImageData
 		GuiImageData(const uint8_t * i, int w=0, int h=0);
 		//!Destructor
 		~GuiImageData();
-		//!Gets a pointer to the image data
+		//!Gets a pointer to the generic RGBA8 image data
 		//!\return pointer to image data
 		uint8_t * getImage();
+		//!Gets the attached platform-native texture (see IImageRenderer),
+		//!or nullptr if none is attached (e.g. no imageSystem was set at
+		//!construction time).
+		//!\return opaque texture handle
+		void * getTexture();
 		//!Gets the image width
 		//!\return image width
 		int getWidth();
@@ -27,7 +34,8 @@ class GuiImageData
 		//!\return image height
 		int getHeight();
 	protected:
-		uint8_t * data; //!< Image data
+		uint8_t * data; //!< Generic row-major RGBA8 image data (see imagedecode.h)
+		void * texture; //!< Attached platform-native texture (see IImageRenderer), owned by this object
 		int height; //!< Height of image
 		int width; //!< Width of image
 };

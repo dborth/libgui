@@ -5,7 +5,7 @@
  ***************************************************************************/
 #pragma once
 
-#define FILE_PAGESIZE 			10
+#define FILE_PAGESIZE 			8
 
 //!Display a list of files
 class GuiFileBrowser : public GuiElement

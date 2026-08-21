@@ -32,7 +32,7 @@
 #define GUI_TEXT_STYLE_STRIKE       0x2000
 #define GUI_TEXT_STYLE_MASK         0xf000
 
-const GuiColor black = {0, 0, 0, 255};
+const PixelColor black = {0, 0, 0, 255};
 
 struct FontOffset {
 	int16_t ascender;
@@ -57,19 +57,6 @@ struct GlyphData {
 	void* texture; // Abstracted texture pointer
 };
 
-// Dependency Injection Interface
-class IGlyphRenderer {
-public:
-	virtual ~IGlyphRenderer() = default;
-
-	virtual void* createTexture(uint16_t& width, uint16_t& height) = 0;
-	virtual void loadTextureData(void* texture, FT_Bitmap* bitmap) = 0;
-	virtual void destroyTexture(void* texture) = 0;
-
-	virtual void drawQuad(void* texture, int16_t screenX, int16_t screenY, uint16_t width, uint16_t height, const GuiColor& color) = 0;
-	virtual void drawFeature(int16_t screenX, int16_t screenY, uint16_t width, uint16_t height, const GuiColor& color) = 0;
-};
-
 class GuiTextRenderer {
 private:
 	FT_Library ftLibrary;
@@ -77,7 +64,7 @@ private:
 	int16_t currentPixelSize;
 	bool ftKerningEnabled;
 
-	IGlyphRenderer* renderer;
+	GlyphRenderer* renderer;
 
 	struct ftData {
 		FontOffset align;
@@ -89,21 +76,21 @@ private:
 	// Internal Calculations
 	int16_t getStyleOffsetWidth(uint16_t width, uint32_t format);
 	int16_t getStyleOffsetHeight(FontOffset* offset, uint32_t format);
-	void drawTextFeature(int16_t x, int16_t y, uint16_t width, FontOffset* offsetData, uint32_t format, const GuiColor& color);
+	void drawTextFeature(int16_t x, int16_t y, uint16_t width, FontOffset* offsetData, uint32_t format, const PixelColor& color);
 
 	// Font Management
 	void unloadFont();
 	GlyphData* cacheGlyphData(wchar_t charCode, int16_t pixelSize);
 
 public:
-	GuiTextRenderer(const uint8_t* fontBuffer, FT_Long bufferSize, IGlyphRenderer* glyphRenderer);
+	GuiTextRenderer(const uint8_t* fontBuffer, FT_Long bufferSize, GlyphRenderer* glyphRenderer);
 	~GuiTextRenderer();
 
 	void setPixelSize(int16_t pixelSize);
 
 	// Core Drawing Signatures
-	uint16_t drawText(int16_t x, int16_t y, const wchar_t* text, GuiColor color = black, uint32_t renderFlags = 0);
-	uint16_t drawText(int16_t x, int16_t y, const char* text, GuiColor color = black, uint32_t renderFlags = 0);
+	uint16_t drawText(int16_t x, int16_t y, const wchar_t* text, PixelColor color = black, uint32_t renderFlags = 0);
+	uint16_t drawText(int16_t x, int16_t y, const char* text, PixelColor color = black, uint32_t renderFlags = 0);
 
 	// Dimensions & Offsets
 	uint16_t getWidth(const wchar_t* text);
@@ -118,4 +105,3 @@ public:
 };
 
 extern GuiTextRenderer *fontSystem;
-extern IGlyphRenderer* glyphRenderer;

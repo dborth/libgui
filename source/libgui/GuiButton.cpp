@@ -205,7 +205,7 @@ void GuiButton::update(GuiInputController * controller)
 				this->setState(STATE::SELECTED, currentChan);
 
 				if(this->isRumble())
-					rumbleRequest[currentChan] = 1;
+					platform->getInput()->setRumble(currentChan, true);
 
 				if(soundOver)
 					soundOver->play();

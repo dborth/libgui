@@ -27,19 +27,15 @@
 
 #pragma once
 
-#include <gccore.h>
-#include <malloc.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cstdlib>
+#include <cstring>
 #include <vector>
 #include <exception>
-#include <wchar.h>
-#include <math.h>
-#include <asndlib.h>
+#include <cwchar>
+#include <cmath>
 
-#include "filelist.h"
-#include "pngu.h"
-#include "oggplayer.h"
+#include "../filelist.h"
+#include "../drivers/Platform.h"
 
 enum class ALIGN_V {
 	TOP,
@@ -65,15 +61,6 @@ enum class SCROLL {
 	NONE,
 	HORIZONTAL
 };
-
-typedef struct _gui_color {
-	uint8_t r;			/*!< Red color component. */
-	uint8_t g;			/*!< Green color component. */
-	uint8_t b;			/*!< Blue alpha component. */
-	uint8_t a;			/*!< Alpha component. If a function does not use the alpha value, it is safely ignored. */
-} GuiColor;
-
-#include "../video.h"
 
 #include "GuiInput.h"
 #include "GuiInputController.h"

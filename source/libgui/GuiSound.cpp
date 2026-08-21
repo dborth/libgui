@@ -2,6 +2,8 @@
  * libgui
  * Daryl Borth 2009-2026
  * GuiSound.cpp
+ *
+ * Generic - Everything platform-specific lives behind audioSystem
  ***************************************************************************/
 
 #include "Gui.h"
@@ -19,31 +21,23 @@ GuiSound::GuiSound(const uint8_t * s, int32_t l, SOUND t)
 GuiSound::~GuiSound()
 {
 	if(type == SOUND::OGG)
-		StopOgg();
+		platform->getAudio()->stopStream();
 }
 
 void GuiSound::play()
 {
-	int vol;
+	int vol = 255*(volume/100.0);
 
 	switch(type)
 	{
 		case SOUND::PCM:
-		vol = 255*(volume/100.0);
-		voice = ASND_GetFirstUnusedVoice();
-		if(voice >= 0)
-			ASND_SetVoice(voice, VOICE_STEREO_16BIT, 48000, 0,
-				(uint8_t *)sound, length, vol, vol, nullptr);
-		break;
+			voice = platform->getAudio()->playVoice(sound, length, vol);
+			break;
 
 		case SOUND::OGG:
-		voice = 0;
-		if(loop)
-			PlayOgg((char *)sound, length, 0, OGG_INFINITE_TIME);
-		else
-			PlayOgg((char *)sound, length, 0, OGG_ONE_TIME);
-		SetVolumeOgg(255*(volume/100.0));
-		break;
+			voice = 0;
+			platform->getAudio()->playStream(sound, length, loop, vol);
+			break;
 	}
 }
 
@@ -55,12 +49,12 @@ void GuiSound::stop()
 	switch(type)
 	{
 		case SOUND::PCM:
-		ASND_StopVoice(voice);
-		break;
+			platform->getAudio()->stopVoice(voice);
+			break;
 
 		case SOUND::OGG:
-		StopOgg();
-		break;
+			platform->getAudio()->stopStream();
+			break;
 	}
 }
 
@@ -72,12 +66,12 @@ void GuiSound::pause()
 	switch(type)
 	{
 		case SOUND::PCM:
-		ASND_PauseVoice(voice, 1);
-		break;
+			platform->getAudio()->pauseVoice(voice);
+			break;
 
 		case SOUND::OGG:
-		PauseOgg(1);
-		break;
+			platform->getAudio()->pauseStream();
+			break;
 	}
 }
 
@@ -89,21 +83,30 @@ void GuiSound::resume()
 	switch(type)
 	{
 		case SOUND::PCM:
-		ASND_PauseVoice(voice, 0);
-		break;
+			platform->getAudio()->resumeVoice(voice);
+			break;
 
 		case SOUND::OGG:
-		PauseOgg(0);
-		break;
+			platform->getAudio()->resumeStream();
+			break;
 	}
 }
 
 bool GuiSound::isPlaying()
 {
-	if(ASND_StatusVoice(voice) == SND_WORKING || ASND_StatusVoice(voice) == SND_WAITING)
-		return true;
-	else
+	if(voice < 0)
 		return false;
+
+	switch(type)
+	{
+		case SOUND::PCM:
+			return platform->getAudio()->isVoicePlaying(voice);
+
+		case SOUND::OGG:
+			return platform->getAudio()->isStreamPlaying();
+	}
+
+	return false;
 }
 
 void GuiSound::setVolume(int vol)
@@ -118,12 +121,12 @@ void GuiSound::setVolume(int vol)
 	switch(type)
 	{
 		case SOUND::PCM:
-		ASND_ChangeVolumeVoice(voice, newvol, newvol);
-		break;
+			platform->getAudio()->setVoiceVolume(voice, newvol);
+			break;
 
 		case SOUND::OGG:
-		SetVolumeOgg(255*(volume/100.0));
-		break;
+			platform->getAudio()->setStreamVolume(newvol);
+			break;
 	}
 }
 

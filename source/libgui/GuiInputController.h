@@ -65,4 +65,3 @@ private:
 };
 
 extern GuiInputController* userInput[4];
-extern int rumbleRequest[4];

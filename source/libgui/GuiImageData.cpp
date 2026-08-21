@@ -9,15 +9,25 @@
 GuiImageData::GuiImageData(const uint8_t * i, int maxw, int maxh)
 {
 	data = nullptr;
+	texture = nullptr;
 	width = 0;
 	height = 0;
 
 	if(i)
-		data = DecodePNG(i, &width, &height, maxw, maxh);
+		data = (uint8_t *)platform->getVideo()->getImageRenderer()->decodeImage(i, &width, &height, maxw, maxh);
+
+	if(data)
+		texture = platform->getVideo()->getImageRenderer()->createTexture(data, width, height);
 }
 
 GuiImageData::~GuiImageData()
 {
+	if(texture)
+	{
+		platform->getVideo()->getImageRenderer()->destroyTexture(texture);
+		texture = nullptr;
+	}
+
 	if(data)
 	{
 		free(data);
@@ -28,6 +38,11 @@ GuiImageData::~GuiImageData()
 uint8_t * GuiImageData::getImage()
 {
 	return data;
+}
+
+void * GuiImageData::getTexture()
+{
+	return texture;
 }
 
 int GuiImageData::getWidth()

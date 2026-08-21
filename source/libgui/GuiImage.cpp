@@ -5,10 +5,14 @@
  ***************************************************************************/
 
 #include "Gui.h"
+#include <malloc.h>
 
 GuiImage::GuiImage()
 {
 	image = nullptr;
+	texture = nullptr;
+	ownsTexture = false;
+	textureDirty = false;
 	width = 0;
 	height = 0;
 	imageangle = 0;
@@ -20,11 +24,15 @@ GuiImage::GuiImage()
 GuiImage::GuiImage(GuiImageData * img)
 {
 	image = nullptr;
+	texture = nullptr;
+	ownsTexture = false;
+	textureDirty = false;
 	width = 0;
 	height = 0;
 	if(img)
 	{
 		image = img->getImage();
+		texture = img->getTexture();
 		width = img->getWidth();
 		height = img->getHeight();
 	}
@@ -37,6 +45,9 @@ GuiImage::GuiImage(GuiImageData * img)
 GuiImage::GuiImage(uint8_t * img, int w, int h)
 {
 	image = img;
+	texture = nullptr;
+	ownsTexture = true;
+	textureDirty = true;
 	width = w;
 	height = h;
 	imageangle = 0;
@@ -45,9 +56,12 @@ GuiImage::GuiImage(uint8_t * img, int w, int h)
 	imgType = IMAGE::TEXTURE;
 }
 
-GuiImage::GuiImage(int w, int h, GuiColor c)
+GuiImage::GuiImage(int w, int h, PixelColor c)
 {
-	image = (uint8_t *)memalign (32, w * h << 2);
+	image = (uint8_t *)malloc(w * h * 4);
+	texture = nullptr;
+	ownsTexture = true;
+	textureDirty = true;
 	width = w;
 	height = h;
 	imageangle = 0;
@@ -67,13 +81,13 @@ GuiImage::GuiImage(int w, int h, GuiColor c)
 			this->setPixel(x, y, c);
 		}
 	}
-	int len = w * h << 2;
-	if(len%32) len += (32-len%32);
-	DCFlushRange(image, len);
 }
 
 GuiImage::~GuiImage()
 {
+	if(ownsTexture && texture)
+		platform->getVideo()->getImageRenderer()->destroyTexture(texture);
+
 	if(imgType == IMAGE::COLOR && image)
 		free(image);
 }
@@ -85,12 +99,19 @@ uint8_t * GuiImage::getImage()
 
 void GuiImage::setImage(GuiImageData * img)
 {
+	if(ownsTexture && texture)
+		platform->getVideo()->getImageRenderer()->destroyTexture(texture);
+
 	image = nullptr;
+	texture = nullptr;
+	ownsTexture = false;
+	textureDirty = false;
 	width = 0;
 	height = 0;
 	if(img)
 	{
 		image = img->getImage();
+		texture = img->getTexture();
 		width = img->getWidth();
 		height = img->getHeight();
 	}
@@ -99,7 +120,13 @@ void GuiImage::setImage(GuiImageData * img)
 
 void GuiImage::setImage(uint8_t * img, int w, int h)
 {
+	if(ownsTexture && texture)
+		platform->getVideo()->getImageRenderer()->destroyTexture(texture);
+
 	image = img;
+	texture = nullptr;
+	ownsTexture = true;
+	textureDirty = true;
 	width = w;
 	height = h;
 	imgType = IMAGE::TEXTURE;
@@ -115,30 +142,32 @@ void GuiImage::setTile(int t)
 	tile = t;
 }
 
-GuiColor GuiImage::getPixel(int x, int y)
+PixelColor GuiImage::getPixel(int x, int y)
 {
-	if(!image || this->getWidth() <= 0 || x < 0 || y < 0)
-		return (GuiColor){0, 0, 0, 0};
+	if(!image || x < 0 || y < 0 || x >= this->getWidth() || y >= this->getHeight())
+		return (PixelColor){0, 0, 0, 0};
 
-	uint32_t offset = (((y >> 2)<<4)*this->getWidth()) + ((x >> 2)<<6) + (((y%4 << 2) + x%4 ) << 1);
-	GuiColor color;
-	color.a = *(image+offset);
-	color.r = *(image+offset+1);
-	color.g = *(image+offset+32);
-	color.b = *(image+offset+33);
+	uint32_t offset = (y * this->getWidth() + x) * 4;
+	PixelColor color;
+	color.r = *(image+offset);
+	color.g = *(image+offset+1);
+	color.b = *(image+offset+2);
+	color.a = *(image+offset+3);
 	return color;
 }
 
-void GuiImage::setPixel(int x, int y, GuiColor color)
+void GuiImage::setPixel(int x, int y, PixelColor color)
 {
-	if(!image || this->getWidth() <= 0 || x < 0 || y < 0)
+	if(!image || x < 0 || y < 0 || x >= this->getWidth() || y >= this->getHeight())
 		return;
 
-	uint32_t offset = (((y >> 2)<<4)*this->getWidth()) + ((x >> 2)<<6) + (((y%4 << 2) + x%4 ) << 1);
-	*(image+offset) = color.a;
-	*(image+offset+1) = color.r;
-	*(image+offset+32) = color.g;
-	*(image+offset+33) = color.b;
+	uint32_t offset = (y * this->getWidth() + x) * 4;
+	*(image+offset) = color.r;
+	*(image+offset+1) = color.g;
+	*(image+offset+2) = color.b;
+	*(image+offset+3) = color.a;
+
+	textureDirty = true;
 }
 
 void GuiImage::setStripe(int s)
@@ -148,7 +177,7 @@ void GuiImage::setStripe(int s)
 
 void GuiImage::colorStripe(int shift)
 {
-	GuiColor color;
+	PixelColor color;
 	int x, y=0;
 	int alt = 0;
 	
@@ -207,6 +236,26 @@ void GuiImage::colorStripe(int shift)
 			}
 		}
 	}
+
+	refreshTexture();
+}
+
+void GuiImage::refreshTexture()
+{
+	if(imgType == IMAGE::DATA)
+		return; // borrowed from GuiImageData -- not this object's to refresh
+
+	if(!image)
+		return;
+
+	if(texture && !textureDirty)
+		return;
+
+	if(texture)
+		platform->getVideo()->getImageRenderer()->destroyTexture(texture);
+
+	texture = platform->getVideo()->getImageRenderer()->createTexture(image, width, height);
+	textureDirty = false;
 }
 
 /**
@@ -215,6 +264,9 @@ void GuiImage::colorStripe(int shift)
 void GuiImage::draw()
 {
 	if(!image || !this->isVisible() || tile == 0)
+		return;
+
+	if(!texture)
 		return;
 
 	float currScaleX = this->getScaleX();
@@ -227,12 +279,12 @@ void GuiImage::draw()
 		int alpha = this->getAlpha();
 		for(int i=0; i<tile; ++i)
 		{
-			Menu_DrawImg(currLeft+width*i, thisTop, width, height, image, imageangle, currScaleX, currScaleY, alpha);
+			platform->getVideo()->getImageRenderer()->drawTexture(texture, currLeft+width*i, thisTop, width, height, imageangle, currScaleX, currScaleY, alpha);
 		}
 	}
 	else
 	{
-		Menu_DrawImg(currLeft, thisTop, width, height, image, imageangle, currScaleX, currScaleY, this->getAlpha());
+		platform->getVideo()->getImageRenderer()->drawTexture(texture, currLeft, thisTop, width, height, imageangle, currScaleX, currScaleY, this->getAlpha());
 	}
 
 	if(stripe > 0)
@@ -240,7 +292,7 @@ void GuiImage::draw()
 		int thisHeight = this->getHeight();
 		int thisWidth = this->getWidth();
 		for(int y=0; y < thisHeight; y+=6)
-			Menu_DrawRectangle(currLeft,thisTop+y,thisWidth,3,(GuiColor){0, 0, 0, (uint8_t)stripe},1);
+			platform->getVideo()->getImageRenderer()->drawRectangle(currLeft,thisTop+y,thisWidth,3,(PixelColor){0, 0, 0, (uint8_t)stripe},1);
 	}
 	this->updateEffects();
 }

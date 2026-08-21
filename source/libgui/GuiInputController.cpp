@@ -7,7 +7,6 @@
 #include <cmath>
 #include "Gui.h"
 
-int rumbleRequest[4] = {0, 0, 0, 0};
 GuiInputController* userInput[4] = {nullptr, nullptr, nullptr, nullptr};
 
 GuiInputController::GuiInputController(int ch) : 
