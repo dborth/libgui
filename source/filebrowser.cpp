@@ -7,11 +7,9 @@
  * Generic file routines - reading, writing, browsing
  ***************************************************************************/
 
-#include <gccore.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <wiiuse/wpad.h>
 #include <sys/dir.h>
 #include <malloc.h>
 

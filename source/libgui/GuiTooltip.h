@@ -5,6 +5,8 @@
  ***************************************************************************/
 #pragma once
 
+#include <ctime>
+
 //!Display, manage, and manipulate tooltips in the GUI
 class GuiTooltip : public GuiElement
 {

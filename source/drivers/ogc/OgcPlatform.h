@@ -10,15 +10,19 @@
 #include "OgcVideoDriver.h"
 #include "OgcInputDriver.h"
 #include "OgcFileSystemDriver.h"
+#include "OgcThreadDriver.h"
 
 class OgcPlatform : public Platform
 {
 	public:
 		OgcPlatform()
-			: audioDriver(nullptr), videoDriver(nullptr), inputDriver(nullptr), fileSystemDriver(nullptr) {}
+			: audioDriver(nullptr), videoDriver(nullptr), inputDriver(nullptr), fileSystemDriver(nullptr), threadDriver(nullptr) {}
 
 		void init() override
 		{
+			this->threadDriver = new OgcThreadDriver();
+			this->threadDriver->init();
+
 			this->videoDriver = new OgcVideoDriver();
 			this->videoDriver->init();
 
@@ -57,6 +61,12 @@ class OgcPlatform : public Platform
 				delete videoDriver;
 				videoDriver = nullptr;
 			}
+
+			if (threadDriver) {
+				threadDriver->shutdown();
+				delete threadDriver;
+				threadDriver = nullptr;
+			}
 			exit(0);
 		}
 
@@ -64,10 +74,12 @@ class OgcPlatform : public Platform
 		VideoDriver* getVideo() override { return videoDriver; }
 		InputDriver* getInput() override { return inputDriver; }
 		FileSystemDriver* getFileSystem() override { return fileSystemDriver; }
+		ThreadDriver* getThread() override { return threadDriver; }
 
 	private:
 		OgcAudioDriver* audioDriver;
 		OgcVideoDriver* videoDriver;
 		OgcInputDriver* inputDriver;
 		OgcFileSystemDriver* fileSystemDriver;
+		OgcThreadDriver* threadDriver;
 };

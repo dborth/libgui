@@ -6,13 +6,10 @@
  * Menu flow routines - handles all menu logic
  ***************************************************************************/
 
-#include <gccore.h>
-#include <ogcsys.h>
 #include <stdio.h>
 #include <unistd.h>
 #include <stdlib.h>
 #include <string.h>
-#include <wiiuse/wpad.h>
 
 #include "libgui/Gui.h"
 #include "drivers/Platform.h"
@@ -27,7 +24,7 @@ static GuiImageData * pointer[4];
 static GuiImage * bgImg = nullptr;
 static GuiSound * bgMusic = nullptr;
 static GuiWindow * mainWindow = nullptr;
-static lwp_t guithread = LWP_THREAD_NULL;
+static Thread guiThread;
 static bool guiHalt = true;
 
 /****************************************************************************
@@ -41,7 +38,7 @@ static void
 ResumeGui()
 {
 	guiHalt = false;
-	LWP_ResumeThread (guithread);
+	guiThread.resume();
 }
 
 /****************************************************************************
@@ -58,7 +55,7 @@ HaltGui()
 	guiHalt = true;
 
 	// wait for thread to finish
-	while(!LWP_ThreadIsSuspended(guithread))
+	while(!guiThread.isSuspended())
 		usleep(THREAD_SLEEP);
 }
 
@@ -181,7 +178,7 @@ UpdateGUI (void *arg)
 	{
 		if(guiHalt)
 		{
-			LWP_SuspendThread(guithread);
+			guiThread.suspend();
 		}
 		else
 		{
@@ -209,10 +206,10 @@ UpdateGUI (void *arg)
 				for(i = 0; i <= 255; i += 15)
 				{
 					mainWindow->draw();
-					platform->getVideo()->getImageRenderer()->drawRectangle(0,0,platform->getVideo()->getScreenWidth(),platform->getVideo()->getScreenHeight(),(PixelColor){0, 0, 0, (u8)i},1);
+					platform->getVideo()->getImageRenderer()->drawRectangle(0,0,platform->getVideo()->getScreenWidth(),platform->getVideo()->getScreenHeight(),(PixelColor){0, 0, 0, (uint8_t)i},1);
 					platform->getVideo()->render();
 				}
-				platform->shutdown();
+				return nullptr;
 			}
 		}
 	}
@@ -227,7 +224,7 @@ UpdateGUI (void *arg)
 void
 InitGUIThreads()
 {
-	LWP_CreateThread (&guithread, UpdateGUI, nullptr, nullptr, 24576, 70);
+	guiThread.start(UpdateGUI, nullptr, 24576, 70);
 }
 
 /****************************************************************************
@@ -236,7 +233,7 @@ InitGUIThreads()
  * Opens an on-screen keyboard window, with the data entered being stored
  * into the specified variable.
  ***************************************************************************/
-static void OnScreenKeyboard(char * var, u16 maxlen)
+static void OnScreenKeyboard(char * var, uint16_t maxlen)
 {
 	int save = -1;
 
@@ -808,10 +805,8 @@ void MainMenu(int menu)
 	}
 
 	ResumeGui();
-	ExitRequested = 1;
-	while(1) usleep(THREAD_SLEEP);
-
-	HaltGui();
+	ExitRequested = true;
+	guiThread.join();
 
 	bgMusic->stop();
 	delete bgMusic;

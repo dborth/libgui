@@ -31,7 +31,6 @@ struct SSettings {
 };
 extern struct SSettings Settings;
 
-void ExitApp();
-extern int ExitRequested;
+extern bool ExitRequested;
 
 #endif

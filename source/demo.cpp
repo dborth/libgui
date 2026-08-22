@@ -17,7 +17,7 @@
 #include "libgui/Gui.h"
 
 struct SSettings Settings;
-int ExitRequested = 0;
+bool ExitRequested = false;
 
 static OgcPlatform ogcPlatformInstance;
 Platform* platform = &ogcPlatformInstance;
@@ -48,4 +48,6 @@ main(int argc, char *argv[])
 	InitGUIThreads(); // Initialize GUI
 	DefaultSettings();
 	MainMenu(MENU_SETTINGS);
+
+	platform->shutdown();
 }
