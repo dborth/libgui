@@ -223,6 +223,12 @@ void GuiFileBrowser::update(GuiInputController * controller)
 
 	auto pad = controller->getPadData();
 	int currentChan = controller->getChannel();
+	// A GuiInputController with no live signal this frame (e.g. a persistent
+	// but currently-disconnected controller slot) must not be able to claim
+	// or evict a selection just by taking its turn through this loop -- only
+	// a channel that's genuinely doing something (pointing or pressing) gets
+	// a say in who owns the selected slot.
+	bool channelActive = pad.validPointer || pad.buttons_d != 0 || pad.buttons_h != 0;
 
 	// move the file listing to respond to wiimote cursor movement
 	if(scrollbarBoxBtn->getState() == STATE::HELD &&
@@ -328,7 +334,7 @@ void GuiFileBrowser::update(GuiInputController * controller)
 
 	endNavigation:
 
-		for(int i=0; i<FILE_PAGESIZE; ++i)
+	for(int i=0; i<FILE_PAGESIZE; ++i)
 	{
 		if(listChanged || numEntries != browser.numEntries)
 		{
@@ -361,9 +367,9 @@ void GuiFileBrowser::update(GuiInputController * controller)
 
 		if(i != selectedItem && fileList[i]->getState() == STATE::SELECTED)
 			fileList[i]->resetState();
-		else if(focus && i == selectedItem && fileList[i]->getState() == STATE::DEFAULT)
+		else if(focus && channelActive && i == selectedItem && fileList[i]->getState() == STATE::DEFAULT)
 			fileList[selectedItem]->setState(STATE::SELECTED, currentChan);
-		else if(focus && i == selectedItem && fileList[i]->getState() == STATE::SELECTED &&
+		else if(focus && channelActive && i == selectedItem && fileList[i]->getState() == STATE::SELECTED &&
 				fileList[i]->getStateChan() != -1 && fileList[i]->getStateChan() != currentChan)
 			// Slot is already SELECTED but carries a stale channel from an earlier
 			// selection (e.g. a reused slot after paging, or a preselected item that
@@ -380,6 +386,7 @@ void GuiFileBrowser::update(GuiInputController * controller)
 			controller->setChannel(-1);
 
 		fileList[i]->update(controller);
+
 		controller->setChannel(currentChan);
 
 		if(fileList[i]->getState() == STATE::SELECTED)
