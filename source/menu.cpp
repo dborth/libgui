@@ -203,7 +203,7 @@ static void * UpdateGUI (void *)
 				for(i = 0; i <= 255; i += 15)
 				{
 					mainWindow->draw();
-					platform->getVideo()->getImageRenderer()->drawRectangle(0,0,platform->getVideo()->getScreenWidth(),platform->getVideo()->getScreenHeight(),(PixelColor){0, 0, 0, (uint8_t)i},1);
+					platform->getVideo()->getImageRenderer()->drawRectangle(0,0,platform->getVideo()->getScreenWidth(),platform->getVideo()->getScreenHeight(),(PixelColor){0, 0, 0, (uint8_t)i});
 					platform->getVideo()->render();
 				}
 				return nullptr;

@@ -292,7 +292,7 @@ void GuiImage::draw()
 		int thisHeight = this->getHeight();
 		int thisWidth = this->getWidth();
 		for(int y=0; y < thisHeight; y+=6)
-			platform->getVideo()->getImageRenderer()->drawRectangle(currLeft,thisTop+y,thisWidth,3,(PixelColor){0, 0, 0, (uint8_t)stripe},1);
+			platform->getVideo()->getImageRenderer()->drawRectangle(currLeft,thisTop+y,thisWidth,3,(PixelColor){0, 0, 0, (uint8_t)stripe});
 	}
 	this->updateEffects();
 }

@@ -65,7 +65,7 @@ class ImageRenderer
 		virtual void destroyTexture(void * texture) = 0;
 		//!Draws a texture created by createTexture.
 		virtual void drawTexture(void * texture, float xpos, float ypos, uint16_t width, uint16_t height, float degrees, float scaleX, float scaleY, uint8_t alpha) = 0;
-		virtual void drawRectangle(float x, float y, float width, float height, PixelColor color, uint8_t filled) = 0;
+		virtual void drawRectangle(float x, float y, float width, float height, PixelColor color) = 0;
 };
 
 class GlyphRenderer {

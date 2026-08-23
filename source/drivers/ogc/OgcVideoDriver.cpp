@@ -385,21 +385,14 @@ void OgcImageRenderer::drawTexture(void * texture, float xpos, float ypos, uint1
 	GX_SetVtxDesc (GX_VA_TEX0, GX_NONE);
 }
 
-void OgcImageRenderer::drawRectangle(float x, float y, float width, float height, PixelColor color, uint8_t filled)
+void OgcImageRenderer::drawRectangle(float x, float y, float width, float height, PixelColor color)
 {
 	long n = 4;
 	float x2 = x+width;
 	float y2 = y+height;
 	guVector v[] = {{x,y,0.0f}, {x2,y,0.0f}, {x2,y2,0.0f}, {x,y2,0.0f}, {x,y,0.0f}};
-	uint8_t fmt = GX_TRIANGLEFAN;
 
-	if(!filled)
-	{
-		fmt = GX_LINESTRIP;
-		n = 5;
-	}
-
-	GX_Begin(fmt, GX_VTXFMT0, n);
+	GX_Begin(GX_TRIANGLEFAN, GX_VTXFMT0, n);
 	for(long i=0; i<n; ++i)
 	{
 		GX_Position3f32(v[i].x, v[i].y,  v[i].z);
