@@ -13,12 +13,16 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        image: ["Wii", "GameCube"]
+        image: ["Wii", "GameCube", "WiiU"]
     container: ghcr.io/extremscorner/libogc2:latest
 
     steps:
     - name: Checkout libgui repo
       uses: actions/checkout@v4
+
+    - name: Install Wii U dependencies
+      if: ${{ matrix.image == 'WiiU' }}
+      run: dkp-pacman -Syu --noconfirm wiiu-dev wiiu-portlibs
 
     - name: Build Wii
       if: ${{ matrix.image == 'Wii' }}
@@ -28,11 +32,25 @@ jobs:
       if: ${{ matrix.image == 'GameCube' }}
       run: make -f Makefile.gc -j3
 
-    - name: Upload binary artifact
+    - name: Build Wii U
+      if: ${{ matrix.image == 'WiiU' }}
+      run: make -f Makefile.wiiu wuhb -j3
+
+    - name: Upload binary artifact (Wii & GameCube)
+      if: ${{ matrix.image == 'Wii' || matrix.image == 'GameCube' }}
       uses: actions/upload-artifact@v4
       with:
         name: libgui-${{ matrix.image }}
         path: "*.dol"
+
+    - name: Upload binary artifact (Wii U)
+      if: ${{ matrix.image == 'WiiU' }}
+      uses: actions/upload-artifact@v4
+      with:
+        name: libgui-${{ matrix.image }}
+        path: |
+          *.rpx
+          *.wuhb
 
   docs:
     name: Documentation
@@ -81,7 +99,7 @@ jobs:
     - name: Re-zip artifact
       run: |
         cd dist
-        zip -r libgui.zip *.dol
+        zip -r libgui.zip .
 
     - name: Update Git Tag
       run: |

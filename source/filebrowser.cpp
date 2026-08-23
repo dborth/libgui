@@ -16,10 +16,14 @@
 #include "filebrowser.h"
 #include "menu.h"
 
+#ifdef __WIIU__
+#include <whb/sdcard.h>
+#endif
+
 BROWSERINFO browser;
 BROWSERENTRY * browserList = nullptr; // list of files/folders in browser
 
-char rootdir[10];
+char rootdir[128];
 
 /****************************************************************************
  * ResetBrowser()
@@ -224,7 +228,23 @@ int BrowserChangeFolder()
 int BrowseDevice()
 {
 	sprintf(browser.dir, "/");
+
+#ifdef __WIIU__
+	// Wii U has no "sd:/"-style libfat device name - WutFileSystemDriver
+	// mounts the SD card at init() via WHBMountSdCard(), which assigns an
+	// actual FS path (typically "/vol/external01/") only known at
+	// runtime. "sd:/" (the Wii/GC libfat device name below) simply
+	// doesn't exist as a devoptab entry on Wii U, so opendir() against it
+	// would just fail - this pulls the real mounted path instead.
+	const char * sdPath = WHBGetSdCardMountPath();
+	if(sdPath && sdPath[0] != '\0')
+		snprintf(rootdir, sizeof(rootdir), "%s", sdPath);
+	else
+		snprintf(rootdir, sizeof(rootdir), "/");
+#else
 	sprintf(rootdir, "sd:/");
+#endif
+
 	ParseDirectory(); // Parse root directory
 	return browser.numEntries;
 }

@@ -1,8 +1,11 @@
 build/
 *.dol
 *.elf
+/*.rpx
+/*.wuhb
 /.project
 /.settings/
 /.cproject
 /build_gc/
 /build_wii/
+/build_wiiu/

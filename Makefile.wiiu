@@ -1,0 +1,167 @@
+#---------------------------------------------------------------------------------
+# Clear the implicit built in rules
+#---------------------------------------------------------------------------------
+.SUFFIXES:
+#---------------------------------------------------------------------------------
+ifeq ($(strip $(DEVKITPRO)),)
+$(error "Please set DEVKITPRO in your environment. export DEVKITPRO=<path to>devkitPro")
+endif
+
+include $(DEVKITPRO)/wut/share/wut_rules
+export	FREETYPE_CFLAGS :=	`$(DEVKITPRO)/portlibs/ppc/bin/powerpc-eabi-pkg-config --cflags freetype2`
+export	FREETYPE_LIBS	:=	`$(DEVKITPRO)/portlibs/ppc/bin/powerpc-eabi-pkg-config --libs freetype2`
+
+#---------------------------------------------------------------------------------
+# TARGET is the name of the output
+# BUILD is the directory where object files & intermediate files will be placed
+# SOURCES is a list of directories containing source code
+# INCLUDES is a list of directories containing extra header files
+#---------------------------------------------------------------------------------
+TARGET		:=	libgui-wiiu-demo
+BUILD		:=	build_wiiu
+SOURCES		:=	source source/drivers source/drivers/wut source/drivers/wut/shaders source/libgui
+INCLUDES	:=	source
+DATA		:=	data/images data/fonts data/sounds data/lang
+
+#---------------------------------------------------------------------------------
+# options for code generation
+#---------------------------------------------------------------------------------
+
+CFLAGS		=	-g -O2 -Wall -Wextra $(MACHDEP) $(INCLUDE) $(FREETYPE_CFLAGS) -D__WIIU__ -D__WUT__
+CXXFLAGS	=	$(CFLAGS) -std=c++17
+LDFLAGS		=	-g $(MACHDEP) $(RPXSPECS) -Wl,-Map,$(notdir $@).map
+
+#---------------------------------------------------------------------------------
+# any extra libraries we wish to link with the project
+#
+# link order matters: libwhb depends on wut/coreinit symbols, so it comes
+# first; freetype/png/z are portlibs, same as the Wii build.
+#---------------------------------------------------------------------------------
+LIBS :=	-lwut -lpng -lz -lvorbisidec -logg $(FREETYPE_LIBS)
+#---------------------------------------------------------------------------------
+# list of directories containing libraries, this must be the top level containing
+# include and lib
+#---------------------------------------------------------------------------------
+LIBDIRS	:= $(PORTLIBS) $(WUT_ROOT)
+
+#---------------------------------------------------------------------------------
+# no real need to edit anything past this point unless you need to add additional
+# rules for different file extensions
+#---------------------------------------------------------------------------------
+ifneq ($(BUILD),$(notdir $(CURDIR)))
+#---------------------------------------------------------------------------------
+
+export OUTPUT	:=	$(CURDIR)/$(TARGETDIR)/$(TARGET)
+export VPATH	:=	$(foreach dir,$(SOURCES),$(CURDIR)/$(dir)) \
+					$(foreach dir,$(DATA),$(CURDIR)/$(dir))
+export DEPSDIR	:=	$(CURDIR)/$(BUILD)
+
+#---------------------------------------------------------------------------------
+# automatically build a list of object files for our project
+#---------------------------------------------------------------------------------
+CFILES		:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.c)))
+CPPFILES	:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.cpp)))
+sFILES		:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.s)))
+SFILES		:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.S)))
+BINFILES	:=	$(foreach dir,$(DATA),$(notdir $(wildcard $(dir)/*.ttf) \
+					$(wildcard $(dir)/*.lang) $(wildcard $(dir)/*.png) \
+					$(wildcard $(dir)/*.ogg) $(wildcard $(dir)/*.pcm)))
+
+#---------------------------------------------------------------------------------
+# use CXX for linking C++ projects, CC for standard C
+#---------------------------------------------------------------------------------
+ifeq ($(strip $(CPPFILES)),)
+	export LD	:=	$(CC)
+else
+	export LD	:=	$(CXX)
+endif
+
+export OFILES_BIN	:=	$(addsuffix .o,$(BINFILES))
+export OFILES_SOURCES := $(CPPFILES:.cpp=.o) $(CFILES:.c=.o) $(sFILES:.s=.o) $(SFILES:.S=.o)
+export OFILES := $(OFILES_BIN) $(OFILES_SOURCES)
+
+export HFILES := $(addsuffix .h,$(subst .,_,$(BINFILES)))
+
+
+#---------------------------------------------------------------------------------
+# build a list of include paths
+#---------------------------------------------------------------------------------
+export INCLUDE	:=	$(foreach dir,$(INCLUDES),-I$(CURDIR)/$(dir)) \
+				$(foreach dir,$(LIBDIRS),-I$(dir)/include) \
+				-I$(CURDIR)/$(BUILD)
+
+#---------------------------------------------------------------------------------
+# build a list of library paths
+#---------------------------------------------------------------------------------
+export LIBPATHS	:=	$(foreach dir,$(LIBDIRS),-L$(dir)/lib)
+
+export OUTPUT	:=	$(CURDIR)/$(TARGET)
+.PHONY: $(BUILD) clean
+
+#---------------------------------------------------------------------------------
+$(BUILD):
+	@[ -d $@ ] || mkdir -p $@
+	@$(MAKE) --no-print-directory -C $(BUILD) -f $(CURDIR)/Makefile.wiiu
+	
+#-------------------------------------------------------------------------------
+# .wuhb packaging (this is what makes it launchable via the Homebrew
+# Launcher / Aroma, vs. a bare .rpx). Needs an icon and TV splash image --
+# placeholders referenced below, swap for real art.
+#-------------------------------------------------------------------------------
+wuhb: $(OUTPUT).rpx
+	@echo packaging $(TARGET).wuhb ...
+	@$(DEVKITPRO)/tools/bin/wuhbtool $(TARGET).rpx $(TARGET).wuhb \
+		--name="libgui Wii U" \
+		--short-name="libgui" \
+		--author="dborth" \
+		--icon=meta/icon.png \
+		--tv-image=meta/tv_splash.png \
+		--drc-image=meta/drc_splash.png \
+		#--content=$(ROMFS)
+
+#---------------------------------------------------------------------------------
+clean:
+	@echo clean ...
+	@rm -fr $(BUILD) $(OUTPUT).elf $(OUTPUT).rpx $(OUTPUT).wuhb
+
+#---------------------------------------------------------------------------------
+else
+
+DEPENDS	:=	$(OFILES:.o=.d)
+
+#---------------------------------------------------------------------------------
+# main targets
+#---------------------------------------------------------------------------------
+$(OUTPUT).wuhb: $(OUTPUT).rpx
+$(OUTPUT).rpx: $(OUTPUT).elf
+$(OUTPUT).elf: $(OFILES)
+
+$(OFILES_SOURCES): $(HFILES)
+#---------------------------------------------------------------------------------
+# This rule links in binary data with .ttf, .png, and .mp3 extensions
+#---------------------------------------------------------------------------------
+%.ttf.o %_ttf.h : %.ttf
+	@echo $(notdir $<)
+	$(bin2o)
+
+%.lang.o %_lang.h : %.lang
+	@echo $(notdir $<)
+	$(bin2o)
+
+%.png.o %_png.h : %.png
+	@echo $(notdir $<)
+	$(bin2o)
+
+%.ogg.o %_ogg.h : %.ogg
+	@echo $(notdir $<)
+	$(bin2o)
+
+%.pcm.o %_pcm.h : %.pcm
+	@echo $(notdir $<)
+	$(bin2o)
+
+-include $(DEPENDS)
+
+#---------------------------------------------------------------------------------
+endif
+#---------------------------------------------------------------------------------

@@ -1,6 +1,6 @@
 /****************************************************************************
  * libgui Template
- * Tantric 2009
+ * Tantric 2009-2026
  *
  * demo.cpp
  * Basic template/demonstration of libgui capabilities. For a
@@ -10,7 +10,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#ifdef __WIIU__
+#include "drivers/wut/WutPlatform.h"
+#else
 #include "drivers/ogc/OgcPlatform.h"
+#endif
 #include "menu.h"
 #include "filelist.h"
 #include "demo.h"
@@ -19,8 +23,12 @@
 struct SSettings Settings;
 bool ExitRequested = false;
 
-static OgcPlatform ogcPlatformInstance;
-Platform* platform = &ogcPlatformInstance;
+#ifdef __WIIU__
+static WutPlatform platformInstance;
+#else
+static OgcPlatform platformInstance;
+#endif
+Platform* platform = &platformInstance;
 
 void
 DefaultSettings()

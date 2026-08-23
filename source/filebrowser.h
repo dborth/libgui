@@ -32,7 +32,7 @@ typedef struct
 
 extern BROWSERINFO browser;
 extern BROWSERENTRY * browserList;
-extern char rootdir[10];
+extern char rootdir[128];
 
 int UpdateDirName(int method);
 int FileSortCallback(const void *f1, const void *f2);
