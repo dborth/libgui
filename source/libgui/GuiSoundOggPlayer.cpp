@@ -27,8 +27,8 @@ size_t GuiSoundOggPlayer::readOgg(void* ptr, size_t size, size_t nmemb, void* da
 	MemFile* mem = static_cast<MemFile*>(datasource);
 	size_t bytesToRead = size * nmemb;
 	if (mem->pos >= mem->size) return 0;
-	if (mem->pos + bytesToRead > mem->size) {
-		bytesToRead = mem->size - mem->pos;
+	if (static_cast<size_t>(mem->pos) + bytesToRead > static_cast<size_t>(mem->size)) {
+		bytesToRead = static_cast<size_t>(mem->size - mem->pos);
 	}
 	memcpy(ptr, mem->data + mem->pos, bytesToRead);
 	mem->pos += bytesToRead;
@@ -47,7 +47,7 @@ int GuiSoundOggPlayer::seekOgg(void* datasource, ogg_int64_t offset, int whence)
 	return 0;
 }
 
-int GuiSoundOggPlayer::closeOgg(void* datasource) { return 0; }
+int GuiSoundOggPlayer::closeOgg(void*) { return 0; }
 long GuiSoundOggPlayer::tellOgg(void* datasource) { return static_cast<MemFile*>(datasource)->pos; }
 
 bool GuiSoundOggPlayer::play(const uint8_t* data, int32_t length, int time_pos, bool loop) {

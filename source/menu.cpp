@@ -167,11 +167,8 @@ WindowPrompt(const char *title, const char *msg, const char *btn1Label, const ch
  *
  * Primary thread to allow GUI to respond to state changes, and draws GUI
  ***************************************************************************/
-
-static void *
-UpdateGUI (void *arg)
+static void * UpdateGUI (void *)
 {
-	(void)arg; // unused
 	int i;
 
 	while(1)

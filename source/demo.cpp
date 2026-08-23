@@ -35,10 +35,8 @@ DefaultSettings()
 }
 
 int
-main(int argc, char *argv[])
+main(int, char **)
 {
-	(void)argc; (void)argv; // unused
-
 	platform->init();
 
 	fontSystem = new GuiTextRenderer(font_ttf, font_ttf_size, platform->getVideo()->getGlyphRenderer());

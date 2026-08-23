@@ -527,10 +527,8 @@ void GuiElement::updateEffects()
 	}
 }
 
-void GuiElement::update(GuiInputController * controller)
+void GuiElement::update(GuiInputController *)
 {
-	(void)controller; //unused
-
 	if(updateCB)
 		updateCB(this);
 }
