@@ -38,4 +38,7 @@ class GuiImageData
 		void * texture; //!< Attached platform-native texture (see IImageRenderer), owned by this object
 		int height; //!< Height of image
 		int width; //!< Width of image
+	private:
+		// !Decodes a PNG buffer into RGBA8
+		uint8_t * decodeImage(const uint8_t * pngData, int * width, int * height, int maxw = 0, int maxh = 0);
 };

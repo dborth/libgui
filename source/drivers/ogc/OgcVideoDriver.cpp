@@ -12,8 +12,6 @@
 #include <unistd.h>
 #include <wiiuse/wpad.h>
 #include <ogc/machine/processor.h>
-#include <png.h>
-#include <setjmp.h>
 
 #include "OgcVideoDriver.h"
 #include "../../libgui/Gui.h"
@@ -183,120 +181,6 @@ void OgcVideoDriver::resetVideoMenu()
 	GX_SetViewport(0,0,vmode->fbWidth,vmode->efbHeight,0,1);
 	GX_SetBlendMode(GX_BM_BLEND, GX_BL_SRCALPHA, GX_BL_INVSRCALPHA, GX_LO_CLEAR);
 	GX_SetAlphaUpdate(GX_TRUE);
-}
-
-struct PngMemoryData {
-    const uint8_t* data;
-    size_t offset;
-};
-
-static void read_png_data_cb(png_structp png_ptr, png_bytep data, png_size_t length)
-{
-    PngMemoryData* memData = (PngMemoryData*)png_get_io_ptr(png_ptr);
-    if (memData == nullptr) return;
-
-    memcpy(data, memData->data + memData->offset, length);
-    memData->offset += length;
-}
-
-void* OgcImageRenderer::decodeImage(const uint8_t* pngData, int* width, int* height, int maxw, int maxh)
-{
-    if (!pngData) return nullptr;
-
-    // 1. Verify the PNG signature (check the first 8 bytes)
-    if (png_sig_cmp((png_const_bytep)pngData, 0, 8)) {
-        return nullptr; // Not a valid PNG
-    }
-
-    // 2. Initialize libpng read structures
-    png_structp png_ptr = png_create_read_struct(PNG_LIBPNG_VER_STRING, nullptr, nullptr, nullptr);
-    if (!png_ptr) return nullptr;
-
-    png_infop info_ptr = png_create_info_struct(png_ptr);
-    if (!info_ptr) {
-        png_destroy_read_struct(&png_ptr, nullptr, nullptr);
-        return nullptr;
-    }
-
-    // 3. Setup libpng error handling
-    if (setjmp(png_jmpbuf(png_ptr))) {
-        png_destroy_read_struct(&png_ptr, &info_ptr, nullptr);
-        return nullptr;
-    }
-
-    // 4. Hook up our custom memory reader
-    PngMemoryData memData = { pngData, 0 };
-    png_set_read_fn(png_ptr, &memData, read_png_data_cb);
-
-    // 5. Read PNG info
-    png_read_info(png_ptr, info_ptr);
-
-    png_uint_32 w, h;
-    int bit_depth, color_type, interlace_type;
-    png_get_IHDR(png_ptr, info_ptr, &w, &h, &bit_depth, &color_type, &interlace_type, nullptr, nullptr);
-
-    // 6. Enforce maximum bounds if they are provided
-    if ((maxw > 0 && (int)w > maxw) || (maxh > 0 && (int)h > maxh)) {
-        png_destroy_read_struct(&png_ptr, &info_ptr, nullptr);
-        return nullptr; // Image exceeds maximum dimensions
-    }
-
-    if (width) *width = w;
-    if (height) *height = h;
-
-    // 7. Force transformations to ensure a flat RGBA8 output format
-    if (bit_depth == 16) {
-        png_set_strip_16(png_ptr); // Strip 16-bit to 8-bit
-    }
-    if (color_type == PNG_COLOR_TYPE_PALETTE) {
-        png_set_palette_to_rgb(png_ptr); // Convert palette to RGB
-    }
-    if (color_type == PNG_COLOR_TYPE_GRAY && bit_depth < 8) {
-        png_set_expand_gray_1_2_4_to_8(png_ptr); // Expand low-bit gray to 8-bit
-    }
-    if (png_get_valid(png_ptr, info_ptr, PNG_INFO_tRNS)) {
-        png_set_tRNS_to_alpha(png_ptr); // Convert transparency chunks to alpha channel
-    }
-    // Add alpha channel if missing
-    if (color_type == PNG_COLOR_TYPE_RGB || color_type == PNG_COLOR_TYPE_GRAY || color_type == PNG_COLOR_TYPE_PALETTE) {
-        png_set_filler(png_ptr, 0xFF, PNG_FILLER_AFTER);
-    }
-    // Convert grayscale to RGB
-    if (color_type == PNG_COLOR_TYPE_GRAY || color_type == PNG_COLOR_TYPE_GRAY_ALPHA) {
-        png_set_gray_to_rgb(png_ptr);
-    }
-
-    // Update info after transformations
-    png_read_update_info(png_ptr, info_ptr);
-    int rowBytes = png_get_rowbytes(png_ptr, info_ptr);
-
-    // 8. Allocate the flat RGBA output buffer
-    uint8_t* rgba = (uint8_t*)malloc(rowBytes * h);
-    if (!rgba) {
-        png_destroy_read_struct(&png_ptr, &info_ptr, nullptr);
-        return nullptr;
-    }
-
-    // 9. Allocate row pointers and map them directly into our flat buffer
-    png_bytep* row_pointers = (png_bytep*)malloc(sizeof(png_bytep) * h);
-    if (!row_pointers) {
-        free(rgba);
-        png_destroy_read_struct(&png_ptr, &info_ptr, nullptr);
-        return nullptr;
-    }
-
-    for (png_uint_32 i = 0; i < h; i++) {
-        row_pointers[i] = rgba + (i * rowBytes);
-    }
-
-    // 10. Decode the image!
-    png_read_image(png_ptr, row_pointers);
-
-    // 11. Cleanup and return
-    free(row_pointers);
-    png_destroy_read_struct(&png_ptr, &info_ptr, nullptr);
-
-    return rgba;
 }
 
 void* OgcImageRenderer::createTexture(const uint8_t* rgba, int width, int height)

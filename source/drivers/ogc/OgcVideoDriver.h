@@ -44,7 +44,6 @@ class OgcVideoDriver : public VideoDriver
 class OgcImageRenderer : public ImageRenderer
 {
 	public:
-		void * decodeImage(const uint8_t * pngData, int * width, int * height, int maxw = 0, int maxh = 0) override;
 		void * createTexture(const uint8_t * rgba, int width, int height) override;
 		void destroyTexture(void * texture) override;
 		void drawTexture(void * texture, float xpos, float ypos, uint16_t width, uint16_t height, float degrees, float scaleX, float scaleY, uint8_t alpha) override;

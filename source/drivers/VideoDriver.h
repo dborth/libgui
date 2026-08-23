@@ -53,8 +53,6 @@ class ImageRenderer
 {
 	public:
 		virtual ~ImageRenderer() = default;
-		//!Decodes a PNG buffer into a platform-native texture
-		virtual void * decodeImage(const uint8_t * pngData, int * width, int * height, int maxw = 0, int maxh = 0) = 0;
 		//!Creates a platform-native texture from a GENERIC ROW-MAJOR RGBA8
 		//!buffer. The driver owns converting this into whatever its hardware
 		//!actually wants.
