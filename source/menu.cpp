@@ -1,6 +1,6 @@
 /****************************************************************************
  * libgui Template
- * Tantric 2009
+ * Tantric 2009-2026
  *
  * menu.cpp
  * Menu flow routines - handles all menu logic
@@ -224,7 +224,7 @@ UpdateGUI (void *arg)
 void
 InitGUIThreads()
 {
-	guiThread.start(UpdateGUI, nullptr, 24576, 70);
+	guiThread.start(UpdateGUI, nullptr, 24576, 30);
 }
 
 /****************************************************************************
@@ -541,10 +541,7 @@ static int MenuSettings()
 	w.append(&videoBtn);
 	w.append(&savingBtn);
 	w.append(&menuBtn);
-
-#ifdef HW_RVL
 	w.append(&networkBtn);
-#endif
 
 	w.append(&exitBtn);
 	w.append(&resetBtn);
