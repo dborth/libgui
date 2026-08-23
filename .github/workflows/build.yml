@@ -34,7 +34,7 @@ jobs:
 
     - name: Build Wii U
       if: ${{ matrix.image == 'WiiU' }}
-      run: make -f Makefile.wiiu wuhb -j3
+      run: make -f Makefile.wiiu -j3
 
     - name: Upload binary artifact (Wii & GameCube)
       if: ${{ matrix.image == 'Wii' || matrix.image == 'GameCube' }}
