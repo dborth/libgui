@@ -144,16 +144,25 @@ void WutInputDriver::update(float deltaTime) {
 
 		// VPAD Processing (GamePad, Channel 0 Only)
 		if (i == 0) {
-			VPADStatus vpadStatus;
+			VPADStatus vpadBuf[16];
 			VPADReadError vpadError;
-			VPADRead(VPAD_CHAN_0, &vpadStatus, 1, &vpadError);
+			int32_t vpadCount = VPADRead(VPAD_CHAN_0, vpadBuf, 16, &vpadError);
 
-			if (vpadError == VPAD_READ_SUCCESS) {
+			if (vpadError == VPAD_READ_SUCCESS && vpadCount > 0) {
 				padData.hw_connected[GUI_HW_DRC] = true;
 
-				padData.hw_buttons_d[GUI_HW_DRC] = MapVPADToGeneric(vpadStatus.trigger);
+				uint32_t triggerMask = GUI_BTN_NONE;
+				uint32_t releaseMask = GUI_BTN_NONE;
+				for (int32_t j = 0; j < vpadCount; j++) {
+					triggerMask |= MapVPADToGeneric(vpadBuf[j].trigger);
+					releaseMask |= MapVPADToGeneric(vpadBuf[j].release);
+				}
+
+				VPADStatus &vpadStatus = vpadBuf[vpadCount - 1];
+
+				padData.hw_buttons_d[GUI_HW_DRC] = triggerMask;
 				padData.hw_buttons_h[GUI_HW_DRC] = MapVPADToGeneric(vpadStatus.hold);
-				padData.hw_buttons_r[GUI_HW_DRC] = MapVPADToGeneric(vpadStatus.release);
+				padData.hw_buttons_r[GUI_HW_DRC] = releaseMask;
 
 				padData.hw_stickX[GUI_HW_DRC] = clampf(vpadStatus.leftStick.x, -1.0f, 1.0f);
 				padData.hw_stickY[GUI_HW_DRC] = clampf(vpadStatus.leftStick.y, -1.0f, 1.0f);
@@ -173,15 +182,25 @@ void WutInputDriver::update(float deltaTime) {
 		}
 
 		// KPAD Processing (Wiimotes & Pro Controllers)
-		KPADStatus kpadStatus;
-		int kpadRead = KPADRead((KPADChan)i, &kpadStatus, 1);
+		KPADStatus kpadBuf[16];
+		int kpadCount = KPADRead((KPADChan)i, kpadBuf, 16);
 
-		if (kpadRead > 0) {
+		if (kpadCount > 0) {
+			KPADStatus &kpadStatus = kpadBuf[kpadCount - 1];
+
 			if (kpadStatus.extensionType == WPAD_EXT_PRO_CONTROLLER) {
 				padData.hw_connected[GUI_HW_WUPC] = true;
-				padData.hw_buttons_d[GUI_HW_WUPC] = MapKPADProToGeneric(kpadStatus.pro.trigger);
+
+				uint32_t triggerMask = GUI_BTN_NONE;
+				uint32_t releaseMask = GUI_BTN_NONE;
+				for (int j = 0; j < kpadCount; j++) {
+					triggerMask |= MapKPADProToGeneric(kpadBuf[j].pro.trigger);
+					releaseMask |= MapKPADProToGeneric(kpadBuf[j].pro.release);
+				}
+
+				padData.hw_buttons_d[GUI_HW_WUPC] = triggerMask;
 				padData.hw_buttons_h[GUI_HW_WUPC] = MapKPADProToGeneric(kpadStatus.pro.hold);
-				padData.hw_buttons_r[GUI_HW_WUPC] = MapKPADProToGeneric(kpadStatus.pro.release);
+				padData.hw_buttons_r[GUI_HW_WUPC] = releaseMask;
 
 				padData.hw_stickX[GUI_HW_WUPC] = clampf(kpadStatus.pro.leftStick.x, -1.0f, 1.0f);
 				padData.hw_stickY[GUI_HW_WUPC] = clampf(kpadStatus.pro.leftStick.y, -1.0f, 1.0f);
@@ -190,9 +209,17 @@ void WutInputDriver::update(float deltaTime) {
 			}
 			else if (kpadStatus.extensionType == WPAD_EXT_CLASSIC) {
 				padData.hw_connected[GUI_HW_CLASSIC] = true;
-				padData.hw_buttons_d[GUI_HW_CLASSIC] = MapKPADClassicToGeneric(kpadStatus.classic.trigger);
+
+				uint32_t triggerMask = GUI_BTN_NONE;
+				uint32_t releaseMask = GUI_BTN_NONE;
+				for (int j = 0; j < kpadCount; j++) {
+					triggerMask |= MapKPADClassicToGeneric(kpadBuf[j].classic.trigger);
+					releaseMask |= MapKPADClassicToGeneric(kpadBuf[j].classic.release);
+				}
+
+				padData.hw_buttons_d[GUI_HW_CLASSIC] = triggerMask;
 				padData.hw_buttons_h[GUI_HW_CLASSIC] = MapKPADClassicToGeneric(kpadStatus.classic.hold);
-				padData.hw_buttons_r[GUI_HW_CLASSIC] = MapKPADClassicToGeneric(kpadStatus.classic.release);
+				padData.hw_buttons_r[GUI_HW_CLASSIC] = releaseMask;
 
 				padData.hw_stickX[GUI_HW_CLASSIC] = clampf(kpadStatus.classic.leftStick.x, -1.0f, 1.0f);
 				padData.hw_stickY[GUI_HW_CLASSIC] = clampf(kpadStatus.classic.leftStick.y, -1.0f, 1.0f);
@@ -202,9 +229,17 @@ void WutInputDriver::update(float deltaTime) {
 			else {
 				// Core Wiimote or Nunchuk
 				padData.hw_connected[GUI_HW_WIIMOTE] = true;
-				padData.hw_buttons_d[GUI_HW_WIIMOTE] = MapKPADCoreToGeneric(kpadStatus.trigger);
+
+				uint32_t triggerMask = GUI_BTN_NONE;
+				uint32_t releaseMask = GUI_BTN_NONE;
+				for (int j = 0; j < kpadCount; j++) {
+					triggerMask |= MapKPADCoreToGeneric(kpadBuf[j].trigger);
+					releaseMask |= MapKPADCoreToGeneric(kpadBuf[j].release);
+				}
+
+				padData.hw_buttons_d[GUI_HW_WIIMOTE] = triggerMask;
 				padData.hw_buttons_h[GUI_HW_WIIMOTE] = MapKPADCoreToGeneric(kpadStatus.hold);
-				padData.hw_buttons_r[GUI_HW_WIIMOTE] = MapKPADCoreToGeneric(kpadStatus.release);
+				padData.hw_buttons_r[GUI_HW_WIIMOTE] = releaseMask;
 
 				if (kpadStatus.posValid) {
 					padData.validPointer = true;
@@ -215,10 +250,18 @@ void WutInputDriver::update(float deltaTime) {
 
 				if (kpadStatus.extensionType == WPAD_EXT_NUNCHUK) {
 					padData.hw_connected[GUI_HW_NUNCHUK] = true;
-					if(kpadStatus.nunchuk.trigger & WPAD_NUNCHUK_BUTTON_Z) padData.hw_buttons_d[GUI_HW_NUNCHUK] |= GUI_TRIGGER_ZL;
-					if(kpadStatus.nunchuk.trigger & WPAD_NUNCHUK_BUTTON_C) padData.hw_buttons_d[GUI_HW_NUNCHUK] |= GUI_TRIGGER_L;
-					if(kpadStatus.nunchuk.hold & WPAD_NUNCHUK_BUTTON_Z) padData.hw_buttons_h[GUI_HW_NUNCHUK] |= GUI_TRIGGER_ZL;
-					if(kpadStatus.nunchuk.hold & WPAD_NUNCHUK_BUTTON_C) padData.hw_buttons_h[GUI_HW_NUNCHUK] |= GUI_TRIGGER_L;
+
+					uint32_t nunchukTrigger = GUI_BTN_NONE;
+					uint32_t nunchukHold = GUI_BTN_NONE;
+					for (int j = 0; j < kpadCount; j++) {
+						if(kpadBuf[j].nunchuk.trigger & WPAD_NUNCHUK_BUTTON_Z) nunchukTrigger |= GUI_TRIGGER_ZL;
+						if(kpadBuf[j].nunchuk.trigger & WPAD_NUNCHUK_BUTTON_C) nunchukTrigger |= GUI_TRIGGER_L;
+					}
+					if(kpadStatus.nunchuk.hold & WPAD_NUNCHUK_BUTTON_Z) nunchukHold |= GUI_TRIGGER_ZL;
+					if(kpadStatus.nunchuk.hold & WPAD_NUNCHUK_BUTTON_C) nunchukHold |= GUI_TRIGGER_L;
+
+					padData.hw_buttons_d[GUI_HW_NUNCHUK] |= nunchukTrigger;
+					padData.hw_buttons_h[GUI_HW_NUNCHUK] |= nunchukHold;
 
 					padData.hw_stickX[GUI_HW_NUNCHUK] = clampf(kpadStatus.nunchuk.stick.x, -1.0f, 1.0f);
 					padData.hw_stickY[GUI_HW_NUNCHUK] = clampf(kpadStatus.nunchuk.stick.y, -1.0f, 1.0f);

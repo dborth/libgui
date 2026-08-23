@@ -137,7 +137,7 @@ void WutAudioDriver::resumeVoice(int32_t voice) {
 
 bool WutAudioDriver::isVoicePlaying(int32_t voice) {
 	if (voice >= 0 && voice < 16 && voices[voice].voice) {
-		return voices[voice].active && (((uint32_t*) voices[voice].voice)[1] == 1);
+		return voices[voice].active && (voices[voice].voice->state == AX_VOICE_STATE_PLAYING);
 	}
 	return false;
 }
@@ -216,10 +216,7 @@ void WutAudioDriver::playStream(const uint8_t *data, int32_t length, bool loop, 
 }
 
 void WutAudioDriver::handleStreamCallback() {
-	// Directly check if the stream hardware voice is actually active
-	bool isHardwarePlaying = (((uint32_t*)streamVoice)[1] == 1);
-
-	if (!streamVoice || !isHardwarePlaying || oggPlayer.isPaused())
+	if (!streamVoice || oggPlayer.isPaused() || streamVoice->state != AX_VOICE_STATE_PLAYING)
 		return;
 
 	// Query exactly where the hardware is right now. streamBuf is the required base pointer.

@@ -86,7 +86,10 @@ GuiImage::GuiImage(int w, int h, PixelColor c)
 GuiImage::~GuiImage()
 {
 	if(ownsTexture && texture)
+	{
 		platform->getVideo()->getImageRenderer()->destroyTexture(texture);
+		texture = nullptr;
+	}
 
 	if(imgType == IMAGE::COLOR && image)
 		free(image);
@@ -100,7 +103,10 @@ uint8_t * GuiImage::getImage()
 void GuiImage::setImage(GuiImageData * img)
 {
 	if(ownsTexture && texture)
+	{
 		platform->getVideo()->getImageRenderer()->destroyTexture(texture);
+		texture = nullptr;
+	}
 
 	image = nullptr;
 	texture = nullptr;
@@ -121,7 +127,10 @@ void GuiImage::setImage(GuiImageData * img)
 void GuiImage::setImage(uint8_t * img, int w, int h)
 {
 	if(ownsTexture && texture)
+	{
 		platform->getVideo()->getImageRenderer()->destroyTexture(texture);
+		texture = nullptr;
+	}
 
 	image = img;
 	texture = nullptr;
@@ -252,7 +261,10 @@ void GuiImage::refreshTexture()
 		return;
 
 	if(texture)
+	{
 		platform->getVideo()->getImageRenderer()->destroyTexture(texture);
+		texture = nullptr;
+	}
 
 	texture = platform->getVideo()->getImageRenderer()->createTexture(image, width, height);
 	textureDirty = false;

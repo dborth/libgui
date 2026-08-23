@@ -8,6 +8,12 @@
 #include <string.h>
 #include <unistd.h>
 
+#ifdef __WIIU__
+#include <coreinit/cache.h>
+#else
+#include <ogc/cache.h>
+#endif
+
 GuiSoundOggPlayer::GuiSoundOggPlayer() : threadRunning(false), streamPaused(false), sampleRate(0), channels(0) {
 	pcmBuffer[0] = (uint8_t*)memalign(32, BUFFER_SIZE);
 	pcmBuffer[1] = (uint8_t*)memalign(32, BUFFER_SIZE);
@@ -142,6 +148,7 @@ void GuiSoundOggPlayer::threadLoop() {
 			}
 
 			if (bytesRead > 0) {
+				DCFlushRange(pcmBuffer[decodeIndex], bytesRead);
 				pcmBufferSize[decodeIndex] = bytesRead;
 				bufferReady[decodeIndex] = true;
 				decodeIndex ^= 1;
