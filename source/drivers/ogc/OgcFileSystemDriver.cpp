@@ -12,5 +12,5 @@ void OgcFileSystemDriver::init()
 }
 void OgcFileSystemDriver::shutdown()
 {
-
+	fatDeinit();
 }

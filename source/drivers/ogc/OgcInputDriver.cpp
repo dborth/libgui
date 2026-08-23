@@ -158,11 +158,7 @@ void OgcInputDriver::init() {
 	WPAD_SetVRes(WPAD_CHAN_ALL, platform->getVideo()->getScreenWidth(), platform->getVideo()->getScreenHeight());
 	#endif
 
-	for (int i = 0; i < 4; i++) {
-		if (!userInput[i]) {
-			userInput[i] = new GuiInputController(i);
-		}
-	}
+	InitUserInputControllers();
 }
 
 void OgcInputDriver::shutdown() {

@@ -73,3 +73,5 @@ private:
 };
 
 extern GuiInputController* userInput[4];
+
+void InitUserInputControllers();
