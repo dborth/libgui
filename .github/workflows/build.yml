@@ -22,7 +22,7 @@ jobs:
 
     - name: Install Wii U dependencies
       if: ${{ matrix.image == 'WiiU' }}
-      run: dkp-pacman -Syu --noconfirm wiiu-dev wiiu-portlibs
+      run: dkp-pacman -Syu --noconfirm wiiu-dev
 
     - name: Build Wii
       if: ${{ matrix.image == 'Wii' }}
