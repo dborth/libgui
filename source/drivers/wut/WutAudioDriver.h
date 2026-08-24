@@ -43,11 +43,13 @@ class WutAudioDriver : public AudioDriver
 		WutVoiceSlot voices[16];
 		int nextVoiceSlot;
 
-		AXVoice* streamVoice;
+		AXVoice* streamVoiceL;
+		AXVoice* streamVoiceR;
 
-		// Circular Ring Buffer (16,384 samples = 32KB)
+		// Circular Ring Buffer (16,384 samples = 32KB per channel)
 		static const uint32_t STREAM_BUFFER_SAMPLES = 16384;
-		alignas(32) int16_t streamBuf[STREAM_BUFFER_SAMPLES];
+		alignas(32) int16_t streamBufL[STREAM_BUFFER_SAMPLES];
+		alignas(32) int16_t streamBufR[STREAM_BUFFER_SAMPLES];
 
 		uint32_t writeOffset;
 		bool eofSilenceWritten;

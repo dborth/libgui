@@ -34,7 +34,9 @@ void WutAudioDriver::init() {
 			AXVoiceDeviceMixData mix;
 			memset(&mix, 0, sizeof(mix));
 			mix.bus[0].volume = 0x8000;
+			mix.bus[1].volume = 0x8000;
 			mix.bus[0].delta = 0;
+			mix.bus[1].delta = 0;
 
 			AXSetVoiceDeviceMix(voices[i].voice, (AXDeviceType) 0, 0, &mix);
 			AXSetVoiceDeviceMix(voices[i].voice, (AXDeviceType) 1, 0, &mix);
@@ -42,20 +44,29 @@ void WutAudioDriver::init() {
 		}
 	}
 
-	// Allocate the dedicated background stream voice
-	streamVoice = AXAcquireVoice(31, 0, 0);
-	if (streamVoice) {
-		AXVoiceBegin(streamVoice);
-		AXSetVoiceType(streamVoice, 0);
+	streamVoiceL = AXAcquireVoice(31, 0, 0);
+	streamVoiceR = AXAcquireVoice(31, 0, 0);
 
-		AXVoiceDeviceMixData mix;
-		memset(&mix, 0, sizeof(mix));
-		mix.bus[0].volume = 0x8000;
-		mix.bus[0].delta = 0;
+	if (streamVoiceL && streamVoiceR) {
+		AXVoiceBegin(streamVoiceL);
+		AXSetVoiceType(streamVoiceL, 0);
+		AXVoiceDeviceMixData mixL;
+		memset(&mixL, 0, sizeof(mixL));
+		mixL.bus[0].volume = 0x8000; // Hard-pan Left
+		mixL.bus[1].volume = 0;
+		AXSetVoiceDeviceMix(streamVoiceL, (AXDeviceType) 0, 0, &mixL);
+		AXSetVoiceDeviceMix(streamVoiceL, (AXDeviceType) 1, 0, &mixL);
+		AXVoiceEnd(streamVoiceL);
 
-		AXSetVoiceDeviceMix(streamVoice, (AXDeviceType) 0, 0, &mix);
-		AXSetVoiceDeviceMix(streamVoice, (AXDeviceType) 1, 0, &mix);
-		AXVoiceEnd(streamVoice);
+		AXVoiceBegin(streamVoiceR);
+		AXSetVoiceType(streamVoiceR, 0);
+		AXVoiceDeviceMixData mixR;
+		memset(&mixR, 0, sizeof(mixR));
+		mixR.bus[0].volume = 0;
+		mixR.bus[1].volume = 0x8000; // Hard-pan Right
+		AXSetVoiceDeviceMix(streamVoiceR, (AXDeviceType) 0, 0, &mixR);
+		AXSetVoiceDeviceMix(streamVoiceR, (AXDeviceType) 1, 0, &mixR);
+		AXVoiceEnd(streamVoiceR);
 	}
 
 	streamVolume = 255;
@@ -74,10 +85,8 @@ void WutAudioDriver::shutdown() {
 		}
 	}
 
-	if (streamVoice) {
-		AXFreeVoice(streamVoice);
-		streamVoice = nullptr;
-	}
+	if (streamVoiceL) { AXFreeVoice(streamVoiceL); streamVoiceL = nullptr; }
+	if (streamVoiceR) { AXFreeVoice(streamVoiceR); streamVoiceR = nullptr; }
 
 	AXQuit();
 	instance = nullptr;
@@ -107,7 +116,7 @@ int32_t WutAudioDriver::playVoice(const uint8_t *data, int32_t length, int volum
 	uint32_t samplesPerSec = AXGetInputSamplesPerSec();
 	src.ratio = (uint32_t)(0x00010000 * ((float) 48000 / (float) samplesPerSec));
 	AXSetVoiceSrc(slot.voice, &src);
-	AXSetVoiceSrcType(slot.voice, 1);
+	AXSetVoiceSrcType(slot.voice, (src.ratio == 0x00010000) ? 0 : 1); // SRC bypass check
 
 	AXVoiceVeData veData;
 	veData.volume = (volume << 7); // Remap 0-255 to ~0-0x8000
@@ -136,9 +145,8 @@ void WutAudioDriver::resumeVoice(int32_t voice) {
 }
 
 bool WutAudioDriver::isVoicePlaying(int32_t voice) {
-	if (voice >= 0 && voice < 16 && voices[voice].voice) {
+	if (voice >= 0 && voice < 16 && voices[voice].voice)
 		return voices[voice].active && (voices[voice].voice->state == AX_VOICE_STATE_PLAYING);
-	}
 	return false;
 }
 
@@ -155,9 +163,10 @@ void WutAudioDriver::playStream(const uint8_t *data, int32_t length, bool loop, 
 	stopStream();
 	streamVolume = volume;
 
-	// Scrub the entire buffer with silence to guarantee a clean start
-	memset(streamBuf, 0, sizeof(streamBuf));
-	DCFlushRange(streamBuf, sizeof(streamBuf));
+	memset(streamBufL, 0, sizeof(streamBufL));
+	memset(streamBufR, 0, sizeof(streamBufR));
+	DCFlushRange(streamBufL, sizeof(streamBufL));
+	DCFlushRange(streamBufR, sizeof(streamBufR));
 
 	writeOffset = 0;
 	eofSilenceWritten = false;
@@ -172,60 +181,74 @@ void WutAudioDriver::playStream(const uint8_t *data, int32_t length, bool loop, 
 
 		if (pcm && readySize > 0) {
 			int samples = readySize / (oggPlayer.getChannels() == 2 ? 4 : 2);
+			int16_t *pcm16 = (int16_t*) pcm;
 
 			if (oggPlayer.getChannels() == 2) {
-				int16_t *pcm16 = (int16_t*) pcm;
 				for (int i = 0; i < samples; i++) {
-					streamBuf[i] = (int16_t)(((int32_t)pcm16[i * 2] + (int32_t)pcm16[i * 2 + 1]) / 2);
+					streamBufL[i] = pcm16[i * 2];
+					streamBufR[i] = pcm16[i * 2 + 1];
 				}
 			} else {
-				memcpy(streamBuf, pcm, readySize);
+				for (int i = 0; i < samples; i++) {
+					streamBufL[i] = pcm16[i];
+					streamBufR[i] = pcm16[i];
+				}
 			}
 
-			DCFlushRange(streamBuf, samples * 2);
+			DCFlushRange(streamBufL, samples * 2);
+			DCFlushRange(streamBufR, samples * 2);
 			writeOffset = samples;
 			oggPlayer.consumeBuffer();
 
-			AXSetVoiceState(streamVoice, 0);
+			AXSetVoiceState(streamVoiceL, 0);
+			AXSetVoiceState(streamVoiceR, 0);
 
-			// Lock the hardware to a fixed, infinite loop covering the entire physical buffer
-			AXVoiceOffsets offsets;
-			memset(&offsets, 0, sizeof(offsets));
-			offsets.data = streamBuf;
-			offsets.dataType = AX_VOICE_FORMAT_LPCM16;
-			offsets.loopingEnabled = AX_VOICE_LOOP_ENABLED;
-			offsets.loopOffset = 0;
-			offsets.endOffset = STREAM_BUFFER_SAMPLES;
-			AXSetVoiceOffsets(streamVoice, &offsets);
+			AXVoiceOffsets offsetsL, offsetsR;
+			memset(&offsetsL, 0, sizeof(offsetsL));
+			offsetsL.data = streamBufL;
+			offsetsL.dataType = AX_VOICE_FORMAT_LPCM16;
+			offsetsL.loopingEnabled = AX_VOICE_LOOP_ENABLED;
+			offsetsL.loopOffset = 0;
+			offsetsL.endOffset = STREAM_BUFFER_SAMPLES;
+			AXSetVoiceOffsets(streamVoiceL, &offsetsL);
+
+			offsetsR = offsetsL;
+			offsetsR.data = streamBufR;
+			AXSetVoiceOffsets(streamVoiceR, &offsetsR);
 
 			AXVoiceSrc src;
 			memset(&src, 0, sizeof(src));
 			uint32_t samplesPerSec = AXGetInputSamplesPerSec();
 			src.ratio = (uint32_t)(0x00010000 * ((float) oggPlayer.getSampleRate() / (float) samplesPerSec));
-			AXSetVoiceSrc(streamVoice, &src);
-			AXSetVoiceSrcType(streamVoice, 1);
+			AXSetVoiceSrc(streamVoiceL, &src);
+			AXSetVoiceSrc(streamVoiceR, &src);
+
+			uint16_t srcType = (src.ratio == 0x00010000) ? 0 : 1;
+			AXSetVoiceSrcType(streamVoiceL, srcType);
+			AXSetVoiceSrcType(streamVoiceR, srcType);
 
 			AXVoiceVeData veData;
 			veData.volume = (streamVolume << 7);
 			veData.delta = 0;
-			AXSetVoiceVe(streamVoice, &veData);
+			AXSetVoiceVe(streamVoiceL, &veData);
+			AXSetVoiceVe(streamVoiceR, &veData);
 
-			AXSetVoiceState(streamVoice, 1);
+			AXSetVoiceState(streamVoiceL, 1);
+			AXSetVoiceState(streamVoiceR, 1);
 		}
 	}
 }
 
 void WutAudioDriver::handleStreamCallback() {
-	if (!streamVoice || oggPlayer.isPaused() || streamVoice->state != AX_VOICE_STATE_PLAYING)
+	if (!streamVoiceL || !streamVoiceR || oggPlayer.isPaused() || streamVoiceL->state != AX_VOICE_STATE_PLAYING)
 		return;
 
 	// Query exactly where the hardware is right now. streamBuf is the required base pointer.
-	uint32_t currentOffset = AXGetVoiceCurrentOffsetEx(streamVoice, streamBuf);
-
+	uint32_t currentOffset = AXGetVoiceCurrentOffsetEx(streamVoiceL, streamBufL);
+	
 	// Calculate how many valid, unplayed samples are queued ahead of the hardware playhead
 	uint32_t queuedSamples = (writeOffset - currentOffset + STREAM_BUFFER_SAMPLES) % STREAM_BUFFER_SAMPLES;
 
-	// If we have less than half a buffer (16KB / 8192 samples) queued, ask the decoder for more
 	if (queuedSamples < (STREAM_BUFFER_SAMPLES / 2)) {
 		int32_t readySize = 0;
 		const uint8_t *pcm = oggPlayer.getReadyBuffer(&readySize);
@@ -237,26 +260,33 @@ void WutAudioDriver::handleStreamCallback() {
 			int samplesToEnd = STREAM_BUFFER_SAMPLES - writeOffset;
 			int write1 = (samples < samplesToEnd) ? samples : samplesToEnd;
 			int write2 = samples - write1;
+			int16_t *pcm16 = (int16_t*) pcm;
 
-			if (oggPlayer.getChannels() == 2) {
-				int16_t *pcm16 = (int16_t*) pcm;
-				for (int i = 0; i < write1; i++) {
-					streamBuf[writeOffset + i] = (int16_t)(((int32_t)pcm16[i * 2] + (int32_t)pcm16[i * 2 + 1]) / 2);
-				}
-				if (write2 > 0) {
-					for (int i = 0; i < write2; i++) {
-						streamBuf[i] = (int16_t)(((int32_t)pcm16[(write1 + i) * 2] + (int32_t)pcm16[(write1 + i) * 2 + 1]) / 2);
+			auto copySamples = [&](int dest, int src, int count) {
+				if (oggPlayer.getChannels() == 2) {
+					for (int i = 0; i < count; i++) {
+						streamBufL[dest + i] = pcm16[(src + i) * 2];
+						streamBufR[dest + i] = pcm16[(src + i) * 2 + 1];
+					}
+				} else {
+					for (int i = 0; i < count; i++) {
+						streamBufL[dest + i] = pcm16[src + i];
+						streamBufR[dest + i] = pcm16[src + i];
 					}
 				}
-			} else {
-				memcpy(&streamBuf[writeOffset], pcm, write1 * 2);
-				if (write2 > 0) {
-					memcpy(&streamBuf[0], pcm + (write1 * 2), write2 * 2);
-				}
-			}
+			};
 
-			if (write1 > 0) DCFlushRange(&streamBuf[writeOffset], write1 * 2);
-			if (write2 > 0) DCFlushRange(&streamBuf[0], write2 * 2);
+			if (write1 > 0) copySamples(writeOffset, 0, write1);
+			if (write2 > 0) copySamples(0, write1, write2);
+
+			if (write1 > 0) {
+				DCFlushRange(&streamBufL[writeOffset], write1 * 2);
+				DCFlushRange(&streamBufR[writeOffset], write1 * 2);
+			}
+			if (write2 > 0) {
+				DCFlushRange(&streamBufL[0], write2 * 2);
+				DCFlushRange(&streamBufR[0], write2 * 2);
+			}
 
 			writeOffset = (writeOffset + samples) % STREAM_BUFFER_SAMPLES;
 			oggPlayer.consumeBuffer();
@@ -266,17 +296,21 @@ void WutAudioDriver::handleStreamCallback() {
 			// Natural End-Of-File reached. Scrub the unwritten remainder of the buffer with silence
 			// so the DSP doesn't play old loop garbage before halting.
 			if (!eofSilenceWritten) {
-				int clearCount = STREAM_BUFFER_SAMPLES - queuedSamples;
+				uint32_t clearCount = STREAM_BUFFER_SAMPLES - queuedSamples;
 				if (clearCount > 0) {
-					int clear1 = (clearCount < (STREAM_BUFFER_SAMPLES - writeOffset)) ? clearCount : (STREAM_BUFFER_SAMPLES - writeOffset);
-					int clear2 = clearCount - clear1;
+					uint32_t clear1 = (clearCount < (STREAM_BUFFER_SAMPLES - writeOffset)) ? clearCount : (STREAM_BUFFER_SAMPLES - writeOffset);
+					uint32_t clear2 = clearCount - clear1;
 
-					memset(&streamBuf[writeOffset], 0, clear1 * 2);
-					DCFlushRange(&streamBuf[writeOffset], clear1 * 2);
+					memset(&streamBufL[writeOffset], 0, clear1 * 2);
+					memset(&streamBufR[writeOffset], 0, clear1 * 2);
+					DCFlushRange(&streamBufL[writeOffset], clear1 * 2);
+					DCFlushRange(&streamBufR[writeOffset], clear1 * 2);
 
 					if (clear2 > 0) {
-						memset(&streamBuf[0], 0, clear2 * 2);
-						DCFlushRange(&streamBuf[0], clear2 * 2);
+						memset(&streamBufL[0], 0, clear2 * 2);
+						memset(&streamBufR[0], 0, clear2 * 2);
+						DCFlushRange(&streamBufL[0], clear2 * 2);
+						DCFlushRange(&streamBufR[0], clear2 * 2);
 					}
 				}
 				eofSilenceWritten = true;
@@ -284,27 +318,28 @@ void WutAudioDriver::handleStreamCallback() {
 
 			// Once the hardware finishes playing the very last valid samples, halt it.
 			if (queuedSamples < 128) {
-				AXSetVoiceState(streamVoice, 0);
+				AXSetVoiceState(streamVoiceL, 0);
+				AXSetVoiceState(streamVoiceR, 0);
 			}
 		}
 	}
 }
 
 void WutAudioDriver::stopStream() {
-	if (streamVoice)
-		AXSetVoiceState(streamVoice, 0);
+	if (streamVoiceL) AXSetVoiceState(streamVoiceL, 0);
+	if (streamVoiceR) AXSetVoiceState(streamVoiceR, 0);
 	oggPlayer.stop();
 }
 
 void WutAudioDriver::pauseStream() {
-	if (streamVoice)
-		AXSetVoiceState(streamVoice, 0);
+	if (streamVoiceL) AXSetVoiceState(streamVoiceL, 0);
+	if (streamVoiceR) AXSetVoiceState(streamVoiceR, 0);
 	oggPlayer.pause(true);
 }
 
 void WutAudioDriver::resumeStream() {
-	if (streamVoice)
-		AXSetVoiceState(streamVoice, 1);
+	if (streamVoiceL) AXSetVoiceState(streamVoiceL, 1);
+	if (streamVoiceR) AXSetVoiceState(streamVoiceR, 1);
 	oggPlayer.pause(false);
 }
 
@@ -314,10 +349,11 @@ bool WutAudioDriver::isStreamPlaying() {
 
 void WutAudioDriver::setStreamVolume(int volume) {
 	streamVolume = volume;
-	if (streamVoice) {
+	if (streamVoiceL && streamVoiceR) {
 		AXVoiceVeData veData;
 		veData.volume = (volume << 7);
 		veData.delta = 0;
-		AXSetVoiceVe(streamVoice, &veData);
+		AXSetVoiceVe(streamVoiceL, &veData);
+		AXSetVoiceVe(streamVoiceR, &veData);
 	}
 }
