@@ -200,21 +200,22 @@ void WutImageRenderer::drawRectangle(float x, float y, float width, float height
 	float scale[3];
 	PixelRectToNdc(x, y, width, height, 1.0f, 1.0f, kDesignWidth, kDesignHeight, offset, scale);
 
-	uint8_t colorVtxs[ColorShader::cuColorVtxsSize];
-	for(int i = 0; i < 4; i++)
+	// Use a persistent, static white vertex buffer so the GPU pointer remains valid
+	static uint8_t whiteVtxs[ColorShader::cuColorVtxsSize];
+	static bool vtxsInit = false;
+	if (!vtxsInit)
 	{
-		colorVtxs[i * 4 + 0] = color.r;
-		colorVtxs[i * 4 + 1] = color.g;
-		colorVtxs[i * 4 + 2] = color.b;
-		colorVtxs[i * 4 + 3] = color.a;
+		memset(whiteVtxs, 0xFF, sizeof(whiteVtxs)); // 255 = Solid White
+		GX2Invalidate(GX2_INVALIDATE_MODE_CPU, whiteVtxs, sizeof(whiteVtxs));
+		vtxsInit = true;
 	}
 
-	float colorIntensity[4] = { 1.0f, 1.0f, 1.0f, 1.0f };
+	float colorIntensity[4] = { color.r / 255.0f, color.g / 255.0f, color.b / 255.0f, color.a / 255.0f };
 
 	auto drawPass = [&]() {
 		ColorShader * shader = ColorShader::instance();
 		shader->setShaders();
-		shader->setAttributeBuffer(colorVtxs);
+		shader->setAttributeBuffer(whiteVtxs);
 		shader->setAngle(0.0f);
 		shader->setOffset(offset);
 		shader->setScale(scale);
@@ -329,21 +330,23 @@ void WutGlyphRenderer::drawFeature(int16_t screenX, int16_t screenY, uint16_t wi
 	float scale[3];
 	PixelRectToNdc(screenX, screenY, width, height, 1.0f, 1.0f, kDesignWidth, kDesignHeight, offset, scale);
 
-	uint8_t colorVtxs[ColorShader::cuColorVtxsSize];
-	for(int i = 0; i < 4; i++)
+	// Use a persistent, static white vertex buffer so the GPU pointer remains valid
+	static uint8_t whiteVtxs[ColorShader::cuColorVtxsSize];
+	static bool vtxsInit = false;
+	if (!vtxsInit)
 	{
-		colorVtxs[i * 4 + 0] = color.r;
-		colorVtxs[i * 4 + 1] = color.g;
-		colorVtxs[i * 4 + 2] = color.b;
-		colorVtxs[i * 4 + 3] = color.a;
+		memset(whiteVtxs, 0xFF, sizeof(whiteVtxs)); // 255 = Solid White
+		GX2Invalidate(GX2_INVALIDATE_MODE_CPU, whiteVtxs, sizeof(whiteVtxs));
+		vtxsInit = true;
 	}
-	float colorIntensity[4] = { 1.0f, 1.0f, 1.0f, 1.0f };
+
+	float colorIntensity[4] = { color.r / 255.0f, color.g / 255.0f, color.b / 255.0f, color.a / 255.0f };
 
 	ColorShader * shader = ColorShader::instance();
 	
 	auto drawPass = [&]() {
 		shader->setShaders();
-		shader->setAttributeBuffer(colorVtxs);
+		shader->setAttributeBuffer(whiteVtxs);
 		shader->setAngle(0.0f);
 		shader->setOffset(offset);
 		shader->setScale(scale);
