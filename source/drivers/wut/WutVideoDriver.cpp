@@ -7,6 +7,7 @@
 #include <cstring>
 #include <malloc.h>
 
+#include <coreinit/memdefaultheap.h>
 #include <gx2/clear.h>
 #include <gx2/context.h>
 #include <gx2/draw.h>
@@ -16,7 +17,6 @@
 #include <gx2/surface.h>
 #include <gx2/texture.h>
 #include <whb/gfx.h>
-#include <whb/proc.h>
 
 #include "WutVideoDriver.h"
 #include "shaders/Texture2DShader.h"
@@ -68,10 +68,7 @@ WutVideoDriver::~WutVideoDriver()
 
 void WutVideoDriver::init()
 {
-	WHBProcInit();
 	WHBGfxInit();
-
-	WHBProcIsRunning();
 
 	screenWidth = kDesignWidth;
 	screenHeight = kDesignHeight;
@@ -85,32 +82,31 @@ void WutVideoDriver::init()
 void WutVideoDriver::shutdown()
 {
 	WHBGfxShutdown();
-	WHBProcShutdown();
 }
 
 void WutVideoDriver::prepareFrame()
 {
 	WHBGfxBeginRender();
-	WHBGfxBeginRenderTV();
-	WHBGfxClearColor(clearColor.r / 255.0f, clearColor.g / 255.0f, clearColor.b / 255.0f, clearColor.a / 255.0f);
 
-	GX2SetDepthOnlyControl(GX2_DISABLE, GX2_DISABLE, GX2_COMPARE_FUNC_ALWAYS);
-	GX2SetColorControl(GX2_LOGIC_OP_COPY, 0xFF, GX2_DISABLE, GX2_ENABLE);
-	GX2SetCullOnlyControl(GX2_FRONT_FACE_CCW, GX2_DISABLE, GX2_DISABLE);
-	GX2SetBlendControl(GX2_RENDER_TARGET_0,
-		GX2_BLEND_MODE_SRC_ALPHA, GX2_BLEND_MODE_INV_SRC_ALPHA, GX2_BLEND_COMBINE_MODE_ADD,
-		GX2_DISABLE, GX2_BLEND_MODE_SRC_ALPHA, GX2_BLEND_MODE_INV_SRC_ALPHA, GX2_BLEND_COMBINE_MODE_ADD);
+	auto drawPass = [&]() {
+		WHBGfxClearColor(clearColor.r / 255.0f, clearColor.g / 255.0f, clearColor.b / 255.0f, clearColor.a / 255.0f);
+		GX2SetDepthOnlyControl(GX2_DISABLE, GX2_DISABLE, GX2_COMPARE_FUNC_ALWAYS);
+		GX2SetColorControl(GX2_LOGIC_OP_COPY, 0xFF, GX2_DISABLE, GX2_ENABLE);
+		GX2SetCullOnlyControl(GX2_FRONT_FACE_CCW, GX2_DISABLE, GX2_DISABLE);
+		GX2SetBlendControl(GX2_RENDER_TARGET_0, GX2_BLEND_MODE_SRC_ALPHA, GX2_BLEND_MODE_INV_SRC_ALPHA, GX2_BLEND_COMBINE_MODE_ADD, GX2_DISABLE, GX2_BLEND_MODE_SRC_ALPHA, GX2_BLEND_MODE_INV_SRC_ALPHA, GX2_BLEND_COMBINE_MODE_ADD);
+	};
+	
+	WHBGfxBeginRenderTV(); drawPass();
+	WHBGfxBeginRenderDRC();	drawPass();
 }
 
 void WutVideoDriver::render()
 {
-	WHBProcIsRunning();
-
 	WHBGfxFinishRenderTV();
+	WHBGfxFinishRenderDRC();
 	WHBGfxFinishRender();
 
 	frameTimer++;
-
 	prepareFrame();
 }
 
@@ -137,7 +133,10 @@ void * WutImageRenderer::createTexture(const uint8_t * rgba, int width, int heig
 	GX2Texture * texture = new GX2Texture();
 	GX2InitTexture(texture, width, height, 1, 0, GX2_SURFACE_FORMAT_UNORM_R8_G8_B8_A8, GX2_SURFACE_DIM_TEXTURE_2D, GX2_TILE_MODE_LINEAR_ALIGNED);
 
-	texture->surface.image = memalign(texture->surface.alignment, texture->surface.imageSize);
+	GX2CalcSurfaceSizeAndAlignment(&texture->surface);
+	GX2InitTextureRegs(texture);
+
+	texture->surface.image = MEMAllocFromDefaultHeapEx(texture->surface.imageSize, texture->surface.alignment);
 	if(!texture->surface.image)
 	{
 		delete texture;
@@ -162,7 +161,7 @@ void WutImageRenderer::destroyTexture(void * texture)
 
 	GX2Texture * tex = static_cast<GX2Texture *>(texture);
 	if(tex->surface.image)
-		free(tex->surface.image);
+		MEMFreeToDefaultHeap(tex->surface.image);
 	delete tex;
 }
 
@@ -178,15 +177,21 @@ void WutImageRenderer::drawTexture(void * texture, float xpos, float ypos, uint1
 	float colorIntensity[4] = { 1.0f, 1.0f, 1.0f, alpha / 255.0f };
 
 	Texture2DShader * shader = Texture2DShader::instance();
-	shader->setShaders();
-	shader->setAttributeBuffer();
-	shader->setAngle(DegToRad(degrees));
-	shader->setOffset(offset);
-	shader->setScale(scale);
-	shader->setColorIntensity(colorIntensity);
-	shader->clearBlur();
-	shader->setTextureAndSampler(static_cast<GX2Texture *>(texture), &sampler);
-	shader->draw(GX2_PRIMITIVE_MODE_QUADS, 4);
+
+	auto drawPass = [&]() {
+		shader->setShaders();
+		shader->setAttributeBuffer();
+		shader->setAngle(DegToRad(degrees));
+		shader->setOffset(offset);
+		shader->setScale(scale);
+		shader->setColorIntensity(colorIntensity);
+		shader->clearBlur();
+		shader->setTextureAndSampler(static_cast<GX2Texture *>(texture), &sampler);
+		shader->draw(GX2_PRIMITIVE_MODE_QUADS, 4);
+	};
+
+	WHBGfxBeginRenderTV(); drawPass();
+	WHBGfxBeginRenderDRC();	drawPass();
 }
 
 void WutImageRenderer::drawRectangle(float x, float y, float width, float height, PixelColor color)
@@ -206,14 +211,19 @@ void WutImageRenderer::drawRectangle(float x, float y, float width, float height
 
 	float colorIntensity[4] = { 1.0f, 1.0f, 1.0f, 1.0f };
 
-	ColorShader * shader = ColorShader::instance();
-	shader->setShaders();
-	shader->setAttributeBuffer(colorVtxs);
-	shader->setAngle(0.0f);
-	shader->setOffset(offset);
-	shader->setScale(scale);
-	shader->setColorIntensity(colorIntensity);
-	shader->draw(GX2_PRIMITIVE_MODE_QUADS, 4);
+	auto drawPass = [&]() {
+		ColorShader * shader = ColorShader::instance();
+		shader->setShaders();
+		shader->setAttributeBuffer(colorVtxs);
+		shader->setAngle(0.0f);
+		shader->setOffset(offset);
+		shader->setScale(scale);
+		shader->setColorIntensity(colorIntensity);
+		shader->draw(GX2_PRIMITIVE_MODE_QUADS, 4);
+	};
+	
+	WHBGfxBeginRenderTV(); drawPass();
+	WHBGfxBeginRenderDRC();	drawPass();
 }
 
 /****************************************************************************
@@ -231,7 +241,9 @@ void * WutGlyphRenderer::createTexture(uint16_t width, uint16_t height)
 	GX2Texture * texture = new GX2Texture();
 	GX2InitTexture(texture, width == 0 ? 1 : width, height == 0 ? 1 : height, 1, 0, GX2_SURFACE_FORMAT_UNORM_R8, GX2_SURFACE_DIM_TEXTURE_2D, GX2_TILE_MODE_LINEAR_ALIGNED);
 
-	texture->surface.image = memalign(texture->surface.alignment, texture->surface.imageSize);
+	GX2CalcSurfaceSizeAndAlignment(&texture->surface);
+
+	texture->surface.image = MEMAllocFromDefaultHeapEx(texture->surface.imageSize, texture->surface.alignment);
 	if(!texture->surface.image)
 	{
 		delete texture;
@@ -278,7 +290,7 @@ void WutGlyphRenderer::destroyTexture(void * texturePtr)
 
 	GX2Texture * texture = static_cast<GX2Texture *>(texturePtr);
 	if(texture->surface.image)
-		free(texture->surface.image);
+		MEMFreeToDefaultHeap(texture->surface.image);
 	delete texture;
 }
 
@@ -294,15 +306,21 @@ void WutGlyphRenderer::drawQuad(void * texturePtr, int16_t screenX, int16_t scre
 	float colorIntensity[4] = { color.r / 255.0f, color.g / 255.0f, color.b / 255.0f, color.a / 255.0f };
 
 	Texture2DShader * shader = Texture2DShader::instance();
-	shader->setShaders();
-	shader->setAttributeBuffer();
-	shader->setAngle(0.0f);
-	shader->setOffset(offset);
-	shader->setScale(scale);
-	shader->setColorIntensity(colorIntensity);
-	shader->clearBlur();
-	shader->setTextureAndSampler(static_cast<GX2Texture *>(texturePtr), &sampler);
-	shader->draw(GX2_PRIMITIVE_MODE_QUADS, 4);
+	
+	auto drawPass = [&]() {
+		shader->setShaders();
+		shader->setAttributeBuffer();
+		shader->setAngle(0.0f);
+		shader->setOffset(offset);
+		shader->setScale(scale);
+		shader->setColorIntensity(colorIntensity);
+		shader->clearBlur();
+		shader->setTextureAndSampler(static_cast<GX2Texture *>(texturePtr), &sampler);
+		shader->draw(GX2_PRIMITIVE_MODE_QUADS, 4);
+	};
+
+	WHBGfxBeginRenderTV(); drawPass();
+	WHBGfxBeginRenderDRC();	drawPass();
 }
 
 void WutGlyphRenderer::drawFeature(int16_t screenX, int16_t screenY, uint16_t width, uint16_t height, const PixelColor& color)
@@ -322,11 +340,17 @@ void WutGlyphRenderer::drawFeature(int16_t screenX, int16_t screenY, uint16_t wi
 	float colorIntensity[4] = { 1.0f, 1.0f, 1.0f, 1.0f };
 
 	ColorShader * shader = ColorShader::instance();
-	shader->setShaders();
-	shader->setAttributeBuffer(colorVtxs);
-	shader->setAngle(0.0f);
-	shader->setOffset(offset);
-	shader->setScale(scale);
-	shader->setColorIntensity(colorIntensity);
-	shader->draw(GX2_PRIMITIVE_MODE_QUADS, 4);
+	
+	auto drawPass = [&]() {
+		shader->setShaders();
+		shader->setAttributeBuffer(colorVtxs);
+		shader->setAngle(0.0f);
+		shader->setOffset(offset);
+		shader->setScale(scale);
+		shader->setColorIntensity(colorIntensity);
+		shader->draw(GX2_PRIMITIVE_MODE_QUADS, 4);
+	};
+
+	WHBGfxBeginRenderTV(); drawPass();
+	WHBGfxBeginRenderDRC();	drawPass();
 }

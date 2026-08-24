@@ -5,6 +5,7 @@
  ***************************************************************************/
 #pragma once
 
+#include <whb/proc.h>
 #include "../Platform.h"
 #include "WutAudioDriver.h"
 #include "WutVideoDriver.h"
@@ -20,6 +21,8 @@ class WutPlatform : public Platform
 
 		void init() override
 		{
+			WHBProcInit();
+
 			this->threadDriver = new WutThreadDriver();
 			this->threadDriver->init();
 
@@ -72,6 +75,8 @@ class WutPlatform : public Platform
 				delete threadDriver;
 				threadDriver = nullptr;
 			}
+
+			WHBProcShutdown();
 		}
 
 		AudioDriver* getAudio() override { return audioDriver; }
