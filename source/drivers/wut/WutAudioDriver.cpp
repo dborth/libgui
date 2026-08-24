@@ -18,7 +18,10 @@ static void wut_frame_callback() {
 
 void WutAudioDriver::init() {
 	instance = this;
-	AXInit();
+	AXInitParams params = {};
+	params.renderer = AX_INIT_RENDERER_48KHZ;
+	params.pipeline = AX_INIT_PIPELINE_SINGLE;
+	AXInitWithParams(&params);
 	AXRegisterFrameCallback(wut_frame_callback);
 
 	nextVoiceSlot = 0;
