@@ -26,6 +26,19 @@ namespace
 		OgcThreadHandle * handle = static_cast<OgcThreadHandle *>(arg);
 		return handle->entry(handle->arg);
 	}
+
+	int MapOgcPriority(ThreadPriority priority)
+	{
+		switch (priority)
+		{
+			case ThreadPriority::Idle:         return 0;
+			case ThreadPriority::Low:          return 32;
+			case ThreadPriority::Normal:       return 64;
+			case ThreadPriority::High:         return 80;
+			case ThreadPriority::TimeCritical: return 110;
+			default:                           return 64;
+		}
+	}
 }
 
 void OgcThreadDriver::init()
@@ -36,7 +49,7 @@ void OgcThreadDriver::shutdown()
 {
 }
 
-bool OgcThreadDriver::createThread(ThreadEntry entry, void * arg, uint32_t stackSize, int priority, void ** outHandle)
+bool OgcThreadDriver::createThread(ThreadEntry entry, void * arg, uint32_t stackSize, ThreadPriority priority, void ** outHandle)
 {
 	OgcThreadHandle * handle = new OgcThreadHandle();
 	handle->entry = entry;
@@ -50,7 +63,8 @@ bool OgcThreadDriver::createThread(ThreadEntry entry, void * arg, uint32_t stack
 	// caller afterwards.
 	*outHandle = handle;
 
-	int32_t res = LWP_CreateThread(&handle->thread, OgcThreadTrampoline, handle, nullptr, stackSize, priority);
+	int nativePriority = MapOgcPriority(priority);
+	int32_t res = LWP_CreateThread(&handle->thread, OgcThreadTrampoline, handle, nullptr, stackSize, nativePriority);
 	if(res < 0)
 	{
 		*outHandle = nullptr;

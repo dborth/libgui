@@ -12,7 +12,7 @@ Thread::~Thread()
 	join();
 }
 
-bool Thread::start(ThreadEntry entry, void * arg, uint32_t stackSize, int priority)
+bool Thread::start(ThreadEntry entry, void * arg, uint32_t stackSize, ThreadPriority priority)
 {
 	if(handle)
 		return false;

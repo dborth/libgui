@@ -36,6 +36,19 @@ namespace
 		handle->entry(handle->arg);
 		return 0;
 	}
+
+	int MapWutPriority(ThreadPriority priority)
+	{
+		switch (priority)
+		{
+			case ThreadPriority::Idle:         return 31;
+			case ThreadPriority::Low:          return 24;
+			case ThreadPriority::Normal:       return 16;
+			case ThreadPriority::High:         return 10;
+			case ThreadPriority::TimeCritical: return 3;
+			default:                           return 16;
+		}
+	}
 }
 
 void WutThreadDriver::init()
@@ -46,7 +59,7 @@ void WutThreadDriver::shutdown()
 {
 }
 
-bool WutThreadDriver::createThread(ThreadEntry entry, void * arg, uint32_t stackSize, int priority, void ** outHandle)
+bool WutThreadDriver::createThread(ThreadEntry entry, void * arg, uint32_t stackSize, ThreadPriority priority, void ** outHandle)
 {
 	WutThreadHandle * handle = new WutThreadHandle();
 	handle->entry = entry;
@@ -76,10 +89,11 @@ bool WutThreadDriver::createThread(ThreadEntry entry, void * arg, uint32_t stack
 	// thread, same rationale as OgcThreadDriver::createThread - entry() may
 	// reference *outHandle itself as its first action.
 	*outHandle = handle;
-
 	uint8_t * stackTop = static_cast<uint8_t *>(handle->stack) + alignedStackSize;
+	int nativePriority = MapWutPriority(priority);
+
 	BOOL ok = OSCreateThread(handle->thread, WutThreadTrampoline, 0, reinterpret_cast<char *>(handle),
-		stackTop, alignedStackSize, priority, OS_THREAD_ATTRIB_AFFINITY_ANY);
+		stackTop, alignedStackSize, nativePriority, OS_THREAD_ATTRIB_AFFINITY_ANY);
 
 	if(!ok)
 	{

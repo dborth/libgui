@@ -36,7 +36,7 @@ class ThreadDriver
 		//!not after this call returns to the caller - entry() is allowed
 		//!to reference *outHandle itself (e.g. to suspend/query its own
 		//!thread) without racing the assignment.
-		virtual bool createThread(ThreadEntry entry, void * arg, uint32_t stackSize, int priority, void ** outHandle) = 0;
+		virtual bool createThread(ThreadEntry entry, void * arg, uint32_t stackSize, ThreadPriority priority, void ** outHandle) = 0;
 		//!Blocks until the thread exits, then releases the handle.
 		virtual void joinThread(void * thread) = 0;
 		//!Requests the thread stop running and releases the handle without

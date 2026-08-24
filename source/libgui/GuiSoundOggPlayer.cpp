@@ -83,7 +83,7 @@ bool GuiSoundOggPlayer::play(const uint8_t* data, int32_t length, int time_pos, 
 	threadRunning = true;
 	streamPaused = false;
 
-	return decodeThread.start(threadEntry, this, 16384, 30);
+	return decodeThread.start(threadEntry, this, 16384, ThreadPriority::High);
 }
 
 void GuiSoundOggPlayer::stop() {

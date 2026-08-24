@@ -7,6 +7,15 @@
  ***************************************************************************/
 #pragma once
 
+enum class ThreadPriority
+{
+	Idle,
+	Low,
+	Normal,
+	High,
+	TimeCritical
+};
+
 //!A platform thread. Owns at most one running/joinable backend thread at a
 //!time - start() on an already-running Thread fails rather than leaking
 //!the previous one.
@@ -27,7 +36,7 @@ class Thread
 		//!\param priority Backend-defined thread priority
 		//!\return true on success, false if a thread is already running or
 		//!the backend failed to create one
-		bool start(ThreadEntry entry, void * arg = nullptr, uint32_t stackSize = 8192, int priority = 64);
+		bool start(ThreadEntry entry, void * arg = nullptr, uint32_t stackSize = 8192, ThreadPriority priority = ThreadPriority::Normal);
 		//!Blocks until the thread exits.
 		void join();
 		//!Requests the thread stop at its next safe point without

@@ -221,7 +221,7 @@ static void * UpdateGUI (void *)
 void
 InitGUIThreads()
 {
-	guiThread.start(UpdateGUI, nullptr, 24576, 30);
+	guiThread.start(UpdateGUI, nullptr, 24576, ThreadPriority::High);
 }
 
 /****************************************************************************

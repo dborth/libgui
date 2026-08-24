@@ -12,7 +12,7 @@ class WutThreadDriver : public ThreadDriver
 		void init() override;
 		void shutdown() override;
 
-		bool createThread(ThreadEntry entry, void * arg, uint32_t stackSize, int priority, void ** outHandle) override;
+		bool createThread(ThreadEntry entry, void * arg, uint32_t stackSize, ThreadPriority priority, void ** outHandle) override;
 		void joinThread(void * thread) override;
 		void cancelThread(void * thread) override;
 		void suspendThread(void * thread) override;
