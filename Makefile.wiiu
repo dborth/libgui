@@ -103,22 +103,6 @@ $(BUILD):
 	@[ -d $@ ] || mkdir -p $@
 	@$(MAKE) --no-print-directory -C $(BUILD) -f $(CURDIR)/Makefile.wiiu
 	
-#-------------------------------------------------------------------------------
-# .wuhb packaging (this is what makes it launchable via the Homebrew
-# Launcher / Aroma, vs. a bare .rpx). Needs an icon and TV splash image --
-# placeholders referenced below, swap for real art.
-#-------------------------------------------------------------------------------
-wuhb: $(OUTPUT).rpx
-	@echo packaging $(TARGET).wuhb ...
-	@$(DEVKITPRO)/tools/bin/wuhbtool $(TARGET).rpx $(TARGET).wuhb \
-		--name="libgui Wii U" \
-		--short-name="libgui" \
-		--author="dborth" \
-		--icon=meta/icon.png \
-		--tv-image=meta/tv_splash.png \
-		--drc-image=meta/drc_splash.png \
-		#--content=$(ROMFS)
-
 #---------------------------------------------------------------------------------
 clean:
 	@echo clean ...
@@ -133,6 +117,15 @@ DEPENDS	:=	$(OFILES:.o=.d)
 # main targets
 #---------------------------------------------------------------------------------
 $(OUTPUT).wuhb: $(OUTPUT).rpx
+	@echo packaging $@ ...
+	@$(DEVKITPRO)/tools/bin/wuhbtool $< $@ \
+		--name="libgui Wii U" \
+		--short-name="libgui" \
+		--author="dborth" \
+		--icon=$(dir $(OUTPUT))meta/icon.png \
+		--tv-image=$(dir $(OUTPUT))meta/tv_splash.png \
+		--drc-image=$(dir $(OUTPUT))meta/drc_splash.png
+
 $(OUTPUT).rpx: $(OUTPUT).elf
 $(OUTPUT).elf: $(OFILES)
 
