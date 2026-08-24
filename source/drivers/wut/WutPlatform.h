@@ -85,6 +85,11 @@ class WutPlatform : public Platform
 		FileSystemDriver* getFileSystem() override { return fileSystemDriver; }
 		ThreadDriver* getThread() override { return threadDriver; }
 
+		bool shutdownRequested() override
+		{
+			return !WHBProcIsRunning();
+		}
+
 	private:
 		WutAudioDriver* audioDriver;
 		WutVideoDriver* videoDriver;

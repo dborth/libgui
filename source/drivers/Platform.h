@@ -14,17 +14,19 @@ class ThreadDriver;
 
 class Platform
 {
-public:
-    virtual ~Platform() = default;
+	public:
+		virtual ~Platform() = default;
 
-    virtual void init() = 0;
-    virtual void shutdown() = 0;
+		virtual void init() = 0;
+		virtual void shutdown() = 0;
 
-    virtual AudioDriver* getAudio() = 0;
-    virtual VideoDriver* getVideo() = 0;
-    virtual InputDriver* getInput() = 0;
-    virtual FileSystemDriver* getFileSystem() = 0;
-    virtual ThreadDriver* getThread() = 0;
+		virtual AudioDriver* getAudio() = 0;
+		virtual VideoDriver* getVideo() = 0;
+		virtual InputDriver* getInput() = 0;
+		virtual FileSystemDriver* getFileSystem() = 0;
+		virtual ThreadDriver* getThread() = 0;
+
+		virtual bool shutdownRequested() = 0;
 };
 
 //! The globally accessible platform instance

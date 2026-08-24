@@ -70,6 +70,11 @@ class OgcPlatform : public Platform
 			exit(0);
 		}
 
+		bool shutdownRequested() override
+		{
+			return false;
+		}
+
 		AudioDriver* getAudio() override { return audioDriver; }
 		VideoDriver* getVideo() override { return videoDriver; }
 		InputDriver* getInput() override { return inputDriver; }

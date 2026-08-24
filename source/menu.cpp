@@ -197,7 +197,7 @@ static void * UpdateGUI (void *)
 			for(i=0; i < 4; i++)
 				mainWindow->update(userInput[i]);
 
-			if(ExitRequested)
+			if(ExitRequested || platform->shutdownRequested())
 			{
 				// fade out
 				for(i = 0; i <= 255; i += 15)
