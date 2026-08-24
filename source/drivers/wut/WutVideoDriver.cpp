@@ -71,6 +71,8 @@ void WutVideoDriver::init()
 	WHBProcInit();
 	WHBGfxInit();
 
+	WHBProcIsRunning();
+
 	screenWidth = kDesignWidth;
 	screenHeight = kDesignHeight;
 
@@ -102,6 +104,8 @@ void WutVideoDriver::prepareFrame()
 
 void WutVideoDriver::render()
 {
+	WHBProcIsRunning();
+
 	WHBGfxFinishRenderTV();
 	WHBGfxFinishRender();
 

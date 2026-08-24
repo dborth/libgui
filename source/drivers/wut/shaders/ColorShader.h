@@ -26,6 +26,7 @@ class ColorShader : public Shader
 		PixelShader pixelShader;
 
 		float * positionVtxs;
+		uint8_t * colorVtxs;
 
 		uint32_t angleLocation;
 		uint32_t offsetLocation;
@@ -58,10 +59,20 @@ class ColorShader : public Shader
 		}
 
 		//!\param colorAttr Packed RGBA8 color, 4 vertices (cuColorVtxsSize bytes).
+		//!Copied into a buffer this shader owns for the GPU to read - the
+		//!caller's memory (a stack array at every current call site) isn't
+		//!guaranteed to still be valid, unmodified, or cache-flushed by the
+		//!time the GPU actually executes this draw.
 		void setAttributeBuffer(const uint8_t * colorAttr) const
 		{
 			VertexShader::setAttributeBuffer(0, cuPositionVtxsSize, cuVertexAttrSize, positionVtxs);
-			VertexShader::setAttributeBuffer(1, cuColorVtxsSize, cuColorAttrSize, colorAttr);
+
+			if(colorVtxs)
+			{
+				memcpy(colorVtxs, colorAttr, cuColorVtxsSize);
+				GX2Invalidate(GX2_INVALIDATE_MODE_CPU_ATTRIBUTE_BUFFER, colorVtxs, cuColorVtxsSize);
+			}
+			VertexShader::setAttributeBuffer(1, cuColorVtxsSize, cuColorAttrSize, colorVtxs);
 		}
 
 		void setAngle(float angleRadians)

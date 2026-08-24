@@ -135,10 +135,13 @@ ColorShader::ColorShader()
 		positionVtxs[i++] = -1.0f; positionVtxs[i++] =  1.0f; positionVtxs[i++] = 0.0f;
 		GX2Invalidate(GX2_INVALIDATE_MODE_CPU_ATTRIBUTE_BUFFER, positionVtxs, cuPositionVtxsSize);
 	}
+
+	colorVtxs = static_cast<uint8_t *>(memalign(GX2_VERTEX_BUFFER_ALIGNMENT, cuColorVtxsSize));
 }
 
 ColorShader::~ColorShader()
 {
 	free(positionVtxs);
+	free(colorVtxs);
 	delete fetchShader;
 }
