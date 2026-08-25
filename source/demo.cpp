@@ -51,7 +51,6 @@ main(int, char **)
 	textTranslator = new GuiTextTranslator();
 	textTranslator->loadLanguage(en_lang, en_lang_size);
 
-	InitGUIThreads(); // Initialize GUI
 	DefaultSettings();
 	MainMenu(MENU_SETTINGS);
 

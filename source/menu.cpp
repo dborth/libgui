@@ -18,45 +18,56 @@
 #include "filelist.h"
 #include "filebrowser.h"
 
-#define THREAD_SLEEP 100
-
 static GuiImageData * pointer[4];
 static GuiImage * bgImg = nullptr;
 static GuiSound * bgMusic = nullptr;
 static GuiWindow * mainWindow = nullptr;
-static Thread guiThread;
-static bool guiHalt = true;
 
 /****************************************************************************
- * ResumeGui
+ * UpdateGui
  *
- * Signals the GUI thread to start, and resumes the thread. This is called
- * after finishing the removal/insertion of new elements, and after initial
- * GUI setup.
+ * Single-threaded GUI update primitive. Performs exactly one frame step,
+ * updates the platform input, applies it to the element tree, draws,
+ * and renders. Checks the canonical global exit signals and handles the
+ * fade-out-on-exit transition before signaling the caller to stop.
  ***************************************************************************/
-static void
-ResumeGui()
+bool UpdateGui()
 {
-	guiHalt = false;
-	guiThread.resume();
-}
+	if (!mainWindow)
+		return true;
 
-/****************************************************************************
- * HaltGui
- *
- * Signals the GUI thread to stop, and waits for GUI thread to stop
- * This is necessary whenever removing/inserting new elements into the GUI.
- * This eliminates the possibility that the GUI is in the middle of accessing
- * an element that is being changed.
- ***************************************************************************/
-static void
-HaltGui()
-{
-	guiHalt = true;
+	int i;
+	float deltaTime = 1.0f / 60.0f;
+	platform->getInput()->update(deltaTime);
 
-	// wait for thread to finish
-	while(!guiThread.isSuspended())
-		usleep(THREAD_SLEEP);
+	for(i = 3; i >= 0; i--)
+		mainWindow->update(userInput[i]);
+
+	mainWindow->draw();
+
+	#ifdef HW_RVL
+	for(i = 3; i >= 0; i--)
+	{
+		if(userInput[i]->getPadData().validPointer)
+			platform->getVideo()->getImageRenderer()->drawTexture(pointer[i]->getTexture(), userInput[i]->getPadData().cursor_x-48, userInput[i]->getPadData().cursor_y-48,
+				96, 96, userInput[i]->getPadData().cursor_angle, 1, 1, 255);
+	}
+	#endif
+
+	platform->getVideo()->render();
+
+	if(ExitRequested || platform->shutdownRequested())
+	{
+		for(i = 0; i <= 255; i += 15)
+		{
+			mainWindow->draw();
+			platform->getVideo()->getImageRenderer()->drawRectangle(0,0,platform->getVideo()->getScreenWidth(),platform->getVideo()->getScreenHeight(),(PixelColor){0, 0, 0, (uint8_t)i});
+			platform->getVideo()->render();
+		}
+		return false;
+	}
+
+	return true;
 }
 
 /****************************************************************************
@@ -136,15 +147,13 @@ WindowPrompt(const char *title, const char *msg, const char *btn1Label, const ch
 		promptWindow.append(&btn2);
 
 	promptWindow.setEffect(EFFECT::SLIDE_TOP | EFFECT::SLIDE_IN, 50);
-	HaltGui();
 	mainWindow->setState(STATE::DISABLED);
 	mainWindow->append(&promptWindow);
 	mainWindow->changeFocus(&promptWindow);
-	ResumeGui();
 
 	while(choice == -1)
 	{
-		usleep(THREAD_SLEEP);
+		if(!UpdateGui()) return -1;
 
 		if(btn1.getState() == STATE::CLICKED)
 			choice = 1;
@@ -154,74 +163,13 @@ WindowPrompt(const char *title, const char *msg, const char *btn1Label, const ch
 
 	promptWindow.setEffect(EFFECT::SLIDE_TOP | EFFECT::SLIDE_OUT, 50);
 	while(promptWindow.getEffect() > 0)
-		usleep(THREAD_SLEEP);
-	HaltGui();
+	{
+		if(!UpdateGui()) return choice;
+	}
+
 	mainWindow->remove(&promptWindow);
 	mainWindow->setState(STATE::DEFAULT);
-	ResumeGui();
 	return choice;
-}
-
-/****************************************************************************
- * UpdateGUI
- *
- * Primary thread to allow GUI to respond to state changes, and draws GUI
- ***************************************************************************/
-static void * UpdateGUI (void *)
-{
-	int i;
-
-	while(1)
-	{
-		if(guiHalt)
-		{
-			guiThread.suspend();
-		}
-		else
-		{
-			float deltaTime = 1.0f / 60.0f;
-			platform->getInput()->update(deltaTime);
-			mainWindow->draw();
-
-			#ifdef HW_RVL
-			for(i=3; i >= 0; i--) // so that player 1's cursor appears on top!
-			{
-				if(userInput[i]->getPadData().validPointer)
-					platform->getVideo()->getImageRenderer()->drawTexture(pointer[i]->getTexture(), userInput[i]->getPadData().cursor_x-48, userInput[i]->getPadData().cursor_y-48,
-						96, 96, userInput[i]->getPadData().cursor_angle, 1, 1, 255);
-			}
-			#endif
-
-			platform->getVideo()->render();
-
-			for(i=0; i < 4; i++)
-				mainWindow->update(userInput[i]);
-
-			if(ExitRequested || platform->shutdownRequested())
-			{
-				// fade out
-				for(i = 0; i <= 255; i += 15)
-				{
-					mainWindow->draw();
-					platform->getVideo()->getImageRenderer()->drawRectangle(0,0,platform->getVideo()->getScreenWidth(),platform->getVideo()->getScreenHeight(),(PixelColor){0, 0, 0, (uint8_t)i});
-					platform->getVideo()->render();
-				}
-				return nullptr;
-			}
-		}
-	}
-	return nullptr;
-}
-
-/****************************************************************************
- * InitGUIThread
- *
- * Startup GUI threads
- ***************************************************************************/
-void
-InitGUIThreads()
-{
-	guiThread.start(UpdateGUI, nullptr, 24576, ThreadPriority::High);
 }
 
 /****************************************************************************
@@ -273,15 +221,13 @@ static void OnScreenKeyboard(char * var, uint16_t maxlen)
 	keyboard.append(&okBtn);
 	keyboard.append(&cancelBtn);
 
-	HaltGui();
 	mainWindow->setState(STATE::DISABLED);
 	mainWindow->append(&keyboard);
 	mainWindow->changeFocus(&keyboard);
-	ResumeGui();
 
 	while(save == -1)
 	{
-		usleep(THREAD_SLEEP);
+		if(!UpdateGui()) return;
 
 		if(okBtn.getState() == STATE::CLICKED)
 			save = 1;
@@ -294,10 +240,8 @@ static void OnScreenKeyboard(char * var, uint16_t maxlen)
 		snprintf(var, maxlen, "%s", keyboard.kbtextstr);
 	}
 
-	HaltGui();
 	mainWindow->remove(&keyboard);
 	mainWindow->setState(STATE::DEFAULT);
-	ResumeGui();
 }
 
 /****************************************************************************
@@ -357,15 +301,13 @@ static int MenuBrowseDevice()
 	GuiWindow buttonWindow(platform->getVideo()->getScreenWidth(), platform->getVideo()->getScreenHeight());
 	buttonWindow.append(&backBtn);
 
-	HaltGui();
 	mainWindow->append(&titleTxt);
 	mainWindow->append(&fileBrowser);
 	mainWindow->append(&buttonWindow);
-	ResumeGui();
 
 	while(menu == MENU_NONE)
 	{
-		usleep(THREAD_SLEEP);
+		if(!UpdateGui()) return MENU_EXIT;
 
 		// update file browser based on arrow buttons
 		// set MENU_EXIT if A button pressed on a file
@@ -400,7 +342,7 @@ static int MenuBrowseDevice()
 		if(backBtn.getState() == STATE::CLICKED)
 			menu = MENU_SETTINGS;
 	}
-	HaltGui();
+
 	mainWindow->remove(&titleTxt);
 	mainWindow->remove(&buttonWindow);
 	mainWindow->remove(&fileBrowser);
@@ -531,7 +473,6 @@ static int MenuSettings()
 	resetBtn.setTrigger(&trigA);
 	resetBtn.setEffectGrow();
 
-	HaltGui();
 	GuiWindow w(platform->getVideo()->getScreenWidth(), platform->getVideo()->getScreenHeight());
 	w.append(&titleTxt);
 	w.append(&fileBtn);
@@ -539,17 +480,14 @@ static int MenuSettings()
 	w.append(&savingBtn);
 	w.append(&menuBtn);
 	w.append(&networkBtn);
-
 	w.append(&exitBtn);
 	w.append(&resetBtn);
 
 	mainWindow->append(&w);
 
-	ResumeGui();
-
 	while(menu == MENU_NONE)
 	{
-		usleep(THREAD_SLEEP);
+		if(!UpdateGui()) return MENU_EXIT;
 
 		if(fileBtn.getState() == STATE::CLICKED)
 		{
@@ -591,7 +529,6 @@ static int MenuSettings()
 		}
 	}
 
-	HaltGui();
 	mainWindow->remove(&w);
 	return menu;
 }
@@ -599,7 +536,6 @@ static int MenuSettings()
 /****************************************************************************
  * MenuSettingsFile
  ***************************************************************************/
-
 static int MenuSettingsFile()
 {
 	int menu = MENU_NONE;
@@ -647,17 +583,15 @@ static int MenuSettingsFile()
 	optionBrowser.setAlignment(ALIGN_H::CENTRE, ALIGN_V::TOP);
 	optionBrowser.setCol2Position(185);
 
-	HaltGui();
 	GuiWindow w(platform->getVideo()->getScreenWidth(), platform->getVideo()->getScreenHeight());
 	w.append(&backBtn);
 	mainWindow->append(&optionBrowser);
 	mainWindow->append(&w);
 	mainWindow->append(&titleTxt);
-	ResumeGui();
 
 	while(menu == MENU_NONE)
 	{
-		usleep(THREAD_SLEEP);
+		if(!UpdateGui()) return MENU_EXIT;
 
 		ret = optionBrowser.getClickedOption();
 
@@ -665,10 +599,14 @@ static int MenuSettingsFile()
 		{
 			case 0:
 				Settings.LoadMethod++;
+				if(Settings.LoadMethod > 4)
+					Settings.LoadMethod = 0;
 				break;
 
 			case 1:
 				Settings.SaveMethod++;
+				if(Settings.SaveMethod > 5)
+					Settings.SaveMethod = 0;
 				break;
 
 			case 2:
@@ -691,7 +629,7 @@ static int MenuSettingsFile()
 
 			case 6:
 				Settings.AutoSave++;
-				if (Settings.AutoSave > 3)
+				if (Settings.AutoSave > 2)
 					Settings.AutoSave = 0;
 				break;
 		}
@@ -699,12 +637,6 @@ static int MenuSettingsFile()
 		if(ret >= 0 || firstRun)
 		{
 			firstRun = false;
-
-			// correct load/save methods out of bounds
-			if(Settings.LoadMethod > 4)
-				Settings.LoadMethod = 0;
-			if(Settings.SaveMethod > 6)
-				Settings.SaveMethod = 0;
 
 			if (Settings.LoadMethod == METHOD_AUTO) sprintf (options.value[0],"Auto Detect");
 			else if (Settings.LoadMethod == METHOD_SD) sprintf (options.value[0],"SD");
@@ -743,7 +675,7 @@ static int MenuSettingsFile()
 			menu = MENU_SETTINGS;
 		}
 	}
-	HaltGui();
+
 	mainWindow->remove(&optionBrowser);
 	mainWindow->remove(&w);
 	mainWindow->remove(&titleTxt);
@@ -773,8 +705,6 @@ void MainMenu(int menu)
 	GuiTrigger trigA;
 	trigA.setPrimaryTrigger();
 
-	ResumeGui();
-
 	bgMusic = new GuiSound(bg_music_ogg, bg_music_ogg_size, SOUND::OGG);
 	bgMusic->setVolume(50);
 	bgMusic->play(); // startup music
@@ -797,10 +727,6 @@ void MainMenu(int menu)
 				break;
 		}
 	}
-
-	ResumeGui();
-	ExitRequested = true;
-	guiThread.join();
 
 	bgMusic->stop();
 	delete bgMusic;
