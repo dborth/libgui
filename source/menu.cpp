@@ -148,7 +148,7 @@ WindowPrompt(const char *title, const char *msg, const char *btn1Label, const ch
 
 	promptWindow.setEffect(EFFECT::SLIDE_TOP | EFFECT::SLIDE_IN, 50);
 	mainWindow->setState(STATE::DISABLED);
-	mainWindow->append(&promptWindow);
+	mainWindow->appendWithAutoRemove(&promptWindow);
 	mainWindow->changeFocus(&promptWindow);
 
 	while(choice == -1)
@@ -167,7 +167,6 @@ WindowPrompt(const char *title, const char *msg, const char *btn1Label, const ch
 		if(!UpdateGui()) return choice;
 	}
 
-	mainWindow->remove(&promptWindow);
 	mainWindow->setState(STATE::DEFAULT);
 	return choice;
 }
@@ -222,7 +221,7 @@ static void OnScreenKeyboard(char * var, uint16_t maxlen)
 	keyboard.append(&cancelBtn);
 
 	mainWindow->setState(STATE::DISABLED);
-	mainWindow->append(&keyboard);
+	mainWindow->appendWithAutoRemove(&keyboard);
 	mainWindow->changeFocus(&keyboard);
 
 	while(save == -1)
@@ -240,7 +239,6 @@ static void OnScreenKeyboard(char * var, uint16_t maxlen)
 		snprintf(var, maxlen, "%s", keyboard.kbtextstr);
 	}
 
-	mainWindow->remove(&keyboard);
 	mainWindow->setState(STATE::DEFAULT);
 }
 
@@ -301,9 +299,9 @@ static int MenuBrowseDevice()
 	GuiWindow buttonWindow(platform->getVideo()->getScreenWidth(), platform->getVideo()->getScreenHeight());
 	buttonWindow.append(&backBtn);
 
-	mainWindow->append(&titleTxt);
-	mainWindow->append(&fileBrowser);
-	mainWindow->append(&buttonWindow);
+	mainWindow->appendWithAutoRemove(&titleTxt);
+	mainWindow->appendWithAutoRemove(&fileBrowser);
+	mainWindow->appendWithAutoRemove(&buttonWindow);
 
 	while(menu == MENU_NONE)
 	{
@@ -343,9 +341,6 @@ static int MenuBrowseDevice()
 			menu = MENU_SETTINGS;
 	}
 
-	mainWindow->remove(&titleTxt);
-	mainWindow->remove(&buttonWindow);
-	mainWindow->remove(&fileBrowser);
 	return menu;
 }
 
@@ -483,7 +478,7 @@ static int MenuSettings()
 	w.append(&exitBtn);
 	w.append(&resetBtn);
 
-	mainWindow->append(&w);
+	mainWindow->appendWithAutoRemove(&w);
 
 	while(menu == MENU_NONE)
 	{
@@ -529,7 +524,6 @@ static int MenuSettings()
 		}
 	}
 
-	mainWindow->remove(&w);
 	return menu;
 }
 
@@ -585,9 +579,9 @@ static int MenuSettingsFile()
 
 	GuiWindow w(platform->getVideo()->getScreenWidth(), platform->getVideo()->getScreenHeight());
 	w.append(&backBtn);
-	mainWindow->append(&optionBrowser);
-	mainWindow->append(&w);
-	mainWindow->append(&titleTxt);
+	mainWindow->appendWithAutoRemove(&optionBrowser);
+	mainWindow->appendWithAutoRemove(&w);
+	mainWindow->appendWithAutoRemove(&titleTxt);
 
 	while(menu == MENU_NONE)
 	{
@@ -623,13 +617,13 @@ static int MenuSettingsFile()
 
 			case 5:
 				Settings.AutoLoad++;
-				if (Settings.AutoLoad > 2)
+				if (Settings.AutoLoad >= METHOD_LENGTH)
 					Settings.AutoLoad = 0;
 				break;
 
 			case 6:
 				Settings.AutoSave++;
-				if (Settings.AutoSave > 2)
+				if (Settings.AutoSave >= METHOD_LENGTH)
 					Settings.AutoSave = 0;
 				break;
 		}
@@ -641,15 +635,12 @@ static int MenuSettingsFile()
 			if (Settings.LoadMethod == METHOD_AUTO) sprintf (options.value[0],"Auto Detect");
 			else if (Settings.LoadMethod == METHOD_SD) sprintf (options.value[0],"SD");
 			else if (Settings.LoadMethod == METHOD_USB) sprintf (options.value[0],"USB");
-			else if (Settings.LoadMethod == METHOD_DVD) sprintf (options.value[0],"DVD");
-			else if (Settings.LoadMethod == METHOD_SMB) sprintf (options.value[0],"Network");
+			else if (Settings.LoadMethod == METHOD_NETWORK) sprintf (options.value[0],"Network");
 
 			if (Settings.SaveMethod == METHOD_AUTO) sprintf (options.value[1],"Auto Detect");
 			else if (Settings.SaveMethod == METHOD_SD) sprintf (options.value[1],"SD");
 			else if (Settings.SaveMethod == METHOD_USB) sprintf (options.value[1],"USB");
-			else if (Settings.SaveMethod == METHOD_SMB) sprintf (options.value[1],"Network");
-			else if (Settings.SaveMethod == METHOD_MC_SLOTA) sprintf (options.value[1],"MC Slot A");
-			else if (Settings.SaveMethod == METHOD_MC_SLOTB) sprintf (options.value[1],"MC Slot B");
+			else if (Settings.SaveMethod == METHOD_NETWORK) sprintf (options.value[1],"Network");
 
 			// crop names for display
 			memcpy(options.value[2], Settings.Folder1, 49);
@@ -676,9 +667,6 @@ static int MenuSettingsFile()
 		}
 	}
 
-	mainWindow->remove(&optionBrowser);
-	mainWindow->remove(&w);
-	mainWindow->remove(&titleTxt);
 	return menu;
 }
 
