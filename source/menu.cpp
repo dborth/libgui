@@ -593,14 +593,14 @@ static int MenuSettingsFile()
 		{
 			case 0:
 				Settings.LoadMethod++;
-				if(Settings.LoadMethod > 4)
-					Settings.LoadMethod = 0;
+				if(Settings.LoadMethod >= METHOD_LENGTH)
+					Settings.LoadMethod = METHOD_AUTO;
 				break;
 
 			case 1:
 				Settings.SaveMethod++;
-				if(Settings.SaveMethod > 5)
-					Settings.SaveMethod = 0;
+				if(Settings.SaveMethod >= METHOD_LENGTH)
+					Settings.SaveMethod = METHOD_AUTO;
 				break;
 
 			case 2:
@@ -617,14 +617,14 @@ static int MenuSettingsFile()
 
 			case 5:
 				Settings.AutoLoad++;
-				if (Settings.AutoLoad >= METHOD_LENGTH)
-					Settings.AutoLoad = 0;
+				if (Settings.AutoLoad >= AUTO_LENGTH)
+					Settings.AutoLoad = AUTO_OFF;
 				break;
 
 			case 6:
 				Settings.AutoSave++;
-				if (Settings.AutoSave >= METHOD_LENGTH)
-					Settings.AutoSave = 0;
+				if (Settings.AutoSave >= AUTO_LENGTH)
+					Settings.AutoSave = AUTO_OFF;
 				break;
 		}
 
@@ -650,13 +650,13 @@ static int MenuSettingsFile()
 			options.value[3][49] = '\0';
 			options.value[4][49] = '\0';
 
-			if (Settings.AutoLoad == 0) sprintf (options.value[5],"Off");
-			else if (Settings.AutoLoad == 1) sprintf (options.value[5],"Some");
-			else if (Settings.AutoLoad == 2) sprintf (options.value[5],"All");
+			if (Settings.AutoLoad == AUTO_OFF) sprintf (options.value[5],"Off");
+			else if (Settings.AutoLoad == AUTO_SOME) sprintf (options.value[5],"Some");
+			else if (Settings.AutoLoad == AUTO_ALL) sprintf (options.value[5],"All");
 
-			if (Settings.AutoSave == 0) sprintf (options.value[6],"Off");
-			else if (Settings.AutoSave == 1) sprintf (options.value[6],"Some");
-			else if (Settings.AutoSave == 2) sprintf (options.value[6],"All");
+			if (Settings.AutoSave == AUTO_OFF) sprintf (options.value[6],"Off");
+			else if (Settings.AutoSave == AUTO_SOME) sprintf (options.value[6],"Some");
+			else if (Settings.AutoSave == AUTO_ALL) sprintf (options.value[6],"All");
 
 			optionBrowser.triggerUpdate();
 		}

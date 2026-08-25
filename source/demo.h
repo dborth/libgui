@@ -9,11 +9,18 @@
 #define _DEMO_H_
 
 enum {
-	METHOD_AUTO,
+	METHOD_AUTO = 0,
 	METHOD_SD,
 	METHOD_USB,
 	METHOD_NETWORK,
 	METHOD_LENGTH
+};
+
+enum {
+	AUTO_OFF = 0,
+	AUTO_SOME,
+	AUTO_ALL,
+	AUTO_LENGTH
 };
 
 struct SSettings {
