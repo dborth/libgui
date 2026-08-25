@@ -136,12 +136,18 @@ ColorShader::ColorShader()
 		GX2Invalidate(GX2_INVALIDATE_MODE_CPU_ATTRIBUTE_BUFFER, positionVtxs, cuPositionVtxsSize);
 	}
 
-	colorVtxs = static_cast<uint8_t *>(memalign(GX2_VERTEX_BUFFER_ALIGNMENT, cuColorVtxsSize));
+	colorBuffer.flags = static_cast<GX2RResourceFlags>(
+		GX2R_RESOURCE_BIND_VERTEX_BUFFER | GX2R_RESOURCE_USAGE_CPU_WRITE | GX2R_RESOURCE_USAGE_GPU_READ);
+	colorBuffer.elemSize = cuColorVtxsSize;
+	colorBuffer.elemCount = cuMaxColorDraws;
+	GX2RCreateBuffer(&colorBuffer);
+	colorSlot = 0;
 }
 
 ColorShader::~ColorShader()
 {
 	free(positionVtxs);
-	free(colorVtxs);
+	if(GX2RBufferExists(&colorBuffer))
+		GX2RDestroyBufferEx(&colorBuffer, static_cast<GX2RResourceFlags>(0));
 	delete fetchShader;
 }

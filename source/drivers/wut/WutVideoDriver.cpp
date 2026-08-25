@@ -98,6 +98,11 @@ void WutVideoDriver::prepareFrame()
 	
 	WHBGfxBeginRenderTV(); drawPass();
 	WHBGfxBeginRenderDRC();	drawPass();
+
+	// Every color-shaded draw this frame gets its own slot in ColorShader's
+	// GX2R buffer (see ColorShader.h) - rewind the counter here, once per
+	// frame, before anything draws into it.
+	ColorShader::instance()->resetFrame();
 }
 
 void WutVideoDriver::render()
@@ -107,6 +112,7 @@ void WutVideoDriver::render()
 	WHBGfxFinishRender();
 
 	frameTimer++;
+
 	prepareFrame();
 }
 
@@ -215,7 +221,7 @@ void WutImageRenderer::drawRectangle(float x, float y, float width, float height
 	auto drawPass = [&]() {
 		ColorShader * shader = ColorShader::instance();
 		shader->setShaders();
-		shader->setAttributeBuffer(whiteVtxs);
+			shader->setAttributeBuffer(whiteVtxs);
 		shader->setAngle(0.0f);
 		shader->setOffset(offset);
 		shader->setScale(scale);
@@ -346,7 +352,7 @@ void WutGlyphRenderer::drawFeature(int16_t screenX, int16_t screenY, uint16_t wi
 	
 	auto drawPass = [&]() {
 		shader->setShaders();
-		shader->setAttributeBuffer(whiteVtxs);
+			shader->setAttributeBuffer(whiteVtxs);
 		shader->setAngle(0.0f);
 		shader->setOffset(offset);
 		shader->setScale(scale);
