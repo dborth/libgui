@@ -214,7 +214,7 @@ void WutInputDriver::update(float deltaTime) {
 
 		if (kpadRead > 0) {
 			padData.hw_connected[GUI_HW_WIIMOTE] = true;
-			padData.battery_level = WPADGetBatteryLevel() * 25; // normalize to 0-100 range
+			padData.battery_level = WPADGetBatteryLevel((WPADChan)i) * 25; // normalize to 0-100 range
 
 			padData.hw_gforceX[GUI_HW_WIIMOTE] = kpadStatus.acc.x;
 			padData.hw_gforceY[GUI_HW_WIIMOTE] = kpadStatus.acc.y;
