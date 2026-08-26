@@ -45,14 +45,12 @@ bool UpdateGui()
 
 	mainWindow->draw();
 
-	#ifdef HW_RVL
 	for(i = 3; i >= 0; i--)
 	{
 		if(userInput[i]->getPadData().validPointer)
 			platform->getVideo()->getImageRenderer()->drawTexture(pointer[i]->getTexture(), userInput[i]->getPadData().cursor_x-48, userInput[i]->getPadData().cursor_y-48,
 				96, 96, userInput[i]->getPadData().cursor_angle, 1, 1, 255);
 	}
-	#endif
 
 	platform->getVideo()->render();
 
@@ -677,12 +675,10 @@ void MainMenu(int menu)
 {
 	int currentMenu = menu;
 
-	#ifdef HW_RVL
 	pointer[0] = new GuiImageData(player1_point_png);
 	pointer[1] = new GuiImageData(player2_point_png);
 	pointer[2] = new GuiImageData(player3_point_png);
 	pointer[3] = new GuiImageData(player4_point_png);
-	#endif
 
 	mainWindow = new GuiWindow(platform->getVideo()->getScreenWidth(), platform->getVideo()->getScreenHeight());
 
