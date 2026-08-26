@@ -1,14 +1,15 @@
 ## libgui 1.07
 https://github.com/dborth/libgui (Under GPL License)
 
-libgui is a GUI library for the Wii, created to help structure the
-design of a complicated GUI interface, and to enable an author to create
-a sophisticated, feature-rich GUI. It was originally conceived and written
-after I started to design a GUI for Snes9x GX, and found libwiisprite and
-GRRLIB inadequate for the purpose. It was designed to be flexible and is 
-easy to modify - don't be afraid to change the way it works or expand it 
-to suit your GUI's purposes! If you do, and you think your changes might 
-benefit others, please share them so they might be added to the project!
+libgui is a GUI library for the GameCube, Wii, and Wii U created to help 
+structure the design of a complicated GUI interface, and to enable an 
+author to create a sophisticated, feature-rich GUI. It was originally 
+conceived and written after I started to design a GUI for Snes9x GX, and 
+found libwiisprite and GRRLIB inadequate for the purpose. It was 
+designed to be flexible and is easy to modify - don't be afraid to 
+change the way it works or expand it to suit your GUI's purposes! If you 
+do, and you think your changes might benefit others, please share them 
+so they might be added to the project!
 
 
 ### Quickstart
