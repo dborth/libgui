@@ -45,7 +45,7 @@ DefaultSettings()
 int
 main(int, char **)
 {
-	platform->init();
+	platform->init(640, 480);
 
 	fontSystem = new GuiTextRenderer(font_ttf, font_ttf_size, platform->getVideo()->getGlyphRenderer());
 	textTranslator = new GuiTextTranslator();

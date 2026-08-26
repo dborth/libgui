@@ -28,7 +28,7 @@ class VideoDriver
 	public:
 		virtual ~VideoDriver() = default;
 
-		virtual void init() = 0;
+		virtual void init(int width, int height) = 0;
 		virtual void shutdown() = 0;
 
 		//! Flushes the current frame to the screen and swaps buffers

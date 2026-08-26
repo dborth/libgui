@@ -31,7 +31,7 @@ OgcVideoDriver::~OgcVideoDriver()
 	delete glyphRenderer;
 }
 
-void OgcVideoDriver::init()
+void OgcVideoDriver::init(int width, int height)
 {
 	VIDEO_Init();
 
@@ -81,8 +81,8 @@ void OgcVideoDriver::init()
 	if (vmode->viTVMode & VI_NON_INTERLACE)
 		VIDEO_WaitVSync ();
 
-	screenWidth = vmode->fbWidth;
-	screenHeight = 480;
+	screenWidth = width;
+	screenHeight = height;
 
 	// Initialize GX
 	GXColor background = { 0, 0, 0, 0xff };
@@ -175,7 +175,7 @@ void OgcVideoDriver::resetVideoMenu()
 	guMtxTransApply (GXmodelView2D, GXmodelView2D, 0.0F, 0.0F, -50.0F);
 	GX_LoadPosMtxImm(GXmodelView2D,GX_PNMTX0);
 
-	guOrtho(p,0,479,0,639,0,300);
+	guOrtho(p,0,screenHeight-1,0,screenWidth-1,0,300);
 	GX_LoadProjectionMtx(p, GX_ORTHOGRAPHIC);
 
 	GX_SetViewport(0,0,vmode->fbWidth,vmode->efbHeight,0,1);

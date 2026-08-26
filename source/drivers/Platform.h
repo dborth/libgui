@@ -17,7 +17,7 @@ class Platform
 	public:
 		virtual ~Platform() = default;
 
-		virtual void init() = 0;
+		virtual void init(int width, int height) = 0;
 		virtual void shutdown() = 0;
 
 		virtual AudioDriver* getAudio() = 0;

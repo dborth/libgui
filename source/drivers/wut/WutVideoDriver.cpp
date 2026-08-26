@@ -44,12 +44,6 @@ namespace
 	}
 }
 
-namespace
-{
-	const int kDesignWidth = 640;
-	const int kDesignHeight = 480;
-}
-
 /****************************************************************************
  * WutVideoDriver
  ***************************************************************************/
@@ -66,12 +60,12 @@ WutVideoDriver::~WutVideoDriver()
 	delete glyphRenderer;
 }
 
-void WutVideoDriver::init()
+void WutVideoDriver::init(int width, int height)
 {
 	WHBGfxInit();
 
-	screenWidth = kDesignWidth;
-	screenHeight = kDesignHeight;
+	screenWidth = width;
+	screenHeight = height;
 
 	imageRenderer = new WutImageRenderer(this);
 	glyphRenderer = new WutGlyphRenderer(this);
@@ -178,7 +172,7 @@ void WutImageRenderer::drawTexture(void * texture, float xpos, float ypos, uint1
 
 	float offset[3];
 	float scale[3];
-	PixelRectToNdc(xpos, ypos, width, height, scaleX, scaleY, kDesignWidth, kDesignHeight, offset, scale);
+	PixelRectToNdc(xpos, ypos, width, height, scaleX, scaleY, driver->getScreenWidth(), driver->getScreenHeight(), offset, scale);
 
 	float colorIntensity[4] = { 1.0f, 1.0f, 1.0f, alpha / 255.0f };
 
@@ -204,7 +198,7 @@ void WutImageRenderer::drawRectangle(float x, float y, float width, float height
 {
 	float offset[3];
 	float scale[3];
-	PixelRectToNdc(x, y, width, height, 1.0f, 1.0f, kDesignWidth, kDesignHeight, offset, scale);
+	PixelRectToNdc(x, y, width, height, 1.0f, 1.0f, driver->getScreenWidth(), driver->getScreenHeight(), offset, scale);
 
 	// Use a persistent, static white vertex buffer so the GPU pointer remains valid
 	static uint8_t whiteVtxs[ColorShader::cuColorVtxsSize];
@@ -308,7 +302,7 @@ void WutGlyphRenderer::drawQuad(void * texturePtr, int16_t screenX, int16_t scre
 
 	float offset[3];
 	float scale[3];
-	PixelRectToNdc(screenX, screenY, width, height, 1.0f, 1.0f, kDesignWidth, kDesignHeight, offset, scale);
+	PixelRectToNdc(screenX, screenY, width, height, 1.0f, 1.0f, driver->getScreenWidth(), driver->getScreenHeight(), offset, scale);
 
 	float colorIntensity[4] = { color.r / 255.0f, color.g / 255.0f, color.b / 255.0f, color.a / 255.0f };
 
@@ -334,7 +328,7 @@ void WutGlyphRenderer::drawFeature(int16_t screenX, int16_t screenY, uint16_t wi
 {
 	float offset[3];
 	float scale[3];
-	PixelRectToNdc(screenX, screenY, width, height, 1.0f, 1.0f, kDesignWidth, kDesignHeight, offset, scale);
+	PixelRectToNdc(screenX, screenY, width, height, 1.0f, 1.0f, driver->getScreenWidth(), driver->getScreenHeight(), offset, scale);
 
 	// Use a persistent, static white vertex buffer so the GPU pointer remains valid
 	static uint8_t whiteVtxs[ColorShader::cuColorVtxsSize];

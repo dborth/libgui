@@ -19,7 +19,7 @@ class WutPlatform : public Platform
 		WutPlatform()
 			: audioDriver(nullptr), videoDriver(nullptr), inputDriver(nullptr), fileSystemDriver(nullptr), threadDriver(nullptr) {}
 
-		void init() override
+		void init(int width, int height) override
 		{
 			WHBProcInit();
 
@@ -27,7 +27,7 @@ class WutPlatform : public Platform
 			this->threadDriver->init();
 
 			this->videoDriver = new WutVideoDriver();
-			this->videoDriver->init();
+			this->videoDriver->init(width, height);
 
 			this->audioDriver = new WutAudioDriver();
 			this->audioDriver->init();

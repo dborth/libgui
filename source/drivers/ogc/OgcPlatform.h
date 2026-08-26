@@ -18,13 +18,13 @@ class OgcPlatform : public Platform
 		OgcPlatform()
 			: audioDriver(nullptr), videoDriver(nullptr), inputDriver(nullptr), fileSystemDriver(nullptr), threadDriver(nullptr) {}
 
-		void init() override
+		void init(int width, int height) override
 		{
 			this->threadDriver = new OgcThreadDriver();
 			this->threadDriver->init();
 
 			this->videoDriver = new OgcVideoDriver();
-			this->videoDriver->init();
+			this->videoDriver->init(width, height);
 
 			this->audioDriver = new OgcAudioDriver();
 			this->audioDriver->init();

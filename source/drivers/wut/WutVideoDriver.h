@@ -15,7 +15,7 @@ class WutVideoDriver : public VideoDriver
 		WutVideoDriver();
 		~WutVideoDriver() override;
 
-		void init() override;
+		void init(int width, int height) override;
 		void shutdown() override;
 		void render() override;
 		void clearScreen(const PixelColor& color) override;
