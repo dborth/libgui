@@ -123,18 +123,6 @@ void GuiWindow::draw()
 		platform->getVideo()->getImageRenderer()->drawRectangle(0,0,platform->getVideo()->getScreenWidth(), platform->getVideo()->getScreenHeight(), (PixelColor){0xbe, 0xca, 0xd5, 0x70});
 }
 
-void GuiWindow::drawTooltip()
-{
-	if(_elements.size() == 0 || !this->isVisible())
-		return;
-
-	uint32_t elemSize = _elements.size();
-	for (uint32_t i = 0; i < elemSize; i++)
-	{
-		_elements.at(i)->drawTooltip();
-	}
-}
-
 void GuiWindow::resetState()
 {
 	if(state != STATE::DISABLED)
