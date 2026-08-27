@@ -275,8 +275,8 @@ void WutInputDriver::update(float deltaTime) {
 				if (kpadStatus.posValid && !padData.validPointer) {
 					padData.validPointer = true;
 					padData.isTouch = false;
-					padData.cursor_x = clampf(kpadStatus.pos.x * (screenWidth / 1280.0f), 0.0f, screenWidth);
-					padData.cursor_y = clampf(kpadStatus.pos.y * (screenHeight / 720.0f), 0.0f, screenHeight);
+					padData.cursor_x = clampf((kpadStatus.pos.x * 0.5f + 0.5f) * screenWidth, 0.0f, screenWidth);
+					padData.cursor_y = clampf((kpadStatus.pos.y * 0.5f + 0.5f) * screenHeight, 0.0f, screenHeight);
 					padData.cursor_angle = kpadStatus.angle.y;
 				}
 

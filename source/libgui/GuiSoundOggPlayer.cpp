@@ -132,7 +132,7 @@ void GuiSoundOggPlayer::threadLoop() {
 
 				if (ret == 0) {
 					if (streamLoop) {
-						ov_time_seek(&vf, 0);
+						ov_pcm_seek(&vf, 0);
 					} else {
 						if (bytesRead == 0) threadRunning = false;
 						break;

@@ -212,7 +212,7 @@ void WutAudioDriver::playStream(const uint8_t *data, int32_t length, bool loop, 
 			offsetsL.dataType = AX_VOICE_FORMAT_LPCM16;
 			offsetsL.loopingEnabled = AX_VOICE_LOOP_ENABLED;
 			offsetsL.loopOffset = 0;
-			offsetsL.endOffset = STREAM_BUFFER_SAMPLES;
+			offsetsL.endOffset = STREAM_BUFFER_SAMPLES - 1;
 			AXSetVoiceOffsets(streamVoiceL, &offsetsL);
 
 			offsetsR = offsetsL;
