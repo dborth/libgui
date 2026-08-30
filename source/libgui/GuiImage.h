@@ -7,8 +7,7 @@
 
 enum class IMAGE {
 	TEXTURE,
-	COLOR,
-	DATA
+	COLOR
 };
 
 //!Display, manage, and manipulate images in the GUI
@@ -21,14 +20,7 @@ class GuiImage : public GuiElement
 		//!\param img Pointer to GuiImageData element
 		GuiImage(GuiImageData * img);
 		//!\overload
-		//!Sets up a new image from the (generic row-major RGBA8, see
-		//!imagedecode.h) image data specified
-		//!\param img
-		//!\param w Image width
-		//!\param h Image height
-		GuiImage(uint8_t * img, int w, int h);
-		//!\overload
-		//!Creates an image filled with the specified color
+		//!Creates an image with the specified color
 		//!\param w Image width
 		//!\param h Image height
 		//!\param c Image color
@@ -42,10 +34,7 @@ class GuiImage : public GuiElement
 		//!\param t Number of times to draw the image
 		void setTile(int t);
 		//!Constantly called to draw the image
-	void draw() override;
-		//!Gets the generic row-major RGBA8 image data
-		//!\return pointer to image data
-		uint8_t * getImage();
+		void draw() override;
 		//!Sets up a new image using the GuiImageData object specified
 		//!\param img Pointer to GuiImageData object
 		void setImage(GuiImageData * img);
@@ -54,36 +43,16 @@ class GuiImage : public GuiElement
 		//!\param w Width
 		//!\param h Height
 		void setImage(uint8_t * img, int w, int h);
-		//!Gets the pixel color at the specified coordinates of the image
-		//!\param x X coordinate
-		//!\param y Y coordinate
-		PixelColor getPixel(int x, int y);
-		//!Sets the pixel color at the specified coordinates of the image
-		//!\param x X coordinate
-		//!\param y Y coordinate
-		//!\param color Pixel color
-		void setPixel(int x, int y, PixelColor color);
-		//!Directly modifies the image data to create a color-striped effect
-		//!Alters the RGB values by the specified amount
-		//!\param s Amount to increment/decrement the RGB values in the image
-		void colorStripe(int s);
 		//!Sets a stripe effect on the image, overlaying alpha blended rectangles
 		//!Does not alter the image data
 		//!\param s Alpha amount to draw over the image
 		void setStripe(int s);
 	protected:
-		//!(Re)creates texture from the current generic RGBA8 image buffer
-		//!via imageSystem, if it's missing or setPixel/colorStripe have
-		//!marked it stale. No-op for IMAGE::DATA (texture is borrowed from
-		//!the GuiImageData, refreshing it isn't this object's job).
-		void refreshTexture();
-
-		IMAGE imgType; //!< Type of image data (TEXTURE, COLOR, DATA)
-		uint8_t * image; //!< Pointer to generic row-major RGBA8 image data. May be shared with GuiImageData data
+		IMAGE imgType; //!< Type of image data (TEXTURE, COLOR)
 		void * texture; //!< Attached platform-native texture (see IImageRenderer)
-		bool ownsTexture; //!< Whether this object created `texture` itself (TEXTURE/COLOR) vs borrowed it from a GuiImageData (DATA)
-		bool textureDirty; //!< Set by setPixel/colorStripe; checked by draw() to know whether to refresh `texture` before drawing
+		bool ownsTexture; //!< Whether this object created `texture` itself (TEXTURE/COLOR) or borrowed it from a GuiImageData
 		float imageangle; //!< Angle to draw the image
 		int tile; //!< Number of times to draw (tile) the image horizontally
 		int stripe; //!< Alpha value (0-255) to apply a stripe effect to the texture
+		PixelColor baseColor; //!< Stored color for IMAGE::COLOR types
 };

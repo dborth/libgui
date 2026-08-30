@@ -53,12 +53,10 @@ class ImageRenderer
 {
 	public:
 		virtual ~ImageRenderer() = default;
-		//!Creates a platform-native texture from a GENERIC ROW-MAJOR RGBA8
-		//!buffer. The driver owns converting this into whatever its hardware
-		//!actually wants.
-		//!\return an opaque handle DrawTexture/destroyTexture accept, or
-		//!nullptr on failure.
-		virtual void * createTexture(const uint8_t * rgba, int width, int height) = 0;
+		//! Allocates an empty hardware-aligned texture buffer
+		virtual void * createTexture(int width, int height) = 0;
+		//! Loads raw RGBA8 pixels into the pre-allocated texture
+		virtual void loadTextureData(void * texture, const uint8_t * rgba, int width, int height) = 0;
 		//!Destroys a texture created by createTexture.
 		virtual void destroyTexture(void * texture) = 0;
 		//!Draws a texture created by createTexture.

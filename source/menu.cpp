@@ -683,7 +683,7 @@ void MainMenu(int menu)
 	mainWindow = new GuiWindow(platform->getVideo()->getScreenWidth(), platform->getVideo()->getScreenHeight());
 
 	bgImg = new GuiImage(platform->getVideo()->getScreenWidth(), platform->getVideo()->getScreenHeight(), (PixelColor){50, 50, 50, 255});
-	bgImg->colorStripe(30);
+	bgImg->setStripe(30);
 	mainWindow->append(bgImg);
 
 	GuiTrigger trigA;

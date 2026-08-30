@@ -44,7 +44,8 @@ class OgcVideoDriver : public VideoDriver
 class OgcImageRenderer : public ImageRenderer
 {
 	public:
-		void * createTexture(const uint8_t * rgba, int width, int height) override;
+		void * createTexture(int width, int height) override;
+		void loadTextureData(void * texture, const uint8_t * rgba, int width, int height) override;
 		void destroyTexture(void * texture) override;
 		void drawTexture(void * texture, float xpos, float ypos, uint16_t width, uint16_t height, float degrees, float scaleX, float scaleY, uint8_t alpha) override;
 		void drawRectangle(float x, float y, float width, float height, PixelColor color) override;

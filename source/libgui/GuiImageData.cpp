@@ -11,16 +11,12 @@
 
 GuiImageData::GuiImageData(const uint8_t * i, int maxw, int maxh)
 {
-	data = nullptr;
 	texture = nullptr;
 	width = 0;
 	height = 0;
 
 	if(i)
-		data = (uint8_t *)decodeImage(i, &width, &height, maxw, maxh);
-
-	if(data)
-		texture = platform->getVideo()->getImageRenderer()->createTexture(data, width, height);
+		texture = decodeImage(i, &width, &height, maxw, maxh);
 }
 
 GuiImageData::~GuiImageData()
@@ -29,12 +25,6 @@ GuiImageData::~GuiImageData()
 	{
 		platform->getVideo()->getImageRenderer()->destroyTexture(texture);
 		texture = nullptr;
-	}
-
-	if(data)
-	{
-		free(data);
-		data = nullptr;
 	}
 }
 
@@ -54,8 +44,7 @@ void ReadPngDataCb(png_structp png_ptr, png_bytep data, png_size_t length)
 	memData->offset += length;
 }
 
-
-uint8_t * GuiImageData::decodeImage(const uint8_t * pngData, int * width, int * height, int maxw, int maxh)
+void * GuiImageData::decodeImage(const uint8_t * pngData, int * width, int * height, int maxw, int maxh)
 {
 	if(!pngData)
 		return nullptr;
@@ -98,6 +87,13 @@ uint8_t * GuiImageData::decodeImage(const uint8_t * pngData, int * width, int * 
 	if(width) *width = w;
 	if(height) *height = h;
 
+	void* hwTexture = platform->getVideo()->getImageRenderer()->createTexture(w, h);
+	if(!hwTexture)
+	{
+		png_destroy_read_struct(&png_ptr, &info_ptr, nullptr);
+		return nullptr;
+	}
+
 	if(bit_depth == 16)
 		png_set_strip_16(png_ptr);
 	if(color_type == PNG_COLOR_TYPE_PALETTE)
@@ -118,6 +114,7 @@ uint8_t * GuiImageData::decodeImage(const uint8_t * pngData, int * width, int * 
 	if(!rgba)
 	{
 		png_destroy_read_struct(&png_ptr, &info_ptr, nullptr);
+		platform->getVideo()->getImageRenderer()->destroyTexture(hwTexture);
 		return nullptr;
 	}
 
@@ -126,6 +123,7 @@ uint8_t * GuiImageData::decodeImage(const uint8_t * pngData, int * width, int * 
 	{
 		free(rgba);
 		png_destroy_read_struct(&png_ptr, &info_ptr, nullptr);
+		platform->getVideo()->getImageRenderer()->destroyTexture(hwTexture);
 		return nullptr;
 	}
 
@@ -134,28 +132,11 @@ uint8_t * GuiImageData::decodeImage(const uint8_t * pngData, int * width, int * 
 
 	png_read_image(png_ptr, row_pointers);
 
+	platform->getVideo()->getImageRenderer()->loadTextureData(hwTexture, rgba, w, h);
+
 	free(row_pointers);
+	free(rgba);
 	png_destroy_read_struct(&png_ptr, &info_ptr, nullptr);
 
-	return rgba;
-}
-
-uint8_t * GuiImageData::getImage()
-{
-	return data;
-}
-
-void * GuiImageData::getTexture()
-{
-	return texture;
-}
-
-int GuiImageData::getWidth()
-{
-	return width;
-}
-
-int GuiImageData::getHeight()
-{
-	return height;
+	return hwTexture;
 }

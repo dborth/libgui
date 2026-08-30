@@ -125,9 +125,9 @@ WutImageRenderer::WutImageRenderer(WutVideoDriver * driver_)
 	GX2InitSampler(&sampler, GX2_TEX_CLAMP_MODE_CLAMP, GX2_TEX_XY_FILTER_MODE_LINEAR);
 }
 
-void * WutImageRenderer::createTexture(const uint8_t * rgba, int width, int height)
+void * WutImageRenderer::createTexture(int width, int height)
 {
-	if(!rgba || width <= 0 || height <= 0)
+	if(width <= 0 || height <= 0)
 		return nullptr;
 
 	GX2Texture * texture = new GX2Texture();
@@ -143,15 +143,25 @@ void * WutImageRenderer::createTexture(const uint8_t * rgba, int width, int heig
 		return nullptr;
 	}
 
-	uint8_t * dst = static_cast<uint8_t *>(texture->surface.image);
-	const uint32_t dstStride = texture->surface.pitch * 4;
+	return texture;
+}
+
+void WutImageRenderer::loadTextureData(void * texture, const uint8_t * rgba, int width, int height)
+{
+	if(!texture || !rgba || width <= 0 || height <= 0)
+		return;
+
+	GX2Texture * tex = static_cast<GX2Texture *>(texture);
+	if(!tex->surface.image)
+		return;
+
+	uint8_t * dst = static_cast<uint8_t *>(tex->surface.image);
+	const uint32_t dstStride = tex->surface.pitch * 4;
 	const uint32_t srcStride = static_cast<uint32_t>(width) * 4;
 	for(int y = 0; y < height; y++)
 		memcpy(dst + y * dstStride, rgba + y * srcStride, srcStride);
 
-	GX2Invalidate(GX2_INVALIDATE_MODE_CPU_TEXTURE, texture->surface.image, texture->surface.imageSize);
-
-	return texture;
+	GX2Invalidate(GX2_INVALIDATE_MODE_CPU_TEXTURE, tex->surface.image, tex->surface.imageSize);
 }
 
 void WutImageRenderer::destroyTexture(void * texture)
@@ -215,7 +225,7 @@ void WutImageRenderer::drawRectangle(float x, float y, float width, float height
 	auto drawPass = [&]() {
 		ColorShader * shader = ColorShader::instance();
 		shader->setShaders();
-			shader->setAttributeBuffer(whiteVtxs);
+		shader->setAttributeBuffer(whiteVtxs);
 		shader->setAngle(0.0f);
 		shader->setOffset(offset);
 		shader->setScale(scale);
@@ -346,7 +356,7 @@ void WutGlyphRenderer::drawFeature(int16_t screenX, int16_t screenY, uint16_t wi
 	
 	auto drawPass = [&]() {
 		shader->setShaders();
-			shader->setAttributeBuffer(whiteVtxs);
+		shader->setAttributeBuffer(whiteVtxs);
 		shader->setAngle(0.0f);
 		shader->setOffset(offset);
 		shader->setScale(scale);

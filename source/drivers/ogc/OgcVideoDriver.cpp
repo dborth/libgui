@@ -183,17 +183,21 @@ void OgcVideoDriver::resetVideoMenu()
 	GX_SetAlphaUpdate(GX_TRUE);
 }
 
-void* OgcImageRenderer::createTexture(const uint8_t* rgba, int width, int height)
+void* OgcImageRenderer::createTexture(int width, int height)
 {
-	if(!rgba) return nullptr;
-
-	// Convert flat RGBA8 to Wii native GX_TF_RGBA8 (4x4 tiles)
 	int padWidth = width + (4 - width % 4) % 4;
 	int padHeight = height + (4 - height % 4) % 4;
 	int len = (padWidth * padHeight) * 4;
 	if (len % 32) len += (32 - len % 32);
-	uint8_t* dst = (uint8_t*)memalign(32, len);
-	if (!dst) return nullptr;
+	return memalign(32, len);
+}
+
+void OgcImageRenderer::loadTextureData(void* texture, const uint8_t* rgba, int width, int height)
+{
+	if(!texture || !rgba) return;
+	uint8_t* dst = (uint8_t*)texture;
+	int padWidth = width + (4 - width % 4) % 4;
+	int padHeight = height + (4 - height % 4) % 4;
 
 	for (int y = 0; y < padHeight; y++) {
 		for (int x = 0; x < padWidth; x++) {
@@ -209,8 +213,10 @@ void* OgcImageRenderer::createTexture(const uint8_t* rgba, int width, int height
 			}
 		}
 	}
+
+	int len = (padWidth * padHeight) * 2;
+	if (len % 32) len += (32 - len % 32);
 	DCFlushRange(dst, len);
-	return dst;
 }
 
 void OgcImageRenderer::destroyTexture(void * texture)
