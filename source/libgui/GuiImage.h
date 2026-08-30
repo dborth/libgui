@@ -20,6 +20,12 @@ class GuiImage : public GuiElement
 		//!\param img Pointer to GuiImageData element
 		GuiImage(GuiImageData * img);
 		//!\overload
+		//!Sets up a new image from the texture data specified
+		//!\param t Texture data
+		//!\param w Image width
+		//!\param h Image height
+		GuiImage(uint8_t * tex, int w, int h);
+		//!\overload
 		//!Creates an image with the specified color
 		//!\param w Image width
 		//!\param h Image height
@@ -43,13 +49,18 @@ class GuiImage : public GuiElement
 		//!\param w Width
 		//!\param h Height
 		void setImage(uint8_t * img, int w, int h);
+		//!\overload
+		//!\param tex Pointer to platform-native texture
+		//!\param w Width
+		//!\param h Height
+		void setTexture(uint8_t * tex, int w, int h);
 		//!Sets a stripe effect on the image, overlaying alpha blended rectangles
 		//!Does not alter the image data
 		//!\param s Alpha amount to draw over the image
 		void setStripe(int s);
 	protected:
 		IMAGE imgType; //!< Type of image data (TEXTURE, COLOR)
-		void * texture; //!< Attached platform-native texture (see IImageRenderer)
+		void * texture; //!< Attached platform-native texture
 		bool ownsTexture; //!< Whether this object created `texture` itself (TEXTURE/COLOR) or borrowed it from a GuiImageData
 		float imageangle; //!< Angle to draw the image
 		int tile; //!< Number of times to draw (tile) the image horizontally

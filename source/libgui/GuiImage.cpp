@@ -39,6 +39,18 @@ GuiImage::GuiImage(GuiImageData * img)
 	imgType = IMAGE::TEXTURE;
 }
 
+GuiImage::GuiImage(uint8_t * tex, int w, int h)
+{
+	texture = tex;
+	ownsTexture = false;
+	width = w;
+	height = h;
+	imageangle = 0;
+	tile = -1;
+	stripe = 0;
+	imgType = IMAGE::TEXTURE;
+}
+
 GuiImage::GuiImage(int w, int h, PixelColor c)
 {
 	texture = nullptr;
@@ -90,9 +102,33 @@ void GuiImage::setImage(uint8_t * img, int w, int h)
 		texture = nullptr;
 	}
 
-	texture = platform->getVideo()->getImageRenderer()->createTexture(w, h);
-	platform->getVideo()->getImageRenderer()->loadTextureData(texture, img, w, h);
-	ownsTexture = true;
+	if(img) {
+		texture = platform->getVideo()->getImageRenderer()->createTexture(w, h);
+		platform->getVideo()->getImageRenderer()->loadTextureData(texture, img, w, h);
+		ownsTexture = true;
+		width = w;
+		height = h;
+	}
+	else {
+		texture = nullptr;
+		ownsTexture = false;
+		width = 0;
+		height = 0;
+	}
+
+	imgType = IMAGE::TEXTURE;
+}
+
+void GuiImage::setTexture(uint8_t * tex, int w, int h)
+{
+	if(ownsTexture && texture)
+	{
+		platform->getVideo()->getImageRenderer()->destroyTexture(texture);
+		texture = nullptr;
+	}
+
+	texture = tex;
+	ownsTexture = false;
 	width = w;
 	height = h;
 	imgType = IMAGE::TEXTURE;

@@ -16,7 +16,25 @@ GuiImageData::GuiImageData(const uint8_t * i, int maxw, int maxh)
 	height = 0;
 
 	if(i)
-		texture = decodeImage(i, &width, &height, maxw, maxh);
+		decodeImage(i, &width, &height, maxw, maxh);
+}
+
+GuiImageData::GuiImageData(const uint8_t * i, uint8_t * dst, int maxw, int maxh)
+{
+	texture = dst;
+	width = 0;
+	height = 0;
+
+	if(i) {
+		decodeImage(i, &width, &height, maxw, maxh);
+	}
+}
+
+GuiImageData::GuiImageData(void * tex, int w, int h)
+{
+	texture = tex;
+	width = w;
+	height = h;
 }
 
 GuiImageData::~GuiImageData()
@@ -44,29 +62,29 @@ void ReadPngDataCb(png_structp png_ptr, png_bytep data, png_size_t length)
 	memData->offset += length;
 }
 
-void * GuiImageData::decodeImage(const uint8_t * pngData, int * width, int * height, int maxw, int maxh)
+void GuiImageData::decodeImage(const uint8_t * pngData, int * width, int * height, int maxw, int maxh)
 {
 	if(!pngData)
-		return nullptr;
+		return;
 
 	if(png_sig_cmp(static_cast<png_const_bytep>(pngData), 0, 8))
-		return nullptr;
+		return;
 
 	png_structp png_ptr = png_create_read_struct(PNG_LIBPNG_VER_STRING, nullptr, nullptr, nullptr);
 	if(!png_ptr)
-		return nullptr;
+		return;
 
 	png_infop info_ptr = png_create_info_struct(png_ptr);
 	if(!info_ptr)
 	{
 		png_destroy_read_struct(&png_ptr, nullptr, nullptr);
-		return nullptr;
+		return;
 	}
 
 	if(setjmp(png_jmpbuf(png_ptr)))
 	{
 		png_destroy_read_struct(&png_ptr, &info_ptr, nullptr);
-		return nullptr;
+		return;
 	}
 
 	PngMemoryData memData = { pngData, 0 };
@@ -81,17 +99,22 @@ void * GuiImageData::decodeImage(const uint8_t * pngData, int * width, int * hei
 	if((maxw > 0 && static_cast<int>(w) > maxw) || (maxh > 0 && static_cast<int>(h) > maxh))
 	{
 		png_destroy_read_struct(&png_ptr, &info_ptr, nullptr);
-		return nullptr;
+		return;
 	}
 
 	if(width) *width = w;
 	if(height) *height = h;
 
-	void* hwTexture = platform->getVideo()->getImageRenderer()->createTexture(w, h);
-	if(!hwTexture)
+	void* hwTexture = nullptr;
+
+	if(!texture)
 	{
-		png_destroy_read_struct(&png_ptr, &info_ptr, nullptr);
-		return nullptr;
+		hwTexture = platform->getVideo()->getImageRenderer()->createTexture(w, h);
+		if(!hwTexture)
+		{
+			png_destroy_read_struct(&png_ptr, &info_ptr, nullptr);
+			return;
+		}
 	}
 
 	if(bit_depth == 16)
@@ -115,7 +138,7 @@ void * GuiImageData::decodeImage(const uint8_t * pngData, int * width, int * hei
 	{
 		png_destroy_read_struct(&png_ptr, &info_ptr, nullptr);
 		platform->getVideo()->getImageRenderer()->destroyTexture(hwTexture);
-		return nullptr;
+		return;
 	}
 
 	png_bytep * row_pointers = static_cast<png_bytep *>(malloc(sizeof(png_bytep) * h));
@@ -124,7 +147,7 @@ void * GuiImageData::decodeImage(const uint8_t * pngData, int * width, int * hei
 		free(rgba);
 		png_destroy_read_struct(&png_ptr, &info_ptr, nullptr);
 		platform->getVideo()->getImageRenderer()->destroyTexture(hwTexture);
-		return nullptr;
+		return;
 	}
 
 	for(png_uint_32 i = 0; i < h; i++)
@@ -132,11 +155,11 @@ void * GuiImageData::decodeImage(const uint8_t * pngData, int * width, int * hei
 
 	png_read_image(png_ptr, row_pointers);
 
-	platform->getVideo()->getImageRenderer()->loadTextureData(hwTexture, rgba, w, h);
+	if(hwTexture) texture = hwTexture;
+
+	platform->getVideo()->getImageRenderer()->loadTextureData(texture, rgba, w, h);
 
 	free(row_pointers);
 	free(rgba);
 	png_destroy_read_struct(&png_ptr, &info_ptr, nullptr);
-
-	return hwTexture;
 }
