@@ -361,8 +361,6 @@ static int MenuSettings()
 
 	GuiTrigger trigA;
 	trigA.setPrimaryTrigger();
-	GuiTrigger trigHome;
-	trigHome.setButtonOnlyTrigger(-1, GUI_BTN_HOME);
 
 	GuiText fileBtnTxt("File Browser", 22, (PixelColor){0, 0, 0, 255});
 	fileBtnTxt.setWrap(true, btnLargeOutline.getWidth()-30);
@@ -450,7 +448,6 @@ static int MenuSettings()
 	exitBtn.setImageOver(&exitBtnImgOver);
 	exitBtn.setSoundOver(&btnSoundOver);
 	exitBtn.setTrigger(&trigA);
-	exitBtn.setTrigger(&trigHome);
 	exitBtn.setEffectGrow();
 
 	GuiText resetBtnTxt("Reset Settings", 22, (PixelColor){0, 0, 0, 255});
