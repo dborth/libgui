@@ -77,6 +77,14 @@ void WutAudioDriver::init() {
 	eofSilenceWritten = false;
 }
 
+void WutAudioDriver::start() {
+
+}
+
+void WutAudioDriver::stop() {
+
+}
+
 void WutAudioDriver::shutdown() {
 	stopStream();
 	AXRegisterFrameCallback(nullptr);

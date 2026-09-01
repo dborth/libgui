@@ -32,16 +32,29 @@ void OgcAudioDriver::handleStreamCallback(int voice) {
 
 void OgcAudioDriver::init() {
 	instance = this;
-	AUDIO_Init(nullptr);
+	ASND_Init();
+	streamVolume = 127;
+}
+
+void OgcAudioDriver::start() {
+	DSP_Unhalt();
 	ASND_Init();
 	ASND_Pause(0);
-	streamVolume = 127;
+}
+
+void OgcAudioDriver::stop() {
+	ASND_Pause(1);
+	ASND_End();
+	AUDIO_StopDMA();
+	AUDIO_RegisterDMACallback(NULL);
+	DSP_Halt();
 }
 
 void OgcAudioDriver::shutdown() {
 	stopStream();
 	ASND_Pause(1);
 	ASND_End();
+	AUDIO_StopDMA();
 	instance = nullptr;
 }
 

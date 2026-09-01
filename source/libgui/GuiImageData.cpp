@@ -12,12 +12,26 @@
 namespace {
 	uint8_t * scratchBuffer = nullptr;
 	unsigned int scratchBufferSize = 0;
+
+	Mutex & getScratchMutex()
+	{
+		static Mutex scratchMutex;
+		return scratchMutex;
+	}
+
+	void ErrorCb(png_structp png_ptr, png_const_charp) { longjmp(png_jmpbuf(png_ptr), 1); }
+	void WarningCb(png_structp, png_const_charp) {}
 }
 
 void GuiImageData::setDecodeScratch(void * buffer, unsigned int size)
 {
 	scratchBuffer = static_cast<uint8_t *>(buffer);
 	scratchBufferSize = buffer ? size : 0;
+}
+
+Mutex & GuiImageData::scratchLock()
+{
+	return getScratchMutex();
 }
 
 GuiImageData::GuiImageData()
@@ -106,10 +120,14 @@ bool GuiImageData::decodeImage(const uint8_t * pngData, int * outWidth, int * ou
 	if(!pngData)
 		return false;
 
+	MutexLock scratchGuard(getScratchMutex());
+	uint8_t * const localScratchBuffer = scratchBuffer;
+	const unsigned int localScratchBufferSize = scratchBufferSize;
+
 	if(png_sig_cmp(static_cast<png_const_bytep>(pngData), 0, 8))
 		return false;
 
-	png_structp png_ptr = png_create_read_struct(PNG_LIBPNG_VER_STRING, nullptr, nullptr, nullptr);
+	png_structp png_ptr = png_create_read_struct(PNG_LIBPNG_VER_STRING, nullptr, ErrorCb, WarningCb);
 	if(!png_ptr)
 		return false;
 
@@ -168,7 +186,7 @@ bool GuiImageData::decodeImage(const uint8_t * pngData, int * outWidth, int * ou
 	unsigned long long srcRgbaBytes = static_cast<unsigned long long>(rowBytes) * srcH;
 	unsigned long long resizedRgbaBytes = needsResize ? static_cast<unsigned long long>(w) * h * 4 : 0;
 	unsigned long long totalScratchBytes = rowPtrBytes + srcRgbaBytes + resizedRgbaBytes;
-	if(!scratchBuffer || totalScratchBytes > scratchBufferSize)
+	if(!localScratchBuffer || totalScratchBytes > localScratchBufferSize)
 	{
 		png_destroy_read_struct(&png_ptr, &info_ptr, nullptr);
 		return false;
@@ -187,8 +205,8 @@ bool GuiImageData::decodeImage(const uint8_t * pngData, int * outWidth, int * ou
 		}
 	}
 
-	png_bytep * row_pointers = reinterpret_cast<png_bytep *>(scratchBuffer);
-	uint8_t * srcRgba = scratchBuffer + rowPtrBytes;
+	png_bytep * row_pointers = reinterpret_cast<png_bytep *>(localScratchBuffer);
+	uint8_t * srcRgba = localScratchBuffer + rowPtrBytes;
 
 	for(png_uint_32 i = 0; i < srcH; i++)
 		row_pointers[i] = srcRgba + (static_cast<size_t>(i) * rowBytes);

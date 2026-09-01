@@ -1,32 +1,33 @@
 /****************************************************************************
  * libgui
  * Daryl Borth 2009-2026
- * Mutex.cpp
+ * Cond.cpp
  *
  * Generic - Everything platform-specific lives behind platform->getThread().
  ***************************************************************************/
 #include "Platform.h"
+#include "Cond.h"
 
-Mutex::Mutex()
+Cond::Cond()
 {
 	if(platform && platform->getThread())
-		handle = platform->getThread()->createMutex();
+		handle = platform->getThread()->createCond();
 }
 
-Mutex::~Mutex()
+Cond::~Cond()
 {
 	if(handle && platform && platform->getThread())
-		platform->getThread()->destroyMutex(handle);
+		platform->getThread()->destroyCond(handle);
 }
 
-void Mutex::lock()
+void Cond::wait(Mutex & lock)
 {
-	if(handle && platform && platform->getThread())
-		platform->getThread()->lockMutex(handle);
+	if(handle && lock.handle && platform && platform->getThread())
+		platform->getThread()->waitCond(handle, lock.handle);
 }
 
-void Mutex::unlock()
+void Cond::signal()
 {
 	if(handle && platform && platform->getThread())
-		platform->getThread()->unlockMutex(handle);
+		platform->getThread()->signalCond(handle);
 }

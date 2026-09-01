@@ -197,6 +197,42 @@ void WutThreadDriver::unlockMutex(void * mutex)
 	OSUnlockMutex(static_cast<OSMutex *>(mutex));
 }
 
+void * WutThreadDriver::createCond()
+{
+	OSCondition * cond = new OSCondition();
+	OSInitCond(cond);
+	return cond;
+}
+
+void WutThreadDriver::destroyCond(void * cond)
+{
+	if(!cond)
+		return;
+
+	delete static_cast<OSCondition *>(cond);
+}
+
+void WutThreadDriver::waitCond(void * cond, void * mutex)
+{
+	if(!cond || !mutex)
+		return;
+
+	// OSWaitCond unlocks mutex, sleeps, and reacquires it before
+	// returning - same contract as ThreadDriver::waitCond.
+	OSWaitCond(static_cast<OSCondition *>(cond), static_cast<OSMutex *>(mutex));
+}
+
+void WutThreadDriver::signalCond(void * cond)
+{
+	if(!cond)
+		return;
+
+	// OSSignalCond already wakes every waiter (it's notify_all, not
+	// notify_one) - matches ThreadDriver::signalCond's contract exactly.
+	OSSignalCond(static_cast<OSCondition *>(cond));
+}
+
+
 void WutThreadDriver::sleepMilliseconds(uint32_t ms)
 {
 	OSSleepTicks(OSMillisecondsToTicks(ms));
