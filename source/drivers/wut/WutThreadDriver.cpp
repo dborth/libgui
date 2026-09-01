@@ -11,6 +11,7 @@
 #include <coreinit/thread.h>
 #include <coreinit/mutex.h>
 #include <coreinit/time.h>
+#include <coreinit/condition.h>
 #include <malloc.h>
 
 #include "WutThreadDriver.h"

@@ -32,20 +32,18 @@ Platform* platform = &platformInstance;
 
 #define IMAGE_DECODE_SCRATCH_SIZE ((640 * 480 * 4) + (480 * sizeof(void*)))
 
-void
-DefaultSettings()
+void DefaultSettings()
 {
 	Settings.LoadMethod = METHOD_AUTO;
 	Settings.SaveMethod = METHOD_AUTO;
 	sprintf (Settings.Folder1,"libgui/first folder");
 	sprintf (Settings.Folder2,"libgui/second folder");
 	sprintf (Settings.Folder3,"libgui/third folder");
-	Settings.AutoLoad = 1;
-	Settings.AutoSave = 1;
+	Settings.AutoLoad = AUTO_SOME;
+	Settings.AutoSave = AUTO_SOME;
 }
 
-int
-main(int, char **)
+int main(int, char **)
 {
 	platform->init(640, 480);
 
@@ -55,6 +53,8 @@ main(int, char **)
 	fontSystem = new GuiTextRenderer(font_ttf, font_ttf_size, platform->getVideo()->getGlyphRenderer());
 	textTranslator = new GuiTextTranslator();
 	textTranslator->loadLanguage(en_lang, en_lang_size);
+
+	platform->getAudio()->start();
 
 	DefaultSettings();
 	MainMenu(MENU_SETTINGS);

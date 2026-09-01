@@ -15,6 +15,8 @@ class WutAudioDriver : public AudioDriver
 {
 	public:
 		void init() override;
+		void start() override;
+		void stop() override;
 		void shutdown() override;
 
 		int32_t playVoice(const uint8_t* data, int32_t length, int volume) override;
