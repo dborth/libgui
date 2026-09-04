@@ -5,8 +5,8 @@
  ***************************************************************************/
 #include "WutInputDriver.h"
 #include "../Platform.h"
-#include "../../libgui/GuiInputController.h"
-#include "../../libgui/GuiInput.h"
+#include "../InputController.h"
+#include "../InputData.h"
 
 #include <vpad/input.h>
 #include <padscore/kpad.h>
@@ -28,90 +28,90 @@ static inline float clampf(float v, float lo, float hi) {
  * Hardware Mapping Helpers
  ***************************************************************************/
 static uint32_t MapVPADToGeneric(uint32_t vpad_btns) {
-	uint32_t mask = GUI_BTN_NONE;
-	if (vpad_btns & VPAD_BUTTON_A)       mask |= GUI_BTN_A;
-	if (vpad_btns & VPAD_BUTTON_B)       mask |= GUI_BTN_B;
-	if (vpad_btns & VPAD_BUTTON_X)       mask |= GUI_BTN_X;
-	if (vpad_btns & VPAD_BUTTON_Y)       mask |= GUI_BTN_Y;
-	if (vpad_btns & VPAD_BUTTON_UP)      mask |= GUI_BTN_UP;
-	if (vpad_btns & VPAD_BUTTON_DOWN)    mask |= GUI_BTN_DOWN;
-	if (vpad_btns & VPAD_BUTTON_LEFT)    mask |= GUI_BTN_LEFT;
-	if (vpad_btns & VPAD_BUTTON_RIGHT)   mask |= GUI_BTN_RIGHT;
-	if (vpad_btns & VPAD_BUTTON_PLUS)    mask |= GUI_BTN_PLUS;
-	if (vpad_btns & VPAD_BUTTON_MINUS)   mask |= GUI_BTN_MINUS;
-	if (vpad_btns & VPAD_BUTTON_HOME)    mask |= GUI_BTN_HOME;
-	if (vpad_btns & VPAD_BUTTON_L)       mask |= GUI_TRIGGER_L;
-	if (vpad_btns & VPAD_BUTTON_R)       mask |= GUI_TRIGGER_R;
-	if (vpad_btns & VPAD_BUTTON_ZL)      mask |= GUI_TRIGGER_ZL;
-	if (vpad_btns & VPAD_BUTTON_ZR)      mask |= GUI_TRIGGER_ZR;
-	if (vpad_btns & VPAD_BUTTON_STICK_L) mask |= GUI_THUMB_L;
-	if (vpad_btns & VPAD_BUTTON_STICK_R) mask |= GUI_THUMB_R;
+	uint32_t mask = INPUT_BTN_NONE;
+	if (vpad_btns & VPAD_BUTTON_A)       mask |= INPUT_BTN_A;
+	if (vpad_btns & VPAD_BUTTON_B)       mask |= INPUT_BTN_B;
+	if (vpad_btns & VPAD_BUTTON_X)       mask |= INPUT_BTN_X;
+	if (vpad_btns & VPAD_BUTTON_Y)       mask |= INPUT_BTN_Y;
+	if (vpad_btns & VPAD_BUTTON_UP)      mask |= INPUT_BTN_UP;
+	if (vpad_btns & VPAD_BUTTON_DOWN)    mask |= INPUT_BTN_DOWN;
+	if (vpad_btns & VPAD_BUTTON_LEFT)    mask |= INPUT_BTN_LEFT;
+	if (vpad_btns & VPAD_BUTTON_RIGHT)   mask |= INPUT_BTN_RIGHT;
+	if (vpad_btns & VPAD_BUTTON_PLUS)    mask |= INPUT_BTN_PLUS;
+	if (vpad_btns & VPAD_BUTTON_MINUS)   mask |= INPUT_BTN_MINUS;
+	if (vpad_btns & VPAD_BUTTON_HOME)    mask |= INPUT_BTN_HOME;
+	if (vpad_btns & VPAD_BUTTON_L)       mask |= INPUT_TRIGGER_L;
+	if (vpad_btns & VPAD_BUTTON_R)       mask |= INPUT_TRIGGER_R;
+	if (vpad_btns & VPAD_BUTTON_ZL)      mask |= INPUT_TRIGGER_ZL;
+	if (vpad_btns & VPAD_BUTTON_ZR)      mask |= INPUT_TRIGGER_ZR;
+	if (vpad_btns & VPAD_BUTTON_STICK_L) mask |= INPUT_THUMB_L;
+	if (vpad_btns & VPAD_BUTTON_STICK_R) mask |= INPUT_THUMB_R;
 	return mask;
 }
 
 static uint32_t MapKPADCoreToGeneric(uint32_t kpad_btns) {
-	uint32_t mask = GUI_BTN_NONE;
-	if (kpad_btns & WPAD_BUTTON_A)     mask |= GUI_BTN_A;
-	if (kpad_btns & WPAD_BUTTON_B)     mask |= GUI_BTN_B;
-	if (kpad_btns & WPAD_BUTTON_1)     mask |= GUI_BTN_1;
-	if (kpad_btns & WPAD_BUTTON_2)     mask |= GUI_BTN_2;
-	if (kpad_btns & WPAD_BUTTON_UP)    mask |= GUI_BTN_UP;
-	if (kpad_btns & WPAD_BUTTON_DOWN)  mask |= GUI_BTN_DOWN;
-	if (kpad_btns & WPAD_BUTTON_LEFT)  mask |= GUI_BTN_LEFT;
-	if (kpad_btns & WPAD_BUTTON_RIGHT) mask |= GUI_BTN_RIGHT;
-	if (kpad_btns & WPAD_BUTTON_PLUS)  mask |= GUI_BTN_PLUS;
-	if (kpad_btns & WPAD_BUTTON_MINUS) mask |= GUI_BTN_MINUS;
-	if (kpad_btns & WPAD_BUTTON_HOME)  mask |= GUI_BTN_HOME;
+	uint32_t mask = INPUT_BTN_NONE;
+	if (kpad_btns & WPAD_BUTTON_A)     mask |= INPUT_BTN_A;
+	if (kpad_btns & WPAD_BUTTON_B)     mask |= INPUT_BTN_B;
+	if (kpad_btns & WPAD_BUTTON_1)     mask |= INPUT_BTN_1;
+	if (kpad_btns & WPAD_BUTTON_2)     mask |= INPUT_BTN_2;
+	if (kpad_btns & WPAD_BUTTON_UP)    mask |= INPUT_BTN_UP;
+	if (kpad_btns & WPAD_BUTTON_DOWN)  mask |= INPUT_BTN_DOWN;
+	if (kpad_btns & WPAD_BUTTON_LEFT)  mask |= INPUT_BTN_LEFT;
+	if (kpad_btns & WPAD_BUTTON_RIGHT) mask |= INPUT_BTN_RIGHT;
+	if (kpad_btns & WPAD_BUTTON_PLUS)  mask |= INPUT_BTN_PLUS;
+	if (kpad_btns & WPAD_BUTTON_MINUS) mask |= INPUT_BTN_MINUS;
+	if (kpad_btns & WPAD_BUTTON_HOME)  mask |= INPUT_BTN_HOME;
 	return mask;
 }
 
 static uint32_t MapKPADProToGeneric(uint32_t pro_btns) {
-	uint32_t mask = GUI_BTN_NONE;
-	if (pro_btns & WPAD_PRO_BUTTON_A)       mask |= GUI_BTN_A;
-	if (pro_btns & WPAD_PRO_BUTTON_B)       mask |= GUI_BTN_B;
-	if (pro_btns & WPAD_PRO_BUTTON_X)       mask |= GUI_BTN_X;
-	if (pro_btns & WPAD_PRO_BUTTON_Y)       mask |= GUI_BTN_Y;
-	if (pro_btns & WPAD_PRO_BUTTON_UP)      mask |= GUI_BTN_UP;
-	if (pro_btns & WPAD_PRO_BUTTON_DOWN)    mask |= GUI_BTN_DOWN;
-	if (pro_btns & WPAD_PRO_BUTTON_LEFT)    mask |= GUI_BTN_LEFT;
-	if (pro_btns & WPAD_PRO_BUTTON_RIGHT)   mask |= GUI_BTN_RIGHT;
-	if (pro_btns & WPAD_PRO_BUTTON_PLUS)    mask |= GUI_BTN_PLUS;
-	if (pro_btns & WPAD_PRO_BUTTON_MINUS)   mask |= GUI_BTN_MINUS;
-	if (pro_btns & WPAD_PRO_BUTTON_HOME)    mask |= GUI_BTN_HOME;
-	if (pro_btns & WPAD_PRO_TRIGGER_L)      mask |= GUI_TRIGGER_L;
-	if (pro_btns & WPAD_PRO_TRIGGER_R)      mask |= GUI_TRIGGER_R;
-	if (pro_btns & WPAD_PRO_TRIGGER_ZL)     mask |= GUI_TRIGGER_ZL;
-	if (pro_btns & WPAD_PRO_TRIGGER_ZR)     mask |= GUI_TRIGGER_ZR;
-	if (pro_btns & WPAD_PRO_BUTTON_STICK_L) mask |= GUI_THUMB_L;
-	if (pro_btns & WPAD_PRO_BUTTON_STICK_R) mask |= GUI_THUMB_R;
+	uint32_t mask = INPUT_BTN_NONE;
+	if (pro_btns & WPAD_PRO_BUTTON_A)       mask |= INPUT_BTN_A;
+	if (pro_btns & WPAD_PRO_BUTTON_B)       mask |= INPUT_BTN_B;
+	if (pro_btns & WPAD_PRO_BUTTON_X)       mask |= INPUT_BTN_X;
+	if (pro_btns & WPAD_PRO_BUTTON_Y)       mask |= INPUT_BTN_Y;
+	if (pro_btns & WPAD_PRO_BUTTON_UP)      mask |= INPUT_BTN_UP;
+	if (pro_btns & WPAD_PRO_BUTTON_DOWN)    mask |= INPUT_BTN_DOWN;
+	if (pro_btns & WPAD_PRO_BUTTON_LEFT)    mask |= INPUT_BTN_LEFT;
+	if (pro_btns & WPAD_PRO_BUTTON_RIGHT)   mask |= INPUT_BTN_RIGHT;
+	if (pro_btns & WPAD_PRO_BUTTON_PLUS)    mask |= INPUT_BTN_PLUS;
+	if (pro_btns & WPAD_PRO_BUTTON_MINUS)   mask |= INPUT_BTN_MINUS;
+	if (pro_btns & WPAD_PRO_BUTTON_HOME)    mask |= INPUT_BTN_HOME;
+	if (pro_btns & WPAD_PRO_TRIGGER_L)      mask |= INPUT_TRIGGER_L;
+	if (pro_btns & WPAD_PRO_TRIGGER_R)      mask |= INPUT_TRIGGER_R;
+	if (pro_btns & WPAD_PRO_TRIGGER_ZL)     mask |= INPUT_TRIGGER_ZL;
+	if (pro_btns & WPAD_PRO_TRIGGER_ZR)     mask |= INPUT_TRIGGER_ZR;
+	if (pro_btns & WPAD_PRO_BUTTON_STICK_L) mask |= INPUT_THUMB_L;
+	if (pro_btns & WPAD_PRO_BUTTON_STICK_R) mask |= INPUT_THUMB_R;
 	return mask;
 }
 
 static uint32_t MapKPADClassicToGeneric(uint32_t cls_btns) {
-	uint32_t mask = GUI_BTN_NONE;
-	if (cls_btns & WPAD_CLASSIC_BUTTON_A)      mask |= GUI_BTN_A;
-	if (cls_btns & WPAD_CLASSIC_BUTTON_B)      mask |= GUI_BTN_B;
-	if (cls_btns & WPAD_CLASSIC_BUTTON_X)      mask |= GUI_BTN_X;
-	if (cls_btns & WPAD_CLASSIC_BUTTON_Y)      mask |= GUI_BTN_Y;
-	if (cls_btns & WPAD_CLASSIC_BUTTON_UP)     mask |= GUI_BTN_UP;
-	if (cls_btns & WPAD_CLASSIC_BUTTON_DOWN)   mask |= GUI_BTN_DOWN;
-	if (cls_btns & WPAD_CLASSIC_BUTTON_LEFT)   mask |= GUI_BTN_LEFT;
-	if (cls_btns & WPAD_CLASSIC_BUTTON_RIGHT)  mask |= GUI_BTN_RIGHT;
-	if (cls_btns & WPAD_CLASSIC_BUTTON_PLUS)   mask |= GUI_BTN_PLUS;
-	if (cls_btns & WPAD_CLASSIC_BUTTON_MINUS)  mask |= GUI_BTN_MINUS;
-	if (cls_btns & WPAD_CLASSIC_BUTTON_HOME)   mask |= GUI_BTN_HOME;
-	if (cls_btns & WPAD_CLASSIC_BUTTON_L)      mask |= GUI_TRIGGER_L;
-	if (cls_btns & WPAD_CLASSIC_BUTTON_R)      mask |= GUI_TRIGGER_R;
-	if (cls_btns & WPAD_CLASSIC_BUTTON_ZL)     mask |= GUI_TRIGGER_ZL;
-	if (cls_btns & WPAD_CLASSIC_BUTTON_ZR)     mask |= GUI_TRIGGER_ZR;
+	uint32_t mask = INPUT_BTN_NONE;
+	if (cls_btns & WPAD_CLASSIC_BUTTON_A)      mask |= INPUT_BTN_A;
+	if (cls_btns & WPAD_CLASSIC_BUTTON_B)      mask |= INPUT_BTN_B;
+	if (cls_btns & WPAD_CLASSIC_BUTTON_X)      mask |= INPUT_BTN_X;
+	if (cls_btns & WPAD_CLASSIC_BUTTON_Y)      mask |= INPUT_BTN_Y;
+	if (cls_btns & WPAD_CLASSIC_BUTTON_UP)     mask |= INPUT_BTN_UP;
+	if (cls_btns & WPAD_CLASSIC_BUTTON_DOWN)   mask |= INPUT_BTN_DOWN;
+	if (cls_btns & WPAD_CLASSIC_BUTTON_LEFT)   mask |= INPUT_BTN_LEFT;
+	if (cls_btns & WPAD_CLASSIC_BUTTON_RIGHT)  mask |= INPUT_BTN_RIGHT;
+	if (cls_btns & WPAD_CLASSIC_BUTTON_PLUS)   mask |= INPUT_BTN_PLUS;
+	if (cls_btns & WPAD_CLASSIC_BUTTON_MINUS)  mask |= INPUT_BTN_MINUS;
+	if (cls_btns & WPAD_CLASSIC_BUTTON_HOME)   mask |= INPUT_BTN_HOME;
+	if (cls_btns & WPAD_CLASSIC_BUTTON_L)      mask |= INPUT_TRIGGER_L;
+	if (cls_btns & WPAD_CLASSIC_BUTTON_R)      mask |= INPUT_TRIGGER_R;
+	if (cls_btns & WPAD_CLASSIC_BUTTON_ZL)     mask |= INPUT_TRIGGER_ZL;
+	if (cls_btns & WPAD_CLASSIC_BUTTON_ZR)     mask |= INPUT_TRIGGER_ZR;
 	return mask;
 }
 
 static uint32_t MapKPADNunchukToGeneric(uint32_t wpad_btns) {
-	uint32_t mask = GUI_BTN_NONE;
+	uint32_t mask = INPUT_BTN_NONE;
 
-	if (wpad_btns & WPAD_NUNCHUK_BUTTON_Z) mask |= GUI_TRIGGER_ZL;
-	if (wpad_btns & WPAD_NUNCHUK_BUTTON_C) mask |= GUI_TRIGGER_L;
+	if (wpad_btns & WPAD_NUNCHUK_BUTTON_Z) mask |= INPUT_TRIGGER_ZL;
+	if (wpad_btns & WPAD_NUNCHUK_BUTTON_C) mask |= INPUT_TRIGGER_L;
 
 	return mask;
 }
@@ -153,7 +153,7 @@ void WutInputDriver::update(float deltaTime) {
 	float screenHeight = (float)platform->getVideo()->getScreenHeight();
 
 	for (int i = 3; i >= 0; i--) {
-		GuiInputPadData padData;
+		InputPadData padData;
 
 		// VPAD Processing (GamePad, Channel 0 Only)
 		if (i == 0) {
@@ -162,24 +162,24 @@ void WutInputDriver::update(float deltaTime) {
 			VPADRead(VPAD_CHAN_0, &vpadStatus, 1, &vpadError);
 
 			if (vpadError == VPAD_READ_SUCCESS || vpadError == VPAD_READ_NO_SAMPLES) {
-				padData.hw_connected[GUI_HW_DRC] = true;
+				padData.hw_connected[INPUT_HW_DRC] = true;
 				padData.battery_level = vpadStatus.battery * 25; // normalize to 0-100
 
-				padData.hw_buttons_d[GUI_HW_DRC] = MapVPADToGeneric(vpadStatus.trigger);
-				padData.hw_buttons_h[GUI_HW_DRC] = MapVPADToGeneric(vpadStatus.hold);
-				padData.hw_buttons_r[GUI_HW_DRC] = MapVPADToGeneric(vpadStatus.release);
+				padData.hw_buttons_d[INPUT_HW_DRC] = MapVPADToGeneric(vpadStatus.trigger);
+				padData.hw_buttons_h[INPUT_HW_DRC] = MapVPADToGeneric(vpadStatus.hold);
+				padData.hw_buttons_r[INPUT_HW_DRC] = MapVPADToGeneric(vpadStatus.release);
 
-				padData.hw_stickX[GUI_HW_DRC] = clampf(vpadStatus.leftStick.x, -1.0f, 1.0f);
-				padData.hw_stickY[GUI_HW_DRC] = clampf(vpadStatus.leftStick.y, -1.0f, 1.0f);
-				padData.hw_substickX[GUI_HW_DRC] = clampf(vpadStatus.rightStick.x, -1.0f, 1.0f);
-				padData.hw_substickY[GUI_HW_DRC] = clampf(vpadStatus.rightStick.y, -1.0f, 1.0f);
+				padData.hw_stickX[INPUT_HW_DRC] = clampf(vpadStatus.leftStick.x, -1.0f, 1.0f);
+				padData.hw_stickY[INPUT_HW_DRC] = clampf(vpadStatus.leftStick.y, -1.0f, 1.0f);
+				padData.hw_substickX[INPUT_HW_DRC] = clampf(vpadStatus.rightStick.x, -1.0f, 1.0f);
+				padData.hw_substickY[INPUT_HW_DRC] = clampf(vpadStatus.rightStick.y, -1.0f, 1.0f);
 
-				padData.hw_gforceX[GUI_HW_DRC] = vpadStatus.accelorometer.acc.x;
-				padData.hw_gforceY[GUI_HW_DRC] = vpadStatus.accelorometer.acc.y;
-				padData.hw_gforceZ[GUI_HW_DRC] = vpadStatus.accelorometer.acc.z;
-				padData.hw_pitch[GUI_HW_DRC] = vpadStatus.angle.x;
-				padData.hw_roll[GUI_HW_DRC]  = vpadStatus.angle.y;
-				padData.hw_yaw[GUI_HW_DRC]   = vpadStatus.angle.z;
+				padData.hw_gforceX[INPUT_HW_DRC] = vpadStatus.accelorometer.acc.x;
+				padData.hw_gforceY[INPUT_HW_DRC] = vpadStatus.accelorometer.acc.y;
+				padData.hw_gforceZ[INPUT_HW_DRC] = vpadStatus.accelorometer.acc.z;
+				padData.hw_pitch[INPUT_HW_DRC] = vpadStatus.angle.x;
+				padData.hw_roll[INPUT_HW_DRC]  = vpadStatus.angle.y;
+				padData.hw_yaw[INPUT_HW_DRC]   = vpadStatus.angle.z;
 
 				// Touch Screen & Pointer Coordinates Mapping
 				bool drcTouched = (vpadStatus.tpNormal.touched != 0);
@@ -201,17 +201,17 @@ void WutInputDriver::update(float deltaTime) {
 					drcLastTouchY = posY;
 				}
 
-				// Touch lifecycle button synthesis (GUI_BTN_A)
+				// Touch lifecycle button synthesis (INPUT_BTN_A)
 				if (drcTouched && !drcTouchedPrev) {
 					// Touch Down
-					padData.hw_buttons_d[GUI_HW_DRC] |= GUI_BTN_A;
-					padData.hw_buttons_h[GUI_HW_DRC] |= GUI_BTN_A;
+					padData.hw_buttons_d[INPUT_HW_DRC] |= INPUT_BTN_A;
+					padData.hw_buttons_h[INPUT_HW_DRC] |= INPUT_BTN_A;
 				} else if (drcTouched && drcTouchedPrev) {
 					// Touch Held
-					padData.hw_buttons_h[GUI_HW_DRC] |= GUI_BTN_A;
+					padData.hw_buttons_h[INPUT_HW_DRC] |= INPUT_BTN_A;
 				} else if (!drcTouched && drcTouchedPrev) {
 					// Touch Released
-					padData.hw_buttons_r[GUI_HW_DRC] |= GUI_BTN_A;
+					padData.hw_buttons_r[INPUT_HW_DRC] |= INPUT_BTN_A;
 
 					// Preserve pointer position on release frame
 					padData.isTouch = true;
@@ -229,46 +229,46 @@ void WutInputDriver::update(float deltaTime) {
 		int kpadRead = KPADRead((KPADChan)i, &kpadStatus, 1);
 
 		if (kpadRead > 0) {
-			padData.hw_connected[GUI_HW_WIIMOTE] = true;
+			padData.hw_connected[INPUT_HW_WIIMOTE] = true;
 			padData.battery_level = WPADGetBatteryLevel((WPADChan)i) * 25; // normalize to 0-100 range
 			
-			padData.hw_gforceX[GUI_HW_WIIMOTE] = kpadStatus.acc.x;
-			padData.hw_gforceY[GUI_HW_WIIMOTE] = kpadStatus.acc.y;
-			padData.hw_gforceZ[GUI_HW_WIIMOTE] = kpadStatus.acc.z;
-			padData.hw_pitch[GUI_HW_WIIMOTE] = kpadStatus.angle.x;
-			padData.hw_roll[GUI_HW_WIIMOTE]  = kpadStatus.angle.y;
+			padData.hw_gforceX[INPUT_HW_WIIMOTE] = kpadStatus.acc.x;
+			padData.hw_gforceY[INPUT_HW_WIIMOTE] = kpadStatus.acc.y;
+			padData.hw_gforceZ[INPUT_HW_WIIMOTE] = kpadStatus.acc.z;
+			padData.hw_pitch[INPUT_HW_WIIMOTE] = kpadStatus.angle.x;
+			padData.hw_roll[INPUT_HW_WIIMOTE]  = kpadStatus.angle.y;
 
 			if (kpadStatus.extensionType == WPAD_EXT_PRO_CONTROLLER) {
-				padData.hw_connected[GUI_HW_WUPC] = true;
-				padData.hw_buttons_d[GUI_HW_WUPC] = MapKPADProToGeneric(kpadStatus.pro.trigger);
-				padData.hw_buttons_h[GUI_HW_WUPC] = MapKPADProToGeneric(kpadStatus.pro.hold);
-				padData.hw_buttons_r[GUI_HW_WUPC] = MapKPADProToGeneric(kpadStatus.pro.release);
+				padData.hw_connected[INPUT_HW_WUPC] = true;
+				padData.hw_buttons_d[INPUT_HW_WUPC] = MapKPADProToGeneric(kpadStatus.pro.trigger);
+				padData.hw_buttons_h[INPUT_HW_WUPC] = MapKPADProToGeneric(kpadStatus.pro.hold);
+				padData.hw_buttons_r[INPUT_HW_WUPC] = MapKPADProToGeneric(kpadStatus.pro.release);
 
-				padData.hw_stickX[GUI_HW_WUPC] = clampf(kpadStatus.pro.leftStick.x, -1.0f, 1.0f);
-				padData.hw_stickY[GUI_HW_WUPC] = clampf(kpadStatus.pro.leftStick.y, -1.0f, 1.0f);
-				padData.hw_substickX[GUI_HW_WUPC] = clampf(kpadStatus.pro.rightStick.x, -1.0f, 1.0f);
-				padData.hw_substickY[GUI_HW_WUPC] = clampf(kpadStatus.pro.rightStick.y, -1.0f, 1.0f);
+				padData.hw_stickX[INPUT_HW_WUPC] = clampf(kpadStatus.pro.leftStick.x, -1.0f, 1.0f);
+				padData.hw_stickY[INPUT_HW_WUPC] = clampf(kpadStatus.pro.leftStick.y, -1.0f, 1.0f);
+				padData.hw_substickX[INPUT_HW_WUPC] = clampf(kpadStatus.pro.rightStick.x, -1.0f, 1.0f);
+				padData.hw_substickY[INPUT_HW_WUPC] = clampf(kpadStatus.pro.rightStick.y, -1.0f, 1.0f);
 
-				userInput[i]->setSideways(false);
+				controller[i]->setSideways(false);
 			}
 			else if (kpadStatus.extensionType == WPAD_EXT_CLASSIC || kpadStatus.extensionType == WPAD_EXT_MPLUS_CLASSIC) {
-				padData.hw_connected[GUI_HW_CLASSIC] = true;
-				padData.hw_buttons_d[GUI_HW_CLASSIC] = MapKPADClassicToGeneric(kpadStatus.classic.trigger);
-				padData.hw_buttons_h[GUI_HW_CLASSIC] = MapKPADClassicToGeneric(kpadStatus.classic.hold);
-				padData.hw_buttons_r[GUI_HW_CLASSIC] = MapKPADClassicToGeneric(kpadStatus.classic.release);
+				padData.hw_connected[INPUT_HW_CLASSIC] = true;
+				padData.hw_buttons_d[INPUT_HW_CLASSIC] = MapKPADClassicToGeneric(kpadStatus.classic.trigger);
+				padData.hw_buttons_h[INPUT_HW_CLASSIC] = MapKPADClassicToGeneric(kpadStatus.classic.hold);
+				padData.hw_buttons_r[INPUT_HW_CLASSIC] = MapKPADClassicToGeneric(kpadStatus.classic.release);
 
-				padData.hw_stickX[GUI_HW_CLASSIC] = clampf(kpadStatus.classic.leftStick.x, -1.0f, 1.0f);
-				padData.hw_stickY[GUI_HW_CLASSIC] = clampf(kpadStatus.classic.leftStick.y, -1.0f, 1.0f);
-				padData.hw_substickX[GUI_HW_CLASSIC] = clampf(kpadStatus.classic.rightStick.x, -1.0f, 1.0f);
-				padData.hw_substickY[GUI_HW_CLASSIC] = clampf(kpadStatus.classic.rightStick.y, -1.0f, 1.0f);
+				padData.hw_stickX[INPUT_HW_CLASSIC] = clampf(kpadStatus.classic.leftStick.x, -1.0f, 1.0f);
+				padData.hw_stickY[INPUT_HW_CLASSIC] = clampf(kpadStatus.classic.leftStick.y, -1.0f, 1.0f);
+				padData.hw_substickX[INPUT_HW_CLASSIC] = clampf(kpadStatus.classic.rightStick.x, -1.0f, 1.0f);
+				padData.hw_substickY[INPUT_HW_CLASSIC] = clampf(kpadStatus.classic.rightStick.y, -1.0f, 1.0f);
 
-				userInput[i]->setSideways(false);
+				controller[i]->setSideways(false);
 			}
 			else {
 				// Core Wiimote or Wiimote + Nunchuk
-				padData.hw_buttons_d[GUI_HW_WIIMOTE] = MapKPADCoreToGeneric(kpadStatus.trigger);
-				padData.hw_buttons_h[GUI_HW_WIIMOTE] = MapKPADCoreToGeneric(kpadStatus.hold);
-				padData.hw_buttons_r[GUI_HW_WIIMOTE] = MapKPADCoreToGeneric(kpadStatus.release);
+				padData.hw_buttons_d[INPUT_HW_WIIMOTE] = MapKPADCoreToGeneric(kpadStatus.trigger);
+				padData.hw_buttons_h[INPUT_HW_WIIMOTE] = MapKPADCoreToGeneric(kpadStatus.hold);
+				padData.hw_buttons_r[INPUT_HW_WIIMOTE] = MapKPADCoreToGeneric(kpadStatus.release);
 
 
 				// Map IR pointer if active and DRC touch is not currently taking priority
@@ -281,29 +281,29 @@ void WutInputDriver::update(float deltaTime) {
 				}
 
 				if (kpadStatus.extensionType == WPAD_EXT_NUNCHUK || kpadStatus.extensionType == WPAD_EXT_MPLUS_NUNCHUK) {
-					padData.hw_connected[GUI_HW_NUNCHUK] = true;
+					padData.hw_connected[INPUT_HW_NUNCHUK] = true;
 
-					padData.hw_buttons_d[GUI_HW_NUNCHUK] = MapKPADNunchukToGeneric(kpadStatus.nunchuk.trigger);
-					padData.hw_buttons_h[GUI_HW_NUNCHUK] = MapKPADNunchukToGeneric(kpadStatus.nunchuk.hold);
-					padData.hw_buttons_r[GUI_HW_NUNCHUK] = MapKPADNunchukToGeneric(kpadStatus.nunchuk.release);
+					padData.hw_buttons_d[INPUT_HW_NUNCHUK] = MapKPADNunchukToGeneric(kpadStatus.nunchuk.trigger);
+					padData.hw_buttons_h[INPUT_HW_NUNCHUK] = MapKPADNunchukToGeneric(kpadStatus.nunchuk.hold);
+					padData.hw_buttons_r[INPUT_HW_NUNCHUK] = MapKPADNunchukToGeneric(kpadStatus.nunchuk.release);
 
-					padData.hw_stickX[GUI_HW_NUNCHUK] = clampf(kpadStatus.nunchuk.stick.x, -1.0f, 1.0f);
-					padData.hw_stickY[GUI_HW_NUNCHUK] = clampf(kpadStatus.nunchuk.stick.y, -1.0f, 1.0f);
+					padData.hw_stickX[INPUT_HW_NUNCHUK] = clampf(kpadStatus.nunchuk.stick.x, -1.0f, 1.0f);
+					padData.hw_stickY[INPUT_HW_NUNCHUK] = clampf(kpadStatus.nunchuk.stick.y, -1.0f, 1.0f);
 
-					padData.hw_gforceX[GUI_HW_NUNCHUK] = kpadStatus.nunchuk.acc.x;
-					padData.hw_gforceY[GUI_HW_NUNCHUK] = kpadStatus.nunchuk.acc.y;
-					padData.hw_gforceZ[GUI_HW_NUNCHUK] = kpadStatus.nunchuk.acc.z;
+					padData.hw_gforceX[INPUT_HW_NUNCHUK] = kpadStatus.nunchuk.acc.x;
+					padData.hw_gforceY[INPUT_HW_NUNCHUK] = kpadStatus.nunchuk.acc.y;
+					padData.hw_gforceZ[INPUT_HW_NUNCHUK] = kpadStatus.nunchuk.acc.z;
 
-					userInput[i]->setSideways(false);
+					controller[i]->setSideways(false);
 				} else {
 					// Sideways Wiimote auto-detection when no extension is connected
-					userInput[i]->setSideways(std::abs(kpadStatus.acc.x) > std::abs(kpadStatus.acc.y));
+					controller[i]->setSideways(std::abs(kpadStatus.acc.x) > std::abs(kpadStatus.acc.y));
 				}
 			}
 		}
 
 		// Merge Aggregate State
-		for (uint32_t hw = 0; hw < GUI_HW_MAX; hw++) {
+		for (uint32_t hw = 0; hw < INPUT_HW_MAX; hw++) {
 			if (!padData.hw_connected[hw]) continue;
 
 			padData.buttons_d |= padData.hw_buttons_d[hw];
@@ -323,14 +323,14 @@ void WutInputDriver::update(float deltaTime) {
 		}
 
 		// Update logical controller state
-		userInput[i]->update(padData, deltaTime);
+		controller[i]->update(padData, deltaTime);
 
 		// Rumble Lifecycle Management
 		if (rumbleRequest[i] && rumbleCount[i] < 3) {
-			if (padData.hw_connected[GUI_HW_WIIMOTE] || padData.hw_connected[GUI_HW_WUPC]) {
+			if (padData.hw_connected[INPUT_HW_WIIMOTE] || padData.hw_connected[INPUT_HW_WUPC]) {
 				WPADControlMotor((WPADChan)i, TRUE);
 			}
-			if (i == 0 && padData.hw_connected[GUI_HW_DRC]) {
+			if (i == 0 && padData.hw_connected[INPUT_HW_DRC]) {
 				VPADControlMotor(VPAD_CHAN_0, vpadRumblePattern, sizeof(vpadRumblePattern));
 			}
 			rumbleCount[i]++;
@@ -339,7 +339,7 @@ void WutInputDriver::update(float deltaTime) {
 			rumbleRequest[i] = false;
 		} else {
 			if (rumbleCount[i]) rumbleCount[i]--;
-			if (padData.hw_connected[GUI_HW_WIIMOTE] || padData.hw_connected[GUI_HW_WUPC]) {
+			if (padData.hw_connected[INPUT_HW_WIIMOTE] || padData.hw_connected[INPUT_HW_WUPC]) {
 				WPADControlMotor((WPADChan)i, FALSE);
 			}
 			if (i == 0) {

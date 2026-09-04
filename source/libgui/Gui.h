@@ -36,6 +36,8 @@
 
 #include "../filelist.h"
 #include "../drivers/Platform.h"
+#include "../drivers/InputData.h"
+#include "../drivers/InputController.h"
 
 enum class ALIGN_V {
 	TOP,
@@ -62,8 +64,6 @@ enum class SCROLL {
 	HORIZONTAL
 };
 
-#include "GuiInput.h"
-#include "GuiInputController.h"
 #include "GuiTrigger.h"
 #include "GuiElement.h"
 #include "GuiWindow.h"

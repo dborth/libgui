@@ -41,15 +41,15 @@ bool UpdateGui()
 	platform->getInput()->update(deltaTime);
 
 	for(i = 3; i >= 0; i--)
-		mainWindow->update(userInput[i]);
+		mainWindow->update(controller[i]);
 
 	mainWindow->draw();
 
 	for(i = 3; i >= 0; i--)
 	{
-		if(userInput[i]->getPadData().validPointer)
-			platform->getVideo()->getImageRenderer()->drawTexture(pointer[i]->getTexture(), userInput[i]->getPadData().cursor_x-48, userInput[i]->getPadData().cursor_y-48,
-				96, 96, userInput[i]->getPadData().cursor_angle, 1, 1, 255);
+		if(controller[i]->getPadData().validPointer)
+			platform->getVideo()->getImageRenderer()->drawTexture(pointer[i]->getTexture(), controller[i]->getPadData().cursor_x-48, controller[i]->getPadData().cursor_y-48,
+				96, 96, controller[i]->getPadData().cursor_angle, 1, 1, 255);
 	}
 
 	platform->getVideo()->render();
