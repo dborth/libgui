@@ -9,7 +9,11 @@
 #include "OgcAudioDriver.h"
 #include "OgcVideoDriver.h"
 #include "OgcInputDriver.h"
-#include "OgcFileSystemDriver.h"
+#ifdef HW_DOL
+#include "GameCubeFileSystemDriver.h"
+#else
+#include "WiiFileSystemDriver.h"
+#endif
 #include "OgcThreadDriver.h"
 
 class OgcPlatform : public Platform
@@ -32,7 +36,11 @@ class OgcPlatform : public Platform
 			this->inputDriver = new OgcInputDriver();
 			this->inputDriver->init();
 
-			this->fileSystemDriver = new OgcFileSystemDriver();
+#ifdef HW_DOL
+			this->fileSystemDriver = new GameCubeFileSystemDriver();
+#else
+			this->fileSystemDriver = new WiiFileSystemDriver();
+#endif
 			this->fileSystemDriver->init();
 		}
 
@@ -85,6 +93,6 @@ class OgcPlatform : public Platform
 		OgcAudioDriver* audioDriver;
 		OgcVideoDriver* videoDriver;
 		OgcInputDriver* inputDriver;
-		OgcFileSystemDriver* fileSystemDriver;
+		FileSystemDriver* fileSystemDriver;
 		OgcThreadDriver* threadDriver;
 };

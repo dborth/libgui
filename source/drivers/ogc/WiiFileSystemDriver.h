@@ -1,28 +1,12 @@
 /****************************************************************************
- * libgui - drivers/wut
- * Daryl Borth 2026
- * WutFileSystemDriver.h
+ * libgui - drivers/ogc
+ * Daryl Borth 2009-2026
+ * WiiFileSystemDriver.h
  ***************************************************************************/
 #pragma once
 #include "../FileSystemDriver.h"
 
-enum {
-	DEVICE_SD,
-	DEVICE_USB,
-	DEVICE_LENGTH
-};
-
-// State tracker used to track dynamically probed devoptab devices
-struct WutDeviceState {
-	int id;
-	char name[16];
-	char prefix[16];
-	bool isPresent;
-	bool isMounted;
-	bool unmountRequired;
-};
-
-class WutFileSystemDriver : public FileSystemDriver
+class WiiFileSystemDriver : public FileSystemDriver
 {
 	public:
 		void init() override;
@@ -33,11 +17,9 @@ class WutFileSystemDriver : public FileSystemDriver
 		const char * mountResultMessage(int deviceId, MountResult result) override;
 		void invalidateStorageDevice(int deviceId) override;
 		void pollStorageDevices(int removedIds[MAX_STORAGE_DEVICES], int & outRemovedCount, bool & deviceListChanged) override;
-		bool hasRemovableStorageDevices() const override { return true; }
+		bool hasRemovableStorageDevices() const override { return true; } // SD/USB/DVD can all be pulled
 
 	private:
-		WutDeviceState m_devices[MAX_STORAGE_DEVICES];
-		int m_deviceCount;
-
-		int allocateUniqueId(int preferredId);
+		MountResult mountFAT(int deviceId);
+		MountResult mountDVD();
 };
