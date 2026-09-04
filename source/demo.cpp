@@ -58,7 +58,7 @@ int main(int, char **)
 	platform->getAudio()->start();
 
 	DefaultSettings();
-	InitDeviceThread();
+	InitDeviceCheckingThread();
 	MainMenu(MENU_SETTINGS);
 
 	platform->shutdown();

@@ -240,24 +240,24 @@ static void OnScreenKeyboard(char * var, uint16_t maxlen)
 }
 
 /****************************************************************************
- * MenuBrowseDevice
+ * MenuBrowseDevices
  ***************************************************************************/
-static int MenuBrowseDevice()
+static int MenuBrowseDevices()
 {
 	char title[100];
 	int i;
 
 	// populate initial directory listing
-	if(BrowseDevice() <= 0)
+	if(ParseDeviceList() <= 0)
 	{
 		int choice = WindowPrompt(
 		"Error",
-		"Unable to display files on selected load device.",
+		"No devices detected.",
 		"Retry",
 		"Check Settings");
 
 		if(choice)
-			return MENU_BROWSE_DEVICE;
+			return MENU_BROWSE_DEVICES;
 		else
 			return MENU_SETTINGS;
 	}
@@ -322,7 +322,7 @@ static int MenuBrowseDevice()
 					}
 					else
 					{
-						menu = MENU_BROWSE_DEVICE;
+						menu = MENU_BROWSE_DEVICES;
 						break;
 					}
 				}
@@ -480,7 +480,7 @@ static int MenuSettings()
 
 		if(fileBtn.getState() == STATE::CLICKED)
 		{
-			menu = MENU_BROWSE_DEVICE;
+			menu = MENU_BROWSE_DEVICES;
 		}
 		else if(videoBtn.getState() == STATE::CLICKED)
 		{
@@ -699,8 +699,8 @@ void MainMenu(int menu)
 			case MENU_SETTINGS_FILE:
 				currentMenu = MenuSettingsFile();
 				break;
-			case MENU_BROWSE_DEVICE:
-				currentMenu = MenuBrowseDevice();
+			case MENU_BROWSE_DEVICES:
+				currentMenu = MenuBrowseDevices();
 				break;
 			default: // unrecognized menu
 				currentMenu = MenuSettings();

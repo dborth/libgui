@@ -121,10 +121,10 @@ static void * devicecallback(void *)
 }
 
 /****************************************************************************
- * InitDeviceThread()
+ * InitDeviceCheckingThread()
  * Starts the device-checking background thread
  ***************************************************************************/
-void InitDeviceThread()
+void InitDeviceCheckingThread()
 {
 	if(platform->getFileSystem()->hasRemovableStorageDevices())
 	{
@@ -170,9 +170,17 @@ int UpdateDirName()
 	{
 		return 0;
 	}
-	/* go up to parent directory */
+	/* go up to parent directory or device list */
 	else if (strcmp(browserList[browser.selIndex].filename,"..") == 0)
 	{
+		/* We are at the root of a device, drop back to the device list */
+		if (strcmp(browser.dir, "/") == 0 || browser.dir[0] == '\0')
+		{
+			rootdir[0] = '\0';
+			browser.dir[0] = '\0';
+			return 1;
+		}
+
 		/* determine last subdirectory namelength */
 		sprintf(temp,"%s",browser.dir);
 		test = strtok(temp,"/");
@@ -186,16 +194,28 @@ int UpdateDirName()
 		size = strlen(browser.dir) - size - 1;
 		browser.dir[size] = 0;
 
+		/* if we stripped back to empty, force standard root */
+		if(browser.dir[0] == '\0')
+			strcpy(browser.dir, "/");
+
 		return 1;
 	}
-	/* Open a directory */
+	/* Open a directory or Device */
 	else
 	{
+		/* If in device list, selection sets the new root */
+		if (rootdir[0] == '\0')
+		{
+			strcpy(rootdir, browserList[browser.selIndex].filename);
+			strcpy(browser.dir, "/");
+			return 1;
+		}
+
 		/* test new directory namelength */
 		if ((strlen(browser.dir)+1+strlen(browserList[browser.selIndex].filename)) < MAXPATHLEN)
 		{
-			/* update current directory name */
-			strcat(browser.dir, "/");
+			if(strcmp(browser.dir, "/") != 0)
+				strcat(browser.dir, "/");
 			strcat(browser.dir, browserList[browser.selIndex].filename);
 			return 1;
 		}
@@ -234,11 +254,67 @@ int FileSortCallback(const void *f1, const void *f2)
 }
 
 /***************************************************************************
- * Browse subdirectories
+ * ParseDeviceList
+ * Generates the top level display of connected devices
  **************************************************************************/
-int
-ParseDirectory()
+int ParseDeviceList()
 {
+	ResetBrowser();
+	rootdir[0] = '\0';
+	browser.dir[0] = '\0';
+
+	int entryNum = 0;
+
+	auto addDevice = [&](const char* mount, const char* name) {
+		DIR* dir = opendir(mount);
+		if(dir)
+		{
+			closedir(dir);
+			BROWSERENTRY * newBrowserList = (BROWSERENTRY *)realloc(browserList, (entryNum+1) * sizeof(BROWSERENTRY));
+			if(newBrowserList)
+			{
+				browserList = newBrowserList;
+				memset(&(browserList[entryNum]), 0, sizeof(BROWSERENTRY));
+
+				strncpy(browserList[entryNum].filename, mount, MAXJOLIET);
+				browserList[entryNum].filename[MAXJOLIET] = '\0';
+
+				strncpy(browserList[entryNum].displayname, name, MAXDISPLAY);
+				browserList[entryNum].displayname[MAXDISPLAY] = '\0';
+
+				browserList[entryNum].isdir = 1;
+				entryNum++;
+			}
+		}
+	};
+
+#ifdef __WIIU__
+	// Leverage WHB to pull the dynamic mount path for SD
+	const char * sdPath = WHBGetSdCardMountPath();
+	if(sdPath && sdPath[0] != '\0')
+		addDevice(sdPath, "SD Card");
+	else
+		addDevice("sdmc:/", "SD Card");
+
+	addDevice("usb:/", "USB Drive");
+#else
+	addDevice("sd:/", "SD Card");
+	addDevice("usb:/", "USB Drive");
+#endif
+
+	browser.numEntries = entryNum;
+	return entryNum;
+}
+
+/***************************************************************************
+ * ParseDirectory
+ **************************************************************************/
+int ParseDirectory()
+{
+	// Route to device listing if rootdir was cleared by going up from a device root
+	if(rootdir[0] == '\0')
+		return ParseDeviceList();
+
 	DIR *dir = nullptr;
 	char fulldir[MAXPATHLEN];
 	struct dirent *entry;
@@ -246,24 +322,29 @@ ParseDirectory()
 	// reset browser
 	ResetBrowser();
 
-	// add currentDevice to path
 	strcpy(fulldir, rootdir);
-	strcat(fulldir, browser.dir);
-	// open the directory
-	dir = opendir(fulldir);
 
-	// if we can't open the dir, try opening the root dir
-	if (dir == nullptr)
+	// Safely construct the full path without doubling up on slashes
+	if(strcmp(browser.dir, "/") == 0)
 	{
-		sprintf(browser.dir,"/");
-		dir = opendir(rootdir);
-		if (dir == nullptr)
-		{
-			return -1;
-		}
+		if(fulldir[strlen(fulldir)-1] != '/')
+			strcat(fulldir, "/");
+	}
+	else
+	{
+		if(fulldir[strlen(fulldir)-1] == '/')
+			fulldir[strlen(fulldir)-1] = '\0';
+		strcat(fulldir, browser.dir);
 	}
 
-	// index files/folders
+	dir = opendir(fulldir);
+
+	// If a device becomes suddenly unavailable, fallback to the device list
+	if (dir == nullptr)
+	{
+		return ParseDeviceList();
+	}
+
 	int entryNum = 0;
 
 	while((entry = readdir(dir)))
@@ -309,7 +390,8 @@ ParseDirectory()
 	closedir(dir);
 
 	// Sort the file list
-	qsort(browserList, entryNum, sizeof(BROWSERENTRY), FileSortCallback);
+	if(entryNum > 0)
+		qsort(browserList, entryNum, sizeof(BROWSERENTRY), FileSortCallback);
 
 	browser.numEntries = entryNum;
 	return entryNum;
@@ -327,33 +409,5 @@ int BrowserChangeFolder()
 
 	ParseDirectory();
 
-	return browser.numEntries;
-}
-
-/****************************************************************************
- * BrowseDevice
- * Displays a list of files on the selected device
- ***************************************************************************/
-int BrowseDevice()
-{
-	sprintf(browser.dir, "/");
-
-#ifdef __WIIU__
-	// Wii U has no "sd:/"-style libfat device name - WutFileSystemDriver
-	// mounts the SD card at init() via WHBMountSdCard(), which assigns an
-	// actual FS path (typically "/vol/external01/") only known at
-	// runtime. "sd:/" (the Wii/GC libfat device name below) simply
-	// doesn't exist as a devoptab entry on Wii U, so opendir() against it
-	// would just fail - this pulls the real mounted path instead.
-	const char * sdPath = WHBGetSdCardMountPath();
-	if(sdPath && sdPath[0] != '\0')
-		snprintf(rootdir, sizeof(rootdir), "%s", sdPath);
-	else
-		snprintf(rootdir, sizeof(rootdir), "/");
-#else
-	sprintf(rootdir, "sd:/");
-#endif
-
-	ParseDirectory(); // Parse root directory
 	return browser.numEntries;
 }

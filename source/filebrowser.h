@@ -39,10 +39,9 @@ int UpdateDirName();
 int FileSortCallback(const void *f1, const void *f2);
 void ResetBrowser();
 int BrowserChangeFolder();
-int BrowseDevice();
+int ParseDeviceList();
 
-// Device checking thread management
-void InitDeviceThread();
+void InitDeviceCheckingThread();
 void ResumeDeviceCheckingThread();
 void HaltDeviceCheckingThread();
 
