@@ -4,6 +4,7 @@
  * FileSystemDriver.h
  ***************************************************************************/
 #pragma once
+#include <stdint.h>
 
 #define MAX_STORAGE_DEVICES 16
 
@@ -11,9 +12,22 @@ struct StorageDevice
 {
 	int  id;
 	char name[16];
-	char prefix[16];
+	char prefix[32];          //!< eg. "usb:/" on Wii, but Wii U's runtime-assigned FSA
+	                           //!< paths (eg. "/vol/external01") run longer than the
+	                           //!< 16 bytes the old libogc-style prefixes needed
 	bool removable;          //!< can this device disappear at runtime? (polled by the device-checking thread)
 	bool autoMountAtStartup; //!< silently attempted at boot (eg. Wii's SD/USB)
+
+	// Optional capacity/health telemetry. A driver that can't (or hasn't yet)
+	// determined these leaves metricsValid false - check it before trusting
+	// totalBytes/freeBytes/blockSize/readOnly. Aggregate-initialized structs
+	// (eg. WiiFileSystemDriver's static device table) get these zeroed for
+	// free since they're trailing members.
+	uint64_t totalBytes;
+	uint64_t freeBytes;
+	uint32_t blockSize;      //!< allocation unit / cluster size in bytes - useful for sizing savestate writes
+	bool     readOnly;
+	bool     metricsValid;
 };
 
 //! Result of a single mount attempt. Deliberately has no retry/backoff behavior baked in

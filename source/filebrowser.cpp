@@ -21,10 +21,6 @@
 #include "drivers/Platform.h"
 #include "drivers/FileSystemDriver.h"
 
-#ifdef __WIIU__
-#include <whb/sdcard.h>
-#endif
-
 #define THREAD_SLEEP 100
 #define DEVICE_THREAD_STACKSIZE (32 * 1024)
 
@@ -255,7 +251,10 @@ int FileSortCallback(const void *f1, const void *f2)
 
 /***************************************************************************
  * ParseDeviceList
- * Generates the top level display of connected devices
+ * Generates the top level display of connected devices, sourced from the
+ * platform's FileSystemDriver rather than a hardcoded path list - so this
+ * automatically reflects whatever devices enumerateStorageDevices() (and
+ * the device-checking thread's pollStorageDevices()) currently know about.
  **************************************************************************/
 int ParseDeviceList()
 {
@@ -263,44 +262,33 @@ int ParseDeviceList()
 	rootdir[0] = '\0';
 	browser.dir[0] = '\0';
 
+	StorageDevice devices[MAX_STORAGE_DEVICES];
+	int deviceCount = platform->getFileSystem()->enumerateStorageDevices(devices);
+
 	int entryNum = 0;
 
-	auto addDevice = [&](const char* mount, const char* name) {
-		DIR* dir = opendir(mount);
-		if(dir)
-		{
-			closedir(dir);
-			BROWSERENTRY * newBrowserList = (BROWSERENTRY *)realloc(browserList, (entryNum+1) * sizeof(BROWSERENTRY));
-			if(newBrowserList)
-			{
-				browserList = newBrowserList;
-				memset(&(browserList[entryNum]), 0, sizeof(BROWSERENTRY));
+	for(int i = 0; i < deviceCount; i++)
+	{
+		MountResult result = platform->getFileSystem()->mountStorageDevice(devices[i].id);
+		if(result != MountResult::Success)
+			continue; // not currently reachable - leave it off the list rather than show a dead entry
 
-				strncpy(browserList[entryNum].filename, mount, MAXJOLIET);
-				browserList[entryNum].filename[MAXJOLIET] = '\0';
+		BROWSERENTRY * newBrowserList = (BROWSERENTRY *)realloc(browserList, (entryNum+1) * sizeof(BROWSERENTRY));
+		if(!newBrowserList)
+			break;
 
-				strncpy(browserList[entryNum].displayname, name, MAXDISPLAY);
-				browserList[entryNum].displayname[MAXDISPLAY] = '\0';
+		browserList = newBrowserList;
+		memset(&(browserList[entryNum]), 0, sizeof(BROWSERENTRY));
 
-				browserList[entryNum].isdir = 1;
-				entryNum++;
-			}
-		}
-	};
+		strncpy(browserList[entryNum].filename, devices[i].prefix, MAXJOLIET);
+		browserList[entryNum].filename[MAXJOLIET] = '\0';
 
-#ifdef __WIIU__
-	// Leverage WHB to pull the dynamic mount path for SD
-	const char * sdPath = WHBGetSdCardMountPath();
-	if(sdPath && sdPath[0] != '\0')
-		addDevice(sdPath, "SD Card");
-	else
-		addDevice("sdmc:/", "SD Card");
+		strncpy(browserList[entryNum].displayname, devices[i].name, MAXDISPLAY);
+		browserList[entryNum].displayname[MAXDISPLAY] = '\0';
 
-	addDevice("usb:/", "USB Drive");
-#else
-	addDevice("sd:/", "SD Card");
-	addDevice("usb:/", "USB Drive");
-#endif
+		browserList[entryNum].isdir = 1;
+		entryNum++;
+	}
 
 	browser.numEntries = entryNum;
 	return entryNum;
@@ -347,11 +335,30 @@ int ParseDirectory()
 
 	int entryNum = 0;
 
+	// Manually inject "Up One Level" at device root
+	if(strcmp(browser.dir, "/") == 0)
+	{
+		BROWSERENTRY * newBrowserList = (BROWSERENTRY *)realloc(browserList, (entryNum+1) * sizeof(BROWSERENTRY));
+		if(newBrowserList)
+		{
+			browserList = newBrowserList;
+			memset(&(browserList[entryNum]), 0, sizeof(BROWSERENTRY));
+			strcpy(browserList[entryNum].filename, "..");
+			strcpy(browserList[entryNum].displayname, "Up One Level");
+			browserList[entryNum].isdir = 1;
+			entryNum++;
+		}
+	}
+
 	while((entry = readdir(dir)))
 	{
 		if(strcmp(entry->d_name,".") == 0)
 			continue;
 		
+		// Skip the filesystem's ".." if we already injected it at the root
+		if(strcmp(entry->d_name,"..") == 0 && strcmp(browser.dir, "/") == 0)
+			continue;
+
 		BROWSERENTRY * newBrowserList = (BROWSERENTRY *)realloc(browserList, (entryNum+1) * sizeof(BROWSERENTRY));
 
 		if(!newBrowserList) // failed to allocate required memory
