@@ -120,8 +120,23 @@ WutInputDriver::WutInputDriver() : drcTouchedPrev(false), drcLastTouchX(0.0f), d
 	for (int i = 0; i < 4; i++) {
 		rumbleCount[i] = 0;
 		rumbleRequest[i] = false;
+		irSmoothX[i] = 0.0f;
+		irSmoothY[i] = 0.0f;
+		irSmoothInit[i] = false;
 	}
 }
+
+// Exponential smoothing factor for the Wiimote IR pointer. Higher = snappier
+// (closer to raw), lower = smoother but more lag. KPAD delivers samples much
+// faster than our ~60Hz update rate, so without this the raw per-sample noise
+// (and the coarser stride of only consuming one sample per frame) reads as a
+// jerky cursor compared to libogc's WPAD IR handling on Wii.
+static constexpr float IR_SMOOTH_ALPHA = 0.20f;
+
+// KPADReadEx can return multiple buffered samples per call (newest to oldest).
+// We only need a small buffer - just enough to detect/skip a KPAD_ERROR_NO_SAMPLES
+// frame without discarding real motion.
+static constexpr uint32_t KPAD_SAMPLE_BUFFER = 4;
 
 WutInputDriver::~WutInputDriver() {
 	shutdown();
@@ -225,10 +240,18 @@ void WutInputDriver::update() {
 		}
 
 		// KPAD Processing (Wiimotes, Extensions & Pro Controllers)
-		KPADStatus kpadStatus;
-		int kpadRead = KPADRead((KPADChan)i, &kpadStatus, 1);
+		KPADStatus kpadStatusBuf[KPAD_SAMPLE_BUFFER];
+		KPADError kpadError = KPAD_ERROR_UNINITIALIZED;
+		uint32_t kpadRead = KPADReadEx((KPADChan)i, kpadStatusBuf, KPAD_SAMPLE_BUFFER, &kpadError);
 
-		if (kpadRead > 0) {
+		// KPADReadEx can return count > 0 on a frame with no new report (stale/
+		// cached data) - the error code, not the count, is what tells us the
+		// sample is actually fresh. Consuming it unconditionally is what was
+		// producing the periodic "skips a beat" stutter. Samples are ordered
+		// newest-to-oldest, so index 0 is the one we want.
+		if (kpadRead > 0 && kpadError == KPAD_ERROR_OK) {
+			KPADStatus& kpadStatus = kpadStatusBuf[0];
+
 			padData.hw_connected[INPUT_HW_WIIMOTE] = true;
 			padData.battery_level = WPADGetBatteryLevel((WPADChan)i) * 25; // normalize to 0-100 range
 			
@@ -273,11 +296,30 @@ void WutInputDriver::update() {
 
 				// Map IR pointer if active and DRC touch is not currently taking priority
 				if (kpadStatus.posValid && !padData.validPointer) {
+					float rawX = clampf((kpadStatus.pos.x * 0.5f + 0.5f) * screenWidth, 0.0f, screenWidth);
+					float rawY = clampf((kpadStatus.pos.y * 0.5f + 0.5f) * screenHeight, 0.0f, screenHeight);
+
+					if (!irSmoothInit[i]) {
+						// First valid sample after acquiring (or re-acquiring) the sensor
+						// bar - snap straight to it instead of smoothing from a stale/zero
+						// position, which would otherwise show up as a visible snap-drag.
+						irSmoothX[i] = rawX;
+						irSmoothY[i] = rawY;
+						irSmoothInit[i] = true;
+					} else {
+						irSmoothX[i] += (rawX - irSmoothX[i]) * IR_SMOOTH_ALPHA;
+						irSmoothY[i] += (rawY - irSmoothY[i]) * IR_SMOOTH_ALPHA;
+					}
+
 					padData.validPointer = true;
 					padData.isTouch = false;
-					padData.cursor_x = clampf((kpadStatus.pos.x * 0.5f + 0.5f) * screenWidth, 0.0f, screenWidth);
-					padData.cursor_y = clampf((kpadStatus.pos.y * 0.5f + 0.5f) * screenHeight, 0.0f, screenHeight);
+					padData.cursor_x = irSmoothX[i];
+					padData.cursor_y = irSmoothY[i];
 					padData.cursor_angle = kpadStatus.angle.y;
+				} else if (!kpadStatus.posValid) {
+					// Sensor bar tracking lost - reset the filter so we don't drag the
+					// cursor toward a stale point when it's reacquired.
+					irSmoothInit[i] = false;
 				}
 
 				if (kpadStatus.extensionType == WPAD_EXT_NUNCHUK || kpadStatus.extensionType == WPAD_EXT_MPLUS_NUNCHUK) {
@@ -300,6 +342,11 @@ void WutInputDriver::update() {
 					controller[i]->setSideways(std::abs(kpadStatus.acc.x) > std::abs(kpadStatus.acc.y));
 				}
 			}
+		} else {
+			// No fresh KPAD sample this frame (disconnected, no controller, or a
+			// genuine KPAD_ERROR_NO_SAMPLES tick) - reset the IR filter so a later
+			// reconnect doesn't drag the cursor from a stale position.
+			irSmoothInit[i] = false;
 		}
 
 		// Merge Aggregate State

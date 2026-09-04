@@ -24,4 +24,9 @@ class WutInputDriver : public InputDriver {
 		bool drcTouchedPrev;
 		float drcLastTouchX;
 		float drcLastTouchY;
+
+		// IR pointer smoothing state (per Wiimote channel)
+		float irSmoothX[4];
+		float irSmoothY[4];
+		bool  irSmoothInit[4];
 };
