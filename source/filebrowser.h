@@ -1,6 +1,6 @@
 /****************************************************************************
  * libgui Template
- * Tantric 2009
+ * Daryl Borth 2009-2026
  *
  * filebrowser.h
  *
@@ -33,11 +33,17 @@ typedef struct
 extern BROWSERINFO browser;
 extern BROWSERENTRY * browserList;
 extern char rootdir[128];
+extern bool browserDeviceListChanged;
 
-int UpdateDirName(int method);
+int UpdateDirName();
 int FileSortCallback(const void *f1, const void *f2);
 void ResetBrowser();
 int BrowserChangeFolder();
 int BrowseDevice();
+
+// Device checking thread management
+void InitDeviceThread();
+void ResumeDeviceCheckingThread();
+void HaltDeviceCheckingThread();
 
 #endif

@@ -1,6 +1,6 @@
 /****************************************************************************
  * libgui Template
- * Tantric 2009
+ * Daryl Borth 2009-2026
  *
  * filebrowser.cpp
  *
@@ -16,14 +16,123 @@
 #include "filebrowser.h"
 #include "menu.h"
 
+#include "drivers/ThreadDriver.h"
+#include "drivers/Cond.h"
+#include "drivers/Platform.h"
+#include "drivers/FileSystemDriver.h"
+
 #ifdef __WIIU__
 #include <whb/sdcard.h>
 #endif
+
+#define THREAD_SLEEP 100
+#define DEVICE_THREAD_STACKSIZE (32 * 1024)
 
 BROWSERINFO browser;
 BROWSERENTRY * browserList = nullptr; // list of files/folders in browser
 
 char rootdir[128];
+bool browserDeviceListChanged = false;
+
+/****************************************************************************
+ * Thread Synchronization Primitives
+ ***************************************************************************/
+struct ThreadSync
+{
+	Mutex mutex;
+	Cond  workCond; // main -> worker: wake/re-check available
+	Cond  idleCond; // worker -> main: now idle/halted
+};
+
+static ThreadSync & DeviceSync() { static ThreadSync s; return s; }
+
+// device thread state
+static Thread deviceThread;
+static volatile bool deviceCheckingHalt = true;
+static bool deviceThreadStarted = false;
+static bool deviceIdle = false; // protected by DeviceSync().mutex
+
+/****************************************************************************
+ * ResumeDeviceCheckingThread()
+ * Signals the device thread to start, and resumes the thread.
+ ***************************************************************************/
+void ResumeDeviceCheckingThread()
+{
+	if(!deviceThreadStarted)
+		return;
+
+	DeviceSync().mutex.lock();
+	deviceCheckingHalt = false;
+	DeviceSync().workCond.signal();
+	DeviceSync().mutex.unlock();
+}
+
+/****************************************************************************
+ * HaltDeviceCheckingThread()
+ * Signals the device thread to stop.
+ ***************************************************************************/
+void HaltDeviceCheckingThread()
+{
+	if(!deviceThreadStarted)
+		return;
+
+	deviceCheckingHalt = true;
+	DeviceSync().mutex.lock();
+	DeviceSync().workCond.signal(); // interrupt condvar sleep if the thread is in one
+	while(!deviceIdle)
+		DeviceSync().idleCond.wait(DeviceSync().mutex);
+	DeviceSync().mutex.unlock();
+}
+
+/****************************************************************************
+ * devicecallback()
+ * Checks devices for hotplug changes (SD/USB removed or inserted)
+ ***************************************************************************/
+static void * devicecallback(void *)
+{
+	while (1)
+	{
+		int removed[MAX_STORAGE_DEVICES];
+		int removedCount = 0;
+		bool deviceListChanged = false;
+
+		platform->getFileSystem()->pollStorageDevices(removed, removedCount, deviceListChanged);
+
+		if(removedCount > 0 || deviceListChanged)
+			browserDeviceListChanged = true; // signal the UI to refresh
+
+		// sleep ~1 sec in 100us steps so we can react to a halt request quickly
+		for(int i = 0; i < 10000 && !deviceCheckingHalt; i++)
+			usleep(THREAD_SLEEP);
+
+		// if halted, block here until ResumeDeviceCheckingThread wakes us
+		if(deviceCheckingHalt)
+		{
+			DeviceSync().mutex.lock();
+			deviceIdle = true;
+			DeviceSync().idleCond.signal(); // tell HaltDeviceCheckingThread we've stopped
+			while(deviceCheckingHalt)
+				DeviceSync().workCond.wait(DeviceSync().mutex);
+			deviceIdle = false;
+			DeviceSync().mutex.unlock();
+		}
+	}
+	return nullptr;
+}
+
+/****************************************************************************
+ * InitDeviceThread()
+ * Starts the device-checking background thread
+ ***************************************************************************/
+void InitDeviceThread()
+{
+	if(platform->getFileSystem()->hasRemovableStorageDevices())
+	{
+		DeviceSync();
+		deviceThreadStarted = true;
+		deviceThread.start(devicecallback, nullptr, DEVICE_THREAD_STACKSIZE, ThreadPriority::Low);
+	}
+}
 
 /****************************************************************************
  * ResetBrowser()

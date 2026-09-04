@@ -18,6 +18,7 @@
 #include "menu.h"
 #include "filelist.h"
 #include "demo.h"
+#include "filebrowser.h"
 #include "libgui/Gui.h"
 
 struct SSettings Settings;
@@ -57,6 +58,7 @@ int main(int, char **)
 	platform->getAudio()->start();
 
 	DefaultSettings();
+	InitDeviceThread();
 	MainMenu(MENU_SETTINGS);
 
 	platform->shutdown();
