@@ -21,6 +21,8 @@ class OgcVideoDriver : public VideoDriver
 
 		int getScreenWidth() const override { return screenWidth; }
 		int getScreenHeight() const override { return screenHeight; }
+		int getRefreshRate() const override { return vmode && (vmode->viTVMode >> 2) == VI_PAL ? 50 : 60; }
+		float getDeltaTime() const override { return vmode && (vmode->viTVMode >> 2) == VI_PAL ? (1.0f / 50.0f) : (1.0f / 60.0f); }
 		uint32_t getFrameTimer() override { return frameTimer; }
 
 		ImageRenderer* getImageRenderer() override { return imageRenderer; }
@@ -28,14 +30,13 @@ class OgcVideoDriver : public VideoDriver
 
 	private:
 		void resetVideoMenu();
-
-		int screenWidth;
-		int screenHeight;
-		uint32_t frameTimer;
-		uint32_t* xfb[2];
-		int whichfb;
-		GXRModeObj* vmode;
-		void* gp_fifo;
+		int screenWidth = 0;
+		int screenHeight = 0;
+		uint32_t frameTimer = 0;
+		uint32_t* xfb[2] = { nullptr, nullptr };
+		int whichfb = 0;
+		GXRModeObj* vmode = nullptr;
+		void* gp_fifo = nullptr;
 
 		ImageRenderer* imageRenderer;
 		GlyphRenderer* glyphRenderer;

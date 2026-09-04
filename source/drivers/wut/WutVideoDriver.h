@@ -24,6 +24,9 @@ class WutVideoDriver : public VideoDriver
 		int getScreenHeight() const override { return screenHeight; }
 		uint32_t getFrameTimer() override { return frameTimer; }
 
+		int getRefreshRate() const override;
+		float getDeltaTime() const override;
+
 		ImageRenderer* getImageRenderer() override { return imageRenderer; }
 		GlyphRenderer* getGlyphRenderer() override { return glyphRenderer; }
 

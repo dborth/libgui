@@ -148,7 +148,7 @@ void WutInputDriver::setRumble(int channel, bool rumble) {
 	}
 }
 
-void WutInputDriver::update(float deltaTime) {
+void WutInputDriver::update() {
 	float screenWidth = (float)platform->getVideo()->getScreenWidth();
 	float screenHeight = (float)platform->getVideo()->getScreenHeight();
 
@@ -323,7 +323,7 @@ void WutInputDriver::update(float deltaTime) {
 		}
 
 		// Update logical controller state
-		controller[i]->update(padData, deltaTime);
+		controller[i]->update(padData, platform->getVideo()->getDeltaTime());
 
 		// Rumble Lifecycle Management
 		if (rumbleRequest[i] && rumbleCount[i] < 3) {

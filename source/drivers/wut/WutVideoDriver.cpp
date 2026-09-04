@@ -10,6 +10,7 @@
 #include <coreinit/memdefaultheap.h>
 #include <gx2/clear.h>
 #include <gx2/context.h>
+#include <gx2/display.h>
 #include <gx2/draw.h>
 #include <gx2/mem.h>
 #include <gx2/registers.h>
@@ -113,6 +114,16 @@ void WutVideoDriver::render()
 void WutVideoDriver::clearScreen(const PixelColor& color)
 {
 	clearColor = color;
+}
+
+int WutVideoDriver::getRefreshRate() const
+{
+	return GX2GetSystemTVScanMode() == GX2_TV_SCAN_MODE_576I ? 50 : 60;
+}
+
+float WutVideoDriver::getDeltaTime() const
+{
+	return GX2GetSystemTVScanMode() == GX2_TV_SCAN_MODE_576I ? (1.0f / 50.0f) : (1.0f / 60.0f);
 }
 
 /****************************************************************************

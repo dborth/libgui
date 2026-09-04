@@ -37,8 +37,7 @@ bool UpdateGui()
 		return true;
 
 	int i;
-	float deltaTime = 1.0f / 60.0f;
-	platform->getInput()->update(deltaTime);
+	platform->getInput()->update();
 
 	for(i = 3; i >= 0; i--)
 		mainWindow->update(controller[i]);

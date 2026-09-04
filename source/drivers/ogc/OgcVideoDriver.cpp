@@ -19,11 +19,7 @@
 #define DEFAULT_FIFO_SIZE 256 * 1024
 static Mtx GXmodelView2D;
 
-OgcVideoDriver::OgcVideoDriver()
-    : screenWidth(0), screenHeight(0), frameTimer(0), whichfb(0), vmode(nullptr), gp_fifo(nullptr)
-{
-
-}
+OgcVideoDriver::OgcVideoDriver() { }
 
 OgcVideoDriver::~OgcVideoDriver()
 {

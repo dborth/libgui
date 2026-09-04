@@ -179,7 +179,7 @@ void OgcInputDriver::setRumble(int channel, bool rumble) {
 	}
 }
 
-void OgcInputDriver::update(float deltaTime) {
+void OgcInputDriver::update() {
 	#ifdef HW_RVL
 	WPAD_ScanPads();
 	WiiDRC_ScanPads();
@@ -319,7 +319,7 @@ void OgcInputDriver::update(float deltaTime) {
 		}
 
 		// Push the finalized, merged payload to the controller abstraction
-		controller[i]->update(padData, deltaTime);
+		controller[i]->update(padData, platform->getVideo()->getDeltaTime());
 		
 		bool doRumble = rumbleRequest[i] && allowRumble;
 
