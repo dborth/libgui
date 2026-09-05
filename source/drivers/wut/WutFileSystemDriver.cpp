@@ -108,12 +108,25 @@ int WutFileSystemDriver::allocateDeviceId()
 
 void WutFileSystemDriver::refreshDisplayName(WutDeviceState & dev)
 {
+	// Base name: keep whatever was already set (eg. "SD Card" from init()),
+	// otherwise derive eg. "usb0" from "usb0:/" by stripping the trailing ":/".
+	if(dev.name[0] == '\0')
+	{
+		size_t len = strlen(dev.prefix);
+		size_t copyLen = (len >= 2) ? len - 2 : len;
+		if(copyLen >= sizeof(dev.name))
+			copyLen = sizeof(dev.name) - 1;
+		strncpy(dev.name, dev.prefix, copyLen);
+		dev.name[copyLen] = '\0';
+	}
+
+	// Volume label, kept separate from `name` so callers can show
+	// "USB Storage [MYLABEL]" rather than replacing the name outright.
 	// Best-effort: FSAGetVolumeInfo only succeeds if dev.prefix genuinely
 	// resolves through our own FSA client - true for the SD card (which we
 	// mounted ourselves), not guaranteed for a devoptab a third-party
-	// loader/plugin registered for USB. Fall back to a name derived from
-	// the mount prefix either way, so `name` is never left empty.
-	bool gotLabel = false;
+	// loader/plugin registered for USB.
+	dev.label[0] = '\0';
 
 	if(m_fsaClient)
 	{
@@ -121,21 +134,9 @@ void WutFileSystemDriver::refreshDisplayName(WutDeviceState & dev)
 		memset(&volInfo, 0, sizeof(volInfo));
 		if(FSAGetVolumeInfo(m_fsaClient, dev.prefix, &volInfo) == FS_ERROR_OK && volInfo.volumeLabel[0] != '\0')
 		{
-			strncpy(dev.name, volInfo.volumeLabel, sizeof(dev.name) - 1);
-			dev.name[sizeof(dev.name) - 1] = '\0';
-			gotLabel = true;
+			strncpy(dev.label, volInfo.volumeLabel, sizeof(dev.label) - 1);
+			dev.label[sizeof(dev.label) - 1] = '\0';
 		}
-	}
-
-	if(!gotLabel && dev.name[0] == '\0')
-	{
-		// Derive eg. "usb0" from "usb0:/" by stripping the trailing ":/"
-		size_t len = strlen(dev.prefix);
-		size_t copyLen = (len >= 2) ? len - 2 : len;
-		if(copyLen >= sizeof(dev.name))
-			copyLen = sizeof(dev.name) - 1;
-		strncpy(dev.name, dev.prefix, copyLen);
-		dev.name[copyLen] = '\0';
 	}
 }
 
@@ -151,6 +152,8 @@ int WutFileSystemDriver::enumerateStorageDevices(StorageDevice outDevices[MAX_ST
 		out.id = m_devices[i].id;
 		strncpy(out.name, m_devices[i].name, sizeof(out.name) - 1);
 		out.name[sizeof(out.name) - 1] = '\0';
+		strncpy(out.label, m_devices[i].label, sizeof(out.label) - 1);
+		out.label[sizeof(out.label) - 1] = '\0';
 		strncpy(out.prefix, m_devices[i].prefix, sizeof(out.prefix) - 1);
 		out.prefix[sizeof(out.prefix) - 1] = '\0';
 		out.removable = true;

@@ -6,6 +6,7 @@
  * Wii storage device enumeration + mounting: SD, USB, DVD. All three are
  * hot-pluggable.
  ***************************************************************************/
+#include <stdio.h>
 #include <string.h>
 #include <fat.h>
 #include <sdcard/wiisd_io.h>
@@ -23,6 +24,7 @@ static DISC_INTERFACE* dvd = &__io_wiidvd;
 
 static bool isMounted[MAX_STORAGE_DEVICES]       = { false };
 static bool unmountRequired[MAX_STORAGE_DEVICES] = { false };
+static char volumeLabel[MAX_STORAGE_DEVICES][16] = { { 0 } };
 
 void WiiFileSystemDriver::init()
 {
@@ -38,12 +40,17 @@ void WiiFileSystemDriver::shutdown()
 	DI_Close();
 }
 
+static void CopyLabel(StorageDevice & out, int deviceId)
+{
+	snprintf(out.label, sizeof(out.label), "%s", volumeLabel[deviceId]);
+}
+
 int WiiFileSystemDriver::enumerateStorageDevices(StorageDevice outDevices[MAX_STORAGE_DEVICES])
 {
 	int count = 0;
-	outDevices[count++] = StorageDevice{ DEVICE_SD,  "sd",  "sd:/",  true, true  };
-	outDevices[count++] = StorageDevice{ DEVICE_USB, "usb", "usb:/", true, true  };
-	outDevices[count++] = StorageDevice{ DEVICE_DVD, "",    "dvd:/", true, false };
+	outDevices[count] = StorageDevice{ DEVICE_SD,  "sd",  "sd:/",  true, true,  0, 0, 0, false, false, "" }; CopyLabel(outDevices[count], DEVICE_SD);  count++;
+	outDevices[count] = StorageDevice{ DEVICE_USB, "usb", "usb:/", true, true,  0, 0, 0, false, false, "" }; CopyLabel(outDevices[count], DEVICE_USB); count++;
+	outDevices[count] = StorageDevice{ DEVICE_DVD, "",    "dvd:/", true, false, 0, 0, 0, false, false, "" }; count++;
 	return count;
 }
 
@@ -84,9 +91,25 @@ MountResult WiiFileSystemDriver::mountFAT(int deviceId)
 		isMounted[deviceId] = false;
 	}
 
+	// Distinguish "nothing there" from "something's there but we can't read
+	// it" (eg. exFAT/NTFS - libfat only understands FAT12/16/32) so the UI
+	// can tell the user to reformat rather than just "not found".
+	if(!disc->startup(disc) || !disc->isInserted(disc))
+	{
+		isMounted[deviceId] = false;
+		volumeLabel[deviceId][0] = '\0';
+		return MountResult::DeviceNotFound;
+	}
+
 	bool mounted = fatMountSimple(name, disc);
 	isMounted[deviceId] = mounted;
-	return mounted ? MountResult::Success : MountResult::DeviceNotFound;
+
+	if(mounted)
+		fatGetVolumeLabel(mountPoint, volumeLabel[deviceId]);
+	else
+		volumeLabel[deviceId][0] = '\0';
+
+	return mounted ? MountResult::Success : MountResult::MountFailed;
 }
 
 MountResult WiiFileSystemDriver::mountDVD()
@@ -133,7 +156,14 @@ MountResult WiiFileSystemDriver::mountStorageDevice(int deviceId)
 const char * WiiFileSystemDriver::mountResultMessage(int deviceId, MountResult result)
 {
 	if(result == MountResult::MountFailed)
-		return "Unrecognized DVD format.";
+	{
+		switch(deviceId)
+		{
+			case DEVICE_SD:
+			case DEVICE_USB: return "Unsupported format - please use FAT32.";
+			default:         return "Unrecognized DVD format.";
+		}
+	}
 
 	switch(deviceId)
 	{
@@ -151,6 +181,7 @@ void WiiFileSystemDriver::invalidateStorageDevice(int deviceId)
 
 	isMounted[deviceId] = false;
 	unmountRequired[deviceId] = true;
+	volumeLabel[deviceId][0] = '\0';
 }
 
 void WiiFileSystemDriver::pollStorageDevices(int removedIds[MAX_STORAGE_DEVICES], int & outRemovedCount, bool & deviceListChanged)

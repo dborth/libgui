@@ -274,7 +274,11 @@ int ParseDeviceList()
 		strncpy(browserList[entryNum].filename, devices[i].prefix, MAXJOLIET);
 		browserList[entryNum].filename[MAXJOLIET] = '\0';
 
-		strncpy(browserList[entryNum].displayname, devices[i].name, MAXDISPLAY);
+		// Append the volume label when one is set
+		if(devices[i].label[0] != '\0')
+			snprintf(browserList[entryNum].displayname, MAXDISPLAY + 1, "%s (%s)", devices[i].name, devices[i].label);
+		else
+			strncpy(browserList[entryNum].displayname, devices[i].name, MAXDISPLAY);
 		browserList[entryNum].displayname[MAXDISPLAY] = '\0';
 
 		browserList[entryNum].isdir = 1;

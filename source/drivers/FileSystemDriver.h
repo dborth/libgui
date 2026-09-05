@@ -23,11 +23,12 @@ struct StorageDevice
 	// totalBytes/freeBytes/blockSize/readOnly. Aggregate-initialized structs
 	// (eg. WiiFileSystemDriver's static device table) get these zeroed for
 	// free since they're trailing members.
-	uint64_t totalBytes;
-	uint64_t freeBytes;
-	uint32_t blockSize;      //!< allocation unit / cluster size in bytes - useful for sizing savestate writes
-	bool     readOnly;
-	bool     metricsValid;
+	uint64_t	totalBytes;
+	uint64_t	freeBytes;
+	uint32_t	blockSize;      //!< allocation unit / cluster size in bytes - useful for sizing savestate writes
+	bool		readOnly;
+	bool		metricsValid;
+	char		label[16];
 };
 
 //! Result of a single mount attempt. Deliberately has no retry/backoff behavior baked in

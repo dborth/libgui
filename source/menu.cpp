@@ -303,6 +303,17 @@ static int MenuBrowseDevices()
 	{
 		if(!UpdateGui()) return MENU_EXIT;
 
+		// A device was inserted/removed since the last check - refresh the listing
+		if(browserDeviceListChanged)
+		{
+			browserDeviceListChanged = false;
+			ParseDirectory();
+			fileBrowser.resetState();
+			if(browser.numEntries > 0)
+				fileBrowser.fileList[0]->setState(STATE::SELECTED);
+			fileBrowser.triggerUpdate();
+		}
+
 		// update file browser based on arrow buttons
 		// set MENU_EXIT if A button pressed on a file
 		for(i=0; i < FILE_PAGESIZE; i++)

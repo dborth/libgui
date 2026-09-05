@@ -6,6 +6,7 @@
  * GameCube storage device enumeration + mounting: SD Gecko slots A/B,
  * SD2SP2 (port2), GC Loader, and DVD. None of these are polled.
  ***************************************************************************/
+#include <stdio.h>
 #include <string.h>
 #include <fat.h>
 #include <sdcard/gcsd.h>
@@ -20,6 +21,7 @@ static DISC_INTERFACE* gcloader = &__io_gcode;
 
 static bool isMounted[MAX_STORAGE_DEVICES]       = { false };
 static bool unmountRequired[MAX_STORAGE_DEVICES] = { false };
+static char volumeLabel[MAX_STORAGE_DEVICES][16] = { { 0 } };
 
 void GameCubeFileSystemDriver::init()
 {
@@ -34,14 +36,19 @@ void GameCubeFileSystemDriver::shutdown()
 	fatUnmount("gcloader:");
 }
 
+static void CopyLabel(StorageDevice & out, int deviceId)
+{
+	snprintf(out.label, sizeof(out.label), "%s", volumeLabel[deviceId]);
+}
+
 int GameCubeFileSystemDriver::enumerateStorageDevices(StorageDevice outDevices[MAX_STORAGE_DEVICES])
 {
 	int count = 0;
-	outDevices[count++] = StorageDevice{ DEVICE_SD_SLOTA,    "carda",    "carda:/",    false, false };
-	outDevices[count++] = StorageDevice{ DEVICE_SD_SLOTB,    "cardb",    "cardb:/",    false, false };
-	outDevices[count++] = StorageDevice{ DEVICE_SD_PORT2,    "port2",    "port2:/",    false, false };
-	outDevices[count++] = StorageDevice{ DEVICE_SD_GCLOADER, "gcloader", "gcloader:/", false, false };
-	outDevices[count++] = StorageDevice{ DEVICE_DVD,         "",         "dvd:/",      false, false };
+	outDevices[count] = StorageDevice{ DEVICE_SD_SLOTA,    "carda",    "carda:/",    false, false, 0, 0, 0, false, false, "" }; CopyLabel(outDevices[count], DEVICE_SD_SLOTA);    count++;
+	outDevices[count] = StorageDevice{ DEVICE_SD_SLOTB,    "cardb",    "cardb:/",    false, false, 0, 0, 0, false, false, "" }; CopyLabel(outDevices[count], DEVICE_SD_SLOTB);    count++;
+	outDevices[count] = StorageDevice{ DEVICE_SD_PORT2,    "port2",    "port2:/",    false, false, 0, 0, 0, false, false, "" }; CopyLabel(outDevices[count], DEVICE_SD_PORT2);    count++;
+	outDevices[count] = StorageDevice{ DEVICE_SD_GCLOADER, "gcloader", "gcloader:/", false, false, 0, 0, 0, false, false, "" }; CopyLabel(outDevices[count], DEVICE_SD_GCLOADER); count++;
+	outDevices[count] = StorageDevice{ DEVICE_DVD,         "",         "dvd:/",      false, false, 0, 0, 0, false, false, "" }; count++;
 	return count;
 }
 
@@ -86,9 +93,23 @@ MountResult GameCubeFileSystemDriver::mountFAT(int deviceId)
 		isMounted[deviceId] = false;
 	}
 
+	// Distinguish "nothing there" from "something's there but we can't read it"
+	if(!disc->startup(disc) || !disc->isInserted(disc))
+	{
+		isMounted[deviceId] = false;
+		volumeLabel[deviceId][0] = '\0';
+		return MountResult::DeviceNotFound;
+	}
+
 	bool mounted = fatMountSimple(name, disc);
 	isMounted[deviceId] = mounted;
-	return mounted ? MountResult::Success : MountResult::DeviceNotFound;
+
+	if(mounted)
+		fatGetVolumeLabel(mountPoint, volumeLabel[deviceId]);
+	else
+		volumeLabel[deviceId][0] = '\0';
+
+	return mounted ? MountResult::Success : MountResult::MountFailed;
 }
 
 MountResult GameCubeFileSystemDriver::mountDVD()
@@ -98,8 +119,6 @@ MountResult GameCubeFileSystemDriver::mountDVD()
 		unmountRequired[DEVICE_DVD] = false;
 		ISO9660_Unmount("dvd:");
 	}
-
-	DVD_Mount();
 
 	if(!dvd->isInserted(dvd))
 	{
@@ -139,7 +158,18 @@ MountResult GameCubeFileSystemDriver::mountStorageDevice(int deviceId)
 const char * GameCubeFileSystemDriver::mountResultMessage(int deviceId, MountResult result)
 {
 	if(result == MountResult::MountFailed)
-		return "Unrecognized DVD format.";
+	{
+		switch(deviceId)
+		{
+			case DEVICE_SD_SLOTA:
+			case DEVICE_SD_SLOTB:
+			case DEVICE_SD_PORT2:
+			case DEVICE_SD_GCLOADER:
+				return "Unsupported format - please use FAT32/exFAT.";
+			default: 
+				return "Unrecognized DVD format.";
+		}
+	}
 
 	switch(deviceId)
 	{
@@ -160,6 +190,7 @@ void GameCubeFileSystemDriver::invalidateStorageDevice(int deviceId)
 
 	isMounted[deviceId] = false;
 	unmountRequired[deviceId] = true;
+	volumeLabel[deviceId][0] = '\0';
 }
 
 void GameCubeFileSystemDriver::pollStorageDevices(int [], int & outRemovedCount, bool & deviceListChanged)

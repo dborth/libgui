@@ -38,6 +38,7 @@ int FileSortCallback(const void *f1, const void *f2);
 void ResetBrowser();
 int BrowserChangeFolder();
 int ParseDeviceList();
+int ParseDirectory();
 
 void InitDeviceCheckingThread();
 void ResumeDeviceCheckingThread();

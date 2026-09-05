@@ -31,9 +31,10 @@ struct WutStorageMetrics
 struct WutDeviceState
 {
 	int  id;
-	char name[16];    //!< human-readable; volume label when we can read one, otherwise derived from prefix
-	char prefix[32];   //!< devoptab mount prefix, eg. "usb0:/" or the runtime SD path
-	bool isPresent;     //!< found on the last poll (stat()-able)
+	char name[16];		//!< human-readable base name, eg. "SD Card" or derived from prefix (eg. "usb0")
+	char label[16];		//!< volume label when we can read one via FSAGetVolumeInfo, empty otherwise
+	char prefix[32];	//!< devoptab mount prefix, eg. "usb0:/" or the runtime SD path
+	bool isPresent;		//!< found on the last poll (stat()-able)
 	bool isMounted;
 	bool unmountRequired;
 };
