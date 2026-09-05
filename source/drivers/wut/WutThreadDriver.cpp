@@ -238,3 +238,13 @@ void WutThreadDriver::sleepMilliseconds(uint32_t ms)
 {
 	OSSleepTicks(OSMillisecondsToTicks(ms));
 }
+
+uintptr_t WutThreadDriver::getCurrentThreadId()
+{
+	// OSGetCurrentThread() returns the OSThread* of the calling thread -
+	// including the app's original/main thread, which (unlike threads
+	// created via createThread() above) was never itself heap-allocated
+	// by this driver. The pointer alone is a stable, comparable identity
+	// for as long as that thread exists, which is all ThreadId needs.
+	return reinterpret_cast<uintptr_t>(OSGetCurrentThread());
+}
