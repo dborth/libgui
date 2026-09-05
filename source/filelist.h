@@ -1,8 +1,7 @@
 /****************************************************************************
  * libgui Template
- * Tantric 2009-2026
- *
- * imagelist.h
+ * Daryl Borth 2009-2026
+ * filelist.h
  * Contains a list of all of the files in the images, fonts, sounds folders
  ***************************************************************************/
 

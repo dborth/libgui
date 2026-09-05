@@ -1,7 +1,6 @@
 /****************************************************************************
  * libgui Template
- * Tantric 2009-2026
- *
+ * Daryl Borth 2009-2026
  * demo.cpp
  * Basic template/demonstration of libgui capabilities. For a
  * full-featured app using many more extensions, check out Snes9x GX.
