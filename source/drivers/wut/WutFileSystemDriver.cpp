@@ -17,6 +17,7 @@
  ***************************************************************************/
 #include <whb/sdcard.h>
 #include <sys/statvfs.h>
+#include <sys/stat.h>
 #include <string.h>
 #include <stdio.h>
 
@@ -29,8 +30,8 @@ static const int kUsbProbePrefixCount = sizeof(kUsbProbePrefixes) / sizeof(kUsbP
 
 static bool DevicePresent(const char * prefix)
 {
-	struct statvfs st;
-	return statvfs(prefix, &st) == 0;
+	struct stat st;
+	return stat(prefix, &st) == 0;
 }
 
 void WutFileSystemDriver::init()
