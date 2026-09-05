@@ -330,26 +330,23 @@ int ParseDirectory()
 
 	int entryNum = 0;
 
-	// Manually inject "Up One Level" at device root
-	if(strcmp(browser.dir, "/") == 0)
+	// Inject "Up One Level"
+	BROWSERENTRY * newBrowserList = (BROWSERENTRY *)realloc(browserList, (entryNum+1) * sizeof(BROWSERENTRY));
+	if(newBrowserList)
 	{
-		BROWSERENTRY * newBrowserList = (BROWSERENTRY *)realloc(browserList, (entryNum+1) * sizeof(BROWSERENTRY));
-		if(newBrowserList)
-		{
-			browserList = newBrowserList;
-			memset(&(browserList[entryNum]), 0, sizeof(BROWSERENTRY));
-			strcpy(browserList[entryNum].filename, "..");
-			strcpy(browserList[entryNum].displayname, "Up One Level");
-			browserList[entryNum].isdir = 1;
-			entryNum++;
-		}
+		browserList = newBrowserList;
+		memset(&(browserList[entryNum]), 0, sizeof(BROWSERENTRY));
+		strcpy(browserList[entryNum].filename, "..");
+		strcpy(browserList[entryNum].displayname, "Up One Level");
+		browserList[entryNum].isdir = 1;
+		entryNum++;
 	}
 
 	while((entry = readdir(dir)))
 	{
-		if(strcmp(entry->d_name,".") == 0)
+		if(strcmp(entry->d_name,".") == 0 || strcmp(entry->d_name,"..") == 0)
 			continue;
-		
+
 		// Skip the filesystem's ".." if we already injected it at the root
 		if(strcmp(entry->d_name,"..") == 0 && strcmp(browser.dir, "/") == 0)
 			continue;
@@ -371,19 +368,11 @@ int ParseDirectory()
 		memcpy(browserList[entryNum].filename, entry->d_name, MAXJOLIET);
 		browserList[entryNum].filename[MAXJOLIET] = '\0';
 
-		if(strcmp(entry->d_name,"..") == 0)
-		{
-			strcpy(browserList[entryNum].displayname, "Up One Level");
-			browserList[entryNum].isdir = 1; // flag this as a dir
-		}
-		else
-		{
-			memcpy(browserList[entryNum].displayname, entry->d_name, MAXDISPLAY); // crop name for display
-			browserList[entryNum].displayname[MAXDISPLAY] = '\0';
+		memcpy(browserList[entryNum].displayname, entry->d_name, MAXDISPLAY); // crop name for display
+		browserList[entryNum].displayname[MAXDISPLAY] = '\0';
 
-			if(entry->d_type==DT_DIR)
-				browserList[entryNum].isdir = 1; // flag this as a dir
-		}
+		if(entry->d_type==DT_DIR)
+			browserList[entryNum].isdir = 1; // flag this as a dir
 
 		entryNum++;
 	}
