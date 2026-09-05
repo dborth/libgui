@@ -293,13 +293,48 @@ bool WutFileSystemDriver::getStorageMetrics(int deviceId, WutStorageMetrics & ou
 	if(idx < 0 || !m_devices[idx].isPresent)
 		return false;
 
-	struct statvfs st;
-	if(statvfs(m_devices[idx].prefix, &st) != 0)
-		return false;
+	const char * path = m_devices[idx].prefix;
+	bool haveMetrics = false;
 
-	outMetrics.totalBytes = (uint64_t)st.f_blocks * st.f_frsize;
-	outMetrics.freeBytes  = (uint64_t)st.f_bavail * st.f_frsize;
-	outMetrics.blockSize  = (uint32_t)st.f_frsize;
-	outMetrics.readOnly   = (st.f_flag & ST_RDONLY) != 0;
-	return true;
+	if(m_fsaClient)
+	{
+		FSADeviceInfo devInfo;
+		memset(&devInfo, 0, sizeof(devInfo));
+		if(FSAGetDeviceInfo(m_fsaClient, path, &devInfo) == FS_ERROR_OK)
+		{
+			outMetrics.totalBytes = devInfo.deviceSizeInSectors * (uint64_t)devInfo.deviceSectorSize;
+			outMetrics.blockSize  = devInfo.deviceSectorSize;
+			haveMetrics = true;
+		}
+
+		uint64_t freeSpace = 0;
+		if(FSAGetFreeSpaceSize(m_fsaClient, path, &freeSpace) == FS_ERROR_OK)
+		{
+			outMetrics.freeBytes = freeSpace;
+			haveMetrics = true;
+		}
+	}
+
+	// statvfs() as a fallback/supplement: covers readOnly (no FSA-native
+	// equivalent tested yet) and totalBytes/freeBytes/blockSize for any
+	// device where the FSA calls above didn't apply (eg. a third-party
+	// devoptab our own client can't resolve).
+	struct statvfs st;
+	if(statvfs(path, &st) == 0)
+	{
+		if(!haveMetrics)
+		{
+			outMetrics.totalBytes = (uint64_t)st.f_blocks * st.f_frsize;
+			outMetrics.freeBytes  = (uint64_t)st.f_bavail * st.f_frsize;
+			outMetrics.blockSize  = (uint32_t)st.f_frsize;
+			haveMetrics = true;
+		}
+		outMetrics.readOnly = (st.f_flag & ST_RDONLY) != 0;
+	}
+	else
+	{
+		outMetrics.readOnly = false; // no signal either way - default false rather than guess true
+	}
+
+	return haveMetrics;
 }
