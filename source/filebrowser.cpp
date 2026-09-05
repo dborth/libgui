@@ -33,13 +33,6 @@ bool browserDeviceListChanged = false;
 /****************************************************************************
  * Thread Synchronization Primitives
  ***************************************************************************/
-struct ThreadSync
-{
-	Mutex mutex;
-	Cond  workCond; // main -> worker: wake/re-check available
-	Cond  idleCond; // worker -> main: now idle/halted
-};
-
 static ThreadSync & DeviceSync() { static ThreadSync s; return s; }
 
 // device thread state
