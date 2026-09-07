@@ -23,6 +23,9 @@ class WutInputDriver : public InputDriver {
 		void update() override;
 		void setRumble(int channel, bool rumble) override;
 
+		void enableHomeButtonMenu(bool enable);
+		bool isHomeButtonMenuEnabled();
+
 	private:
 		int rumbleCount[4];
 		bool rumbleRequest[4];

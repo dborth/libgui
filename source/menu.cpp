@@ -12,6 +12,11 @@
 
 #include "libgui/Gui.h"
 #include "drivers/Platform.h"
+
+#ifdef __WUT__
+#include "drivers/wut/WutInputDriver.h"
+#endif
+
 #include "menu.h"
 #include "demo.h"
 #include "filelist.h"
@@ -428,7 +433,11 @@ static int MenuSettings()
 	savingBtn.setTrigger(&trigA);
 	savingBtn.setEffectGrow();
 
-	GuiText menuBtnTxt("Menu", 22, (PixelColor){0, 0, 0, 255});
+	char menuLabel[20] = "Menu";
+#ifdef __WUT__
+	snprintf(menuLabel, sizeof(menuLabel), "%s Overlay", static_cast<WutInputDriver*>(platform->getInput())->isHomeButtonMenuEnabled() ? "Disable" : "Enable");
+#endif
+	GuiText menuBtnTxt(menuLabel, 22, (PixelColor){0, 0, 0, 255});
 	menuBtnTxt.setWrap(true, btnLargeOutline.getWidth()-30);
 	GuiImage menuBtnImg(&btnLargeOutline);
 	GuiImage menuBtnImgOver(&btnLargeOutlineOver);
@@ -512,7 +521,11 @@ static int MenuSettings()
 		}
 		else if(menuBtn.getState() == STATE::CLICKED)
 		{
+			#ifdef __WUT__
+			menuBtn.resetState();
+			#else
 			menu = MENU_SETTINGS_FILE;
+			#endif
 		}
 		else if(networkBtn.getState() == STATE::CLICKED)
 		{

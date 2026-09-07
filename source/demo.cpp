@@ -50,9 +50,7 @@ void DefaultSettings()
 int main(int, char **)
 {
 	platform->init(640, 480);
-
-	void * decodeScratch = malloc(IMAGE_DECODE_SCRATCH_SIZE);
-	GuiImageData::setDecodeScratch(decodeScratch, decodeScratch ? IMAGE_DECODE_SCRATCH_SIZE : 0);
+	GuiImageData::setDecodeScratch(malloc(IMAGE_DECODE_SCRATCH_SIZE), IMAGE_DECODE_SCRATCH_SIZE);
 
 	fontSystem = new GuiTextRenderer(font_ttf, font_ttf_size, platform->getVideo()->getGlyphRenderer());
 	textTranslator = new GuiTextTranslator();
