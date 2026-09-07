@@ -702,6 +702,8 @@ static int MenuSettingsFile()
  ***************************************************************************/
 void MainMenu(int menu)
 {
+	ResumeDeviceCheckingThread();
+
 	int currentMenu = menu;
 
 	pointer[0] = new GuiImageData(player1_point_png);
@@ -740,6 +742,8 @@ void MainMenu(int menu)
 				break;
 		}
 	}
+
+	HaltDeviceCheckingThread();
 
 	bgMusic->stop();
 	delete bgMusic;
