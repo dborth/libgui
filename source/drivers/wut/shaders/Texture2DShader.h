@@ -10,6 +10,8 @@
 #include "PixelShader.h"
 #include "FetchShader.h"
 
+//!Textured quad shader (images, glyphs), used by WutImageRenderer and
+//!WutGlyphRenderer. Singleton, accessed through instance().
 class Texture2DShader : public Shader
 {
 	private:

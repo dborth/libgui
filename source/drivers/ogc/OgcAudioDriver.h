@@ -9,6 +9,8 @@
 #include "../AudioDriver.h"
 #include "../../libgui/GuiSoundOggPlayer.h"
 
+//!GC/Wii AudioDriver: AESND-based fixed voices for one-shots, wraps a
+//!GuiSoundOggPlayer for the background stream.
 class OgcAudioDriver : public AudioDriver
 {
 	public:
@@ -31,7 +33,8 @@ class OgcAudioDriver : public AudioDriver
 		bool isStreamPlaying() override;
 		void setStreamVolume(int volume) override;
 
-		// Hardware callback hook
+		//!AESND callback hook, called from interrupt context to refill
+		//!the stream voice. Not part of the AudioDriver interface.
 		void handleStreamCallback(int voice);
 
 	private:

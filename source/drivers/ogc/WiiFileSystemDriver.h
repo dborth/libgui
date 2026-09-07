@@ -6,6 +6,9 @@
 #pragma once
 #include "../FileSystemDriver.h"
 
+//!Wii FileSystemDriver: hot-pluggable SD and USB (both FAT, via
+//!fatMountSimple) plus DVD (ISO9660). pollStorageDevices() checks each
+//!disc interface's isInserted() every cycle.
 class WiiFileSystemDriver : public FileSystemDriver
 {
 	public:

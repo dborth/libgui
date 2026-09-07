@@ -25,12 +25,19 @@ enum class SystemEvent
 	ResetRequested,
 };
 
+//!Composition root for a platform. Owns the five concrete drivers below
+//!and is the only place app code needs an `#ifdef` to pick a platform -
+//!everything else goes through the abstract driver interfaces.
 class Platform
 {
 	public:
 		virtual ~Platform() = default;
 
+		//!Constructs and initializes all five drivers for this platform.
+		//!\param width Design canvas width in pixels
+		//!\param height Design canvas height in pixels
 		virtual void init(int width, int height) = 0;
+		//!Shuts down and releases all five drivers.
 		virtual void shutdown() = 0;
 
 		virtual AudioDriver* getAudio() = 0;

@@ -20,6 +20,8 @@
 #include <gx2/sampler.h>
 #include <gx2/texture.h>
 
+//!Fills in a GX2AttribStream for a single per-vertex attribute with an
+//!identity component mapping (no swizzle).
 static inline void GX2InitAttribStream(GX2AttribStream *attrib, uint32_t location, uint32_t buffer, uint32_t offset, GX2AttribFormat format)
 {
 	attrib->location   = location;
@@ -32,6 +34,8 @@ static inline void GX2InitAttribStream(GX2AttribStream *attrib, uint32_t locatio
 	attrib->endianSwap = GX2_ENDIAN_SWAP_DEFAULT;
 }
 
+//!Fills in and computes size/alignment for a single-mip, single-slice
+//!GX2Texture with an identity RGBA swizzle.
 static inline void GX2InitTexture(GX2Texture *texture, uint32_t width, uint32_t height, uint32_t depth, uint32_t mipLevels, GX2SurfaceFormat format, GX2SurfaceDim dim, GX2TileMode tileMode)
 {
 	memset(texture, 0, sizeof(GX2Texture));
@@ -55,6 +59,8 @@ static inline void GX2InitTexture(GX2Texture *texture, uint32_t width, uint32_t 
 	GX2InitTextureRegs(texture);
 }
 
+//!Common base for the GX2 shader wrappers below - just the vertex
+//!attribute size constants and the shared GX2DrawEx() call.
 class Shader
 {
 	protected:

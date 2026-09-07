@@ -13,6 +13,8 @@
 #include <gx2r/draw.h>
 #include <gx2r/resource.h>
 
+//!Flat-color quad shader (rectangles, keyboard/dialog chrome), used via
+//!WutGlyphRenderer's drawFeature(). Singleton, accessed through instance().
 class ColorShader : public Shader
 {
 	private:

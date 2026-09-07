@@ -6,6 +6,9 @@
 #pragma once
 #include "../FileSystemDriver.h"
 
+//!GameCube FileSystemDriver: memory card slots, GC Loader, and DVD.
+//!Nothing here is removable at runtime (see hasRemovableStorageDevices()),
+//!unlike Wii's SD/USB.
 class GameCubeFileSystemDriver : public FileSystemDriver
 {
 	public:

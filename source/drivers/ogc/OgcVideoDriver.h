@@ -8,6 +8,7 @@
 #include <gccore.h>
 #include "../VideoDriver.h"
 
+//!GC/Wii VideoDriver: raw GX, double-buffered XFB.
 class OgcVideoDriver : public VideoDriver
 {
 	public:
@@ -42,6 +43,7 @@ class OgcVideoDriver : public VideoDriver
 		GlyphRenderer* glyphRenderer;
 };
 
+//!GX-backed ImageRenderer for GuiImage/GuiImageData textures.
 class OgcImageRenderer : public ImageRenderer
 {
 	public:
@@ -52,11 +54,14 @@ class OgcImageRenderer : public ImageRenderer
 		void drawRectangle(float x, float y, float width, float height, PixelColor color) override;
 };
 
+//!GX-backed GlyphRenderer for GuiTextRenderer. Tracks its own GX vertex
+//!format index (see setVertexFormat()) so it can be reused across draws.
 class OgcGlyphRenderer : public GlyphRenderer {
 	private:
 		uint8_t vertexIndex;
 
 	public:
+		//!\param vtxFmtIndex GX vertex format slot this renderer's draws use
 		OgcGlyphRenderer(uint8_t vtxFmtIndex = GX_VTXFMT1);
 		~OgcGlyphRenderer() override;
 
@@ -67,5 +72,6 @@ class OgcGlyphRenderer : public GlyphRenderer {
 		void drawQuad(void* texture, int16_t screenX, int16_t screenY, uint16_t width, uint16_t height, const PixelColor& color) override;
 		void drawFeature(int16_t screenX, int16_t screenY, uint16_t width, uint16_t height, const PixelColor& color) override;
 
+		//!Changes which GX vertex format slot subsequent draws use.
 		void setVertexFormat(uint8_t vtxFmtIndex);
 };

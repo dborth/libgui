@@ -10,6 +10,9 @@
 #include <malloc.h>
 #include "Shader.h"
 
+//!Owns a GX2VertexShader's compiled program and uniform/attribute
+//!metadata. setProgram() uploads the compiled bytecode; addUniformVar()/
+//!addAttribVar() register the reflection info GX2 needs to bind it.
 class VertexShader : public Shader
 {
 	public:

@@ -29,6 +29,10 @@ https://github.com/dborth/libgui
 
 See the included doxygen documentation - http://dborth.github.io/libgui/
 
+This covers both the core GUI classes (`source/libgui`) and the platform
+driver layer (`source/drivers`), including the GameCube/Wii (`ogc`) and
+Wii U (`wut`) driver implementations.
+
 
 ### Credits
 

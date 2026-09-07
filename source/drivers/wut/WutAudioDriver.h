@@ -11,6 +11,9 @@
 #include "../AudioDriver.h"
 #include "../../libgui/GuiSoundOggPlayer.h"
 
+//!Wii U AudioDriver: AX (sndcore2), 16 fixed AXVoice slots for one-shots
+//!plus a dedicated stereo streaming path (two AXVoices, ring-buffered)
+//!fed by a GuiSoundOggPlayer for the background stream.
 class WutAudioDriver : public AudioDriver
 {
 	public:
@@ -33,7 +36,9 @@ class WutAudioDriver : public AudioDriver
 		bool isStreamPlaying() override;
 		void setStreamVolume(int volume) override;
 
-		void handleStreamCallback(); // Hardware frame callback hook
+		//!AX frame callback hook that refills the stream ring buffers.
+		//!Not part of the AudioDriver interface.
+		void handleStreamCallback();
 
 	private:
 		struct WutVoiceSlot {

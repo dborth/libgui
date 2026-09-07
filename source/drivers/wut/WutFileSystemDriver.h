@@ -39,6 +39,10 @@ struct WutDeviceState
 	bool unmountRequired;
 };
 
+//!Wii U FileSystemDriver: SD via WHBMountSdCard() (a runtime-assigned FSA
+//!path rather than a static devoptab name), USB by polling a fixed list
+//!of candidate devoptab prefixes each cycle since stock wut has no public
+//!API for arbitrary FAT USB mounting or hotplug notification.
 class WutFileSystemDriver : public FileSystemDriver
 {
 	public:

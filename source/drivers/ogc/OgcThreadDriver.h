@@ -6,6 +6,7 @@
 #pragma once
 #include "../ThreadDriver.h"
 
+//!GC/Wii ThreadDriver, built on libogc's LWP threading primitives.
 class OgcThreadDriver : public ThreadDriver
 {
 	public:

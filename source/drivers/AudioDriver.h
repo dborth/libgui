@@ -11,6 +11,9 @@
 
 #include <stdint.h>
 
+//!Platform audio backend GuiSound delegates to: fixed one-shot PCM voices
+//!plus one background OGG stream. Exactly one driver implements this and
+//!assigns the single global Platform instance.
 class AudioDriver
 {
 	public:
@@ -18,7 +21,9 @@ class AudioDriver
 
 		virtual void init() = 0;
 		virtual void shutdown() = 0;
+		//!Starts the audio backend running (eg. registers the DSP/AX callback).
 		virtual void start() = 0;
+		//!Stops the audio backend.
 		virtual void stop() = 0;
 
 		//!Start a one-shot/short PCM voice. Returns a backend-defined

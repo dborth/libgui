@@ -10,6 +10,8 @@
 #include <string.h>
 #include "Shader.h"
 
+//!Owns a GX2PixelShader's compiled program and uniform/sampler metadata,
+//!mirroring VertexShader's role on the pixel-shader side.
 class PixelShader : public Shader
 {
 	public:

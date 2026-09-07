@@ -20,6 +20,9 @@ typedef void* (*ThreadEntry)(void* arg);
 #include "Thread.h"
 #include "Mutex.h"
 
+//!Raw platform threading primitives. Application/core code should not
+//!implement against this directly - use the Thread/Mutex/Cond RAII
+//!wrappers instead, which forward here via platform->getThread().
 class ThreadDriver
 {
 	public:

@@ -12,6 +12,9 @@
 #include "OgcAudioDriver.h"
 #include "GameCubeFileSystemDriver.h"
 
+//!GameCube (HW_DOL) Platform: same driver set as WiiPlatform except for
+//!file system, which uses GameCubeFileSystemDriver (memory card/GC
+//!Loader/DVD) instead of SD/USB/DVD.
 class GameCubePlatform : public Platform
 {
 	public:

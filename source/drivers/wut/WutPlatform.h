@@ -13,6 +13,8 @@
 #include "WutFileSystemDriver.h"
 #include "WutThreadDriver.h"
 
+//!Wii U Platform, wrapping WHBProcInit/WHBProcIsRunning to detect the OS
+//!asking the app to exit (see getSystemEvent()).
 class WutPlatform : public Platform
 {
 	public:

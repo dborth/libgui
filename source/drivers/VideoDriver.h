@@ -23,11 +23,17 @@ typedef struct {
 class ImageRenderer;
 class GlyphRenderer;
 
+//!Platform video backend owning the frame lifecycle (init/render/clear,
+//!screen size, refresh rate, delta time) and handing out an ImageRenderer
+//!and a GlyphRenderer. GuiImage/GuiText never touch a platform texture
+//!type directly, only these two renderers.
 class VideoDriver
 {
 	public:
 		virtual ~VideoDriver() = default;
 
+		//!\param width Design canvas width in pixels
+		//!\param height Design canvas height in pixels
 		virtual void init(int width, int height) = 0;
 		virtual void shutdown() = 0;
 

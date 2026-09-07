@@ -15,6 +15,9 @@ enum {
 	WIIMOTE_ORIENTATION_LENGTH
 };
 
+//!Platform input backend GuiElements delegate to, via the per-channel
+//!InputController objects update() feeds. Exactly one driver implements
+//!this and assigns the single global Platform instance.
 class InputDriver
 {
 	public:

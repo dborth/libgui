@@ -39,6 +39,9 @@ enum class MountResult
 	MountFailed     //!< present, but couldn't be mounted (eg. unrecognized format)
 };
 
+//!Storage device enumeration/mount/poll backend for the SD/USB/DVD file
+//!browser. Exactly one driver implements this and assigns the single
+//!global Platform instance.
 class FileSystemDriver
 {
 	public:

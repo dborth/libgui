@@ -6,6 +6,7 @@
 #pragma once
 #include "../ThreadDriver.h"
 
+//!Wii U ThreadDriver, built on coreinit's OSThread/OSMutex/OSCondition.
 class WutThreadDriver : public ThreadDriver
 {
 	public:
