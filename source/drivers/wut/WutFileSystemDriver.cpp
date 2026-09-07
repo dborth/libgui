@@ -296,10 +296,8 @@ bool WutFileSystemDriver::getStorageMetrics(int deviceId, WutStorageMetrics & ou
 	if(idx < 0 || !m_devices[idx].isPresent)
 		return false;
 
-	// statvfs() as a fallback/supplement: covers readOnly (no FSA-native
-	// equivalent tested yet) and totalBytes/freeBytes/blockSize for any
-	// device where the FSA calls above didn't apply (eg. a third-party
-	// devoptab our own client can't resolve).
+	bool haveMetrics = false;
+
 	struct statvfs st;
 	if(statvfs(m_devices[idx].prefix, &st) == 0)
 	{
