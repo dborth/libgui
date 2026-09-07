@@ -117,22 +117,31 @@ static uint32_t MapKPADNunchukToGeneric(uint32_t wpad_btns) {
 	return mask;
 }
 
+// One Euro Filter tuning for the Wiimote IR pointer (see OneEuroFilter.h).
+// KPAD delivers samples much faster than our ~60Hz update rate, so without
+// smoothing the raw per-sample noise (and the coarser stride of only
+// consuming one sample per frame) reads as a jerky cursor compared to
+// libogc's WPAD IR handling on Wii, which is already smoothed internally.
+//
+// minCutoff: smoothing strength when the pointer is essentially still.
+// Lower = less jitter at rest but more lag when motion starts. Chosen to
+// noticeably calm hand-tremor-level jitter without feeling "stuck".
+// beta: how quickly smoothing backs off as speed increases, in units of
+// screen-pixels/sec of underlying signal speed. Tuned so a deliberate,
+// fast pointer swipe across the screen tracks with negligible lag while a
+// small idle wobble is still heavily damped.
+static constexpr float IR_MIN_CUTOFF = 0.8f;
+static constexpr float IR_BETA = 0.015f;
+
 WutInputDriver::WutInputDriver() : drcTouchedPrev(false), drcLastTouchX(0.0f), drcLastTouchY(0.0f) {
 	for (int i = 0; i < 4; i++) {
 		rumbleCount[i] = 0;
 		rumbleRequest[i] = false;
-		irSmoothX[i] = 0.0f;
-		irSmoothY[i] = 0.0f;
+		irFilterX[i].setParams(IR_MIN_CUTOFF, IR_BETA);
+		irFilterY[i].setParams(IR_MIN_CUTOFF, IR_BETA);
 		irSmoothInit[i] = false;
 	}
 }
-
-// Exponential smoothing factor for the Wiimote IR pointer. Higher = snappier
-// (closer to raw), lower = smoother but more lag. KPAD delivers samples much
-// faster than our ~60Hz update rate, so without this the raw per-sample noise
-// (and the coarser stride of only consuming one sample per frame) reads as a
-// jerky cursor compared to libogc's WPAD IR handling on Wii.
-static constexpr float IR_SMOOTH_ALPHA = 0.20f;
 
 // KPADReadEx can return multiple buffered samples per call (newest to oldest).
 // We only need a small buffer - just enough to detect/skip a KPAD_ERROR_NO_SAMPLES
@@ -311,22 +320,27 @@ void WutInputDriver::update() {
 					float rawX = clampf((kpadStatus.pos.x * 0.5f + 0.5f) * screenWidth, 0.0f, screenWidth);
 					float rawY = clampf((kpadStatus.pos.y * 0.5f + 0.5f) * screenHeight, 0.0f, screenHeight);
 
+					float deltaTime = platform->getVideo()->getDeltaTime();
+					float smoothX, smoothY;
+
 					if (!irSmoothInit[i]) {
 						// First valid sample after acquiring (or re-acquiring) the sensor
 						// bar - snap straight to it instead of smoothing from a stale/zero
 						// position, which would otherwise show up as a visible snap-drag.
-						irSmoothX[i] = rawX;
-						irSmoothY[i] = rawY;
+						irFilterX[i].reset();
+						irFilterY[i].reset();
+						smoothX = irFilterX[i].filter(rawX, deltaTime);
+						smoothY = irFilterY[i].filter(rawY, deltaTime);
 						irSmoothInit[i] = true;
 					} else {
-						irSmoothX[i] += (rawX - irSmoothX[i]) * IR_SMOOTH_ALPHA;
-						irSmoothY[i] += (rawY - irSmoothY[i]) * IR_SMOOTH_ALPHA;
+						smoothX = irFilterX[i].filter(rawX, deltaTime);
+						smoothY = irFilterY[i].filter(rawY, deltaTime);
 					}
 
 					padData.validPointer = true;
 					padData.isTouch = false;
-					padData.cursor_x = irSmoothX[i];
-					padData.cursor_y = irSmoothY[i];
+					padData.cursor_x = smoothX;
+					padData.cursor_y = smoothY;
 					padData.cursor_angle = kpadStatus.angle.y;
 				} else if (!kpadStatus.posValid) {
 					// Sensor bar tracking lost - reset the filter so we don't drag the

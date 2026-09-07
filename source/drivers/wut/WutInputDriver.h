@@ -6,6 +6,7 @@
 #pragma once
 
 #include "../InputDriver.h"
+#include "../OneEuroFilter.h"
 
 //!Wii U InputDriver: VPAD for the GamePad (stick, buttons, and touch,
 //!channel 0 only) plus KPAD/WPAD for up to 4 Wiimotes/Nunchuks/Classic/
@@ -30,8 +31,11 @@ class WutInputDriver : public InputDriver {
 		float drcLastTouchX;
 		float drcLastTouchY;
 
-		// IR pointer smoothing state (per Wiimote channel)
-		float irSmoothX[4];
-		float irSmoothY[4];
-		bool  irSmoothInit[4];
+		// IR pointer smoothing (per Wiimote channel). One Euro Filter adapts
+		// its own smoothing strength to pointer speed each frame, so unlike
+		// a fixed-alpha EMA there's no single constant to tune - see
+		// OneEuroFilter.h for what minCutoff/beta below actually control.
+		OneEuroFilter irFilterX[4];
+		OneEuroFilter irFilterY[4];
+		bool irSmoothInit[4];
 };
