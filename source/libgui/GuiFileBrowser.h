@@ -11,11 +11,15 @@
 class GuiFileBrowser : public GuiElement
 {
 	public:
+		//!\param w Width
+		//!\param h Height
 		GuiFileBrowser(int w, int h);
 		~GuiFileBrowser();
 		void resetState();
 		void setFocus(int f);
 		void draw() override;
+		//!Forces the visible page to refresh from the underlying browser
+		//!data, eg. after the directory listing changed externally.
 		void triggerUpdate();
 		void update(InputController * c);
 		GuiButton * fileList[FILE_PAGESIZE];

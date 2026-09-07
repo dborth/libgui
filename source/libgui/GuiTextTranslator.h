@@ -8,6 +8,9 @@
 #include <cstdint>
 #include <cstddef>
 
+//!Hashed msgid -> UTF-8 string table loaded from a single binary .lang
+//!blob (see loadLanguage()). GuiText and other classes call getText() to
+//!resolve a message ID to translated text.
 class GuiTextTranslator
 {
 	public:

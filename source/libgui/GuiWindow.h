@@ -48,8 +48,9 @@ class GuiWindow : public GuiElement
 		void setVisible(bool v);
 		//!Resets the window's state to STATE::DEFAULT
 		void resetState();
-		//!Sets the window's state
+		//!Sets the window state, propagated to every child element
 		//!\param s State
+		//!\param c Controller channel number (-1 for any channel)
 		void setState(STATE s, int c = -1);
 		//!Gets the index of the GuiElement inside the window that is currently selected
 		//!\return index of selected GuiElement

@@ -23,6 +23,9 @@ enum class TRIGGER_ACTION {
 	SECONDARY  // Semantic Cancel: B (Vertical) or 1 (Sideways)
 };
 
+//!Input-condition matcher attached to a GuiElement (via setSimpleTrigger()
+//!etc.) and evaluated against an InputController - the isClicked()/
+//!isHeld()/isReleased() methods GuiElement::update() calls each frame.
 class GuiTrigger {
 public:
 	GuiTrigger();
@@ -31,6 +34,7 @@ public:
 	//! Semantic Triggers
 	// Automatically resolves to A/2 or B/1 based on controller orientation
 	void setPrimaryTrigger(int ch = -1);
+	//!\param ch Controller channel number (-1 for any channel)
 	void setSecondaryTrigger(int ch = -1);
 
 	//! Sets a simple trigger. Requires: element is selected, and trigger button is pressed
@@ -53,13 +57,16 @@ public:
 	//!\param buttonMask Logical GuiButton bitmask
 	void setButtonOnlyInFocusTrigger(int ch, uint32_t buttonMask);
 
-	//! Evaluation methods
+	//!\return true if this trigger's condition is currently met on controller
 	bool isClicked(const InputController* controller) const;
+	//!\return true if this trigger's condition is currently met on controller
 	bool isHeld(const InputController* controller) const;
+	//!\return true if this trigger's condition was met on controller last frame but not this frame
 	bool isReleased(const InputController* controller) const;
 
 	//! Accessors
 	TRIGGER_TYPE getType() const { return type; }
+	//!\return the channel this trigger was configured for (-1 for any channel)
 	int getChannel() const { return chan; }
 
 private:

@@ -21,7 +21,7 @@ class GuiImage : public GuiElement
 		GuiImage(GuiImageData * img);
 		//!\overload
 		//!Sets up a new image from the texture data specified
-		//!\param t Texture data
+		//!\param tex Texture data
 		//!\param w Image width
 		//!\param h Image height
 		GuiImage(uint8_t * tex, int w, int h);

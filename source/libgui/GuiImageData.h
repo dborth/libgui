@@ -63,6 +63,9 @@ class GuiImageData
 		//!\param buffer Scratch buffer, owned and sized by the caller
 		//!\param size Size of buffer, in bytes
 		static void setDecodeScratch(void * buffer, unsigned int size);
+		//!\return the mutex guarding the shared decode scratch buffer set
+		//!by setDecodeScratch() - callers decoding from more than one
+		//!thread must hold this for the duration of a decode.
 		static Mutex & scratchLock();
 	protected:
 		void * texture; //!< Attached platform-native texture

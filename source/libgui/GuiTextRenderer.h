@@ -34,6 +34,7 @@
 
 const PixelColor black = {0, 0, 0, 255};
 
+//!Per-pixel-size font metrics used for text-block alignment/positioning.
 struct FontOffset {
 	int16_t ascender;
 	int16_t descender;
@@ -41,6 +42,7 @@ struct FontOffset {
 	int16_t min;
 };
 
+//!Cached per-glyph metrics and rasterized texture, keyed by (pixel size, char code) in GuiTextRenderer::fontData.
 struct GlyphData {
 	int16_t renderOffsetX;
 	uint16_t glyphAdvanceX;
@@ -57,6 +59,10 @@ struct GlyphData {
 	void* texture; // Abstracted texture pointer
 };
 
+//!FreeType2-based glyph shaping/caching. Shapes and caches glyphs per
+//!pixel size, then delegates only the final rasterized-quad draw to a
+//!GlyphRenderer - GuiText calls through this rather than touching
+//!FreeType or a platform texture directly.
 class GuiTextRenderer {
 private:
 	FT_Library ftLibrary;
@@ -83,24 +89,46 @@ private:
 	GlyphData* cacheGlyphData(wchar_t charCode, int16_t pixelSize);
 
 public:
+	//!\param fontBuffer TTF/OTF font data - must remain valid for the
+	//!lifetime of this GuiTextRenderer, FreeType keeps a pointer into it
+	//!\param bufferSize Length of fontBuffer in bytes
+	//!\param glyphRenderer Platform renderer rasterized glyph quads are drawn through
 	GuiTextRenderer(const uint8_t* fontBuffer, FT_Long bufferSize, GlyphRenderer* glyphRenderer);
 	~GuiTextRenderer();
 
+	//!Selects the pixel size subsequent drawText()/getWidth()/getHeight()
+	//!calls use. Shaped glyphs are cached per size, so switching sizes
+	//!repeatedly doesn't re-shape glyphs already seen at that size.
 	void setPixelSize(int16_t pixelSize);
 
 	// Core Drawing Signatures
+	//!Draws text at (x, y) using the current pixel size.
+	//!\param x Left edge, in pixels
+	//!\param y Top edge, in pixels
+	//!\param text Text to draw
+	//!\param color Text color
+	//!\param renderFlags Bitmask of GUI_TEXT_JUSTIFY_*/GUI_TEXT_ALIGN_*/GUI_TEXT_STYLE_* flags
+	//!\return the drawn text's width in pixels
 	uint16_t drawText(int16_t x, int16_t y, const wchar_t* text, PixelColor color = black, uint32_t renderFlags = 0);
+	//!\overload
 	uint16_t drawText(int16_t x, int16_t y, const char* text, PixelColor color = black, uint32_t renderFlags = 0);
 
 	// Dimensions & Offsets
+	//!\return text width in pixels at the current pixel size
 	uint16_t getWidth(const wchar_t* text);
+	//!\overload
 	uint16_t getWidth(const char* text);
+	//!\return text height in pixels at the current pixel size
 	uint16_t getHeight(const wchar_t* text);
+	//!\overload
 	uint16_t getHeight(const char* text);
 
+	//!\param text Text to measure
+	//!\param offset Filled with the ascender/descender/max/min metrics for text at the current pixel size
 	void getOffset(const wchar_t* text, FontOffset* offset);
 
 	// Utilities
+	//!\return a newly-allocated wide-char copy of a UTF-8 string p - caller owns the result (delete[])
 	static wchar_t* charToWideChar(const char* p);
 };
 

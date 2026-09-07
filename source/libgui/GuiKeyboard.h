@@ -11,6 +11,7 @@ constexpr int KB_COLUMNS = 11;
 
 #define MAX_KEYBOARD_DISPLAY	32
 
+//!Unshifted/shifted character pair for a single keyboard key.
 typedef struct _keytype {
 	char ch, chShift;
 } Key;
@@ -19,10 +20,12 @@ typedef struct _keytype {
 class GuiKeyboard : public GuiWindow
 {
 	public:
+		//!\param t Initial text buffer contents (copied into kbtextstr), or nullptr for empty
+		//!\param m Maximum text length, must be < sizeof(kbtextstr)
 		GuiKeyboard(char * t, uint32_t m);
 		~GuiKeyboard();
 		void update(InputController * c);
-		char kbtextstr[256];
+		char kbtextstr[256]; //!< Current entered text - read this after the keyboard closes
 	protected:
 		uint32_t kbtextmaxlen;
 		int shift;
