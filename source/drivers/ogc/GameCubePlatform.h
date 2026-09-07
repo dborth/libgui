@@ -1,26 +1,26 @@
 /****************************************************************************
- * libgui - drivers/wut
- * Daryl Borth 2026
- * WutPlatform.h
+ * libgui - drivers/ogc
+ * Daryl Borth 2009-2026
+ * GameCubePlatform.h
  ***************************************************************************/
 #pragma once
 
-#include <whb/proc.h>
 #include "../Platform.h"
-#include "WutAudioDriver.h"
-#include "WutVideoDriver.h"
-#include "WutInputDriver.h"
-#include "WutFileSystemDriver.h"
-#include "WutThreadDriver.h"
+#include "OgcVideoDriver.h"
+#include "OgcInputDriver.h"
+#include "OgcThreadDriver.h"
+#include "OgcAudioDriver.h"
+#include "GameCubeFileSystemDriver.h"
 
-class WutPlatform : public Platform
+class GameCubePlatform : public Platform
 {
 	public:
-		WutPlatform() {}
+		GameCubePlatform() {}
 
 		void init(int width, int height) override;
 		void shutdown() override;
-		SystemEvent getSystemEvent() override;
+
+		SystemEvent getSystemEvent() override { return SystemEvent::None; }
 
 		AudioDriver* getAudio() override { return audioDriver; }
 		VideoDriver* getVideo() override { return videoDriver; }
@@ -29,9 +29,9 @@ class WutPlatform : public Platform
 		ThreadDriver* getThread() override { return threadDriver; }
 
 	private:
-		WutAudioDriver* audioDriver = nullptr;
-		WutVideoDriver* videoDriver = nullptr;
-		WutInputDriver* inputDriver = nullptr;
-		WutFileSystemDriver* fileSystemDriver = nullptr;
-		WutThreadDriver* threadDriver = nullptr;
+		OgcAudioDriver* audioDriver = nullptr;
+		OgcVideoDriver* videoDriver = nullptr;
+		OgcInputDriver* inputDriver = nullptr;
+		GameCubeFileSystemDriver* fileSystemDriver = nullptr;
+		OgcThreadDriver* threadDriver = nullptr;
 };

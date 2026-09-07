@@ -11,6 +11,7 @@
 #include <vpad/input.h>
 #include <padscore/kpad.h>
 #include <padscore/wpad.h>
+#include <coreinit/foreground.h>
 #include <cmath>
 #include <algorithm>
 
@@ -145,6 +146,14 @@ WutInputDriver::~WutInputDriver() {
 void WutInputDriver::init() {
 	KPADInit();
 	VPADInit();
+
+	// Always intercept the HOME button ourselves rather than letting the OS
+	// pop its own HOME menu overlay - VPAD_BUTTON_HOME/WPAD_BUTTON_HOME then
+	// come through like any other button (see Map*ToGeneric() above), and
+	// the app decides what "Home" should do (eg. return to its own in-game
+	// menu), same as it would on any other platform.
+	OSEnableHomeButtonMenu(FALSE);
+
 	InitUserInputControllers();
 }
 
@@ -155,6 +164,9 @@ void WutInputDriver::shutdown() {
 		rumbleRequest[i] = false;
 	}
 	VPADStopMotor(VPAD_CHAN_0);
+
+	// Restore the system default before handing control back to the OS/loader.
+	OSEnableHomeButtonMenu(TRUE);
 }
 
 void WutInputDriver::setRumble(int channel, bool rumble) {

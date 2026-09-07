@@ -11,8 +11,10 @@
 
 #ifdef __WIIU__
 #include "drivers/wut/WutPlatform.h"
+#elif defined(HW_DOL)
+#include "drivers/ogc/GameCubePlatform.h"
 #else
-#include "drivers/ogc/OgcPlatform.h"
+#include "drivers/ogc/WiiPlatform.h"
 #endif
 #include "menu.h"
 #include "filelist.h"
@@ -21,12 +23,14 @@
 #include "libgui/Gui.h"
 
 struct SSettings Settings;
-bool ExitRequested = false;
+bool exitRequested = false;
 
 #ifdef __WIIU__
 static WutPlatform platformInstance;
+#elif defined(HW_DOL)
+static GameCubePlatform platformInstance;
 #else
-static OgcPlatform platformInstance;
+static WiiPlatform platformInstance;
 #endif
 Platform* platform = &platformInstance;
 

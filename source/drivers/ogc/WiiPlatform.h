@@ -1,25 +1,29 @@
 /****************************************************************************
- * libgui - drivers/wut
- * Daryl Borth 2026
- * WutPlatform.h
+ * libgui - drivers/ogc
+ * Daryl Borth 2009-2026
+ * WiiPlatform.h
  ***************************************************************************/
 #pragma once
 
-#include <whb/proc.h>
-#include "../Platform.h"
-#include "WutAudioDriver.h"
-#include "WutVideoDriver.h"
-#include "WutInputDriver.h"
-#include "WutFileSystemDriver.h"
-#include "WutThreadDriver.h"
+#include <stdint.h>
 
-class WutPlatform : public Platform
+#include "../Platform.h"
+#include "OgcVideoDriver.h"
+#include "OgcInputDriver.h"
+#include "OgcThreadDriver.h"
+#include "OgcAudioDriver.h"
+#include "WiiFileSystemDriver.h"
+
+void NotifyWiiShutdownRequested();
+
+class WiiPlatform : public Platform
 {
 	public:
-		WutPlatform() {}
+		WiiPlatform() {}
 
 		void init(int width, int height) override;
 		void shutdown() override;
+
 		SystemEvent getSystemEvent() override;
 
 		AudioDriver* getAudio() override { return audioDriver; }
@@ -29,9 +33,9 @@ class WutPlatform : public Platform
 		ThreadDriver* getThread() override { return threadDriver; }
 
 	private:
-		WutAudioDriver* audioDriver = nullptr;
-		WutVideoDriver* videoDriver = nullptr;
-		WutInputDriver* inputDriver = nullptr;
-		WutFileSystemDriver* fileSystemDriver = nullptr;
-		WutThreadDriver* threadDriver = nullptr;
+		OgcAudioDriver* audioDriver = nullptr;
+		OgcVideoDriver* videoDriver = nullptr;
+		OgcInputDriver* inputDriver = nullptr;
+		WiiFileSystemDriver* fileSystemDriver = nullptr;
+		OgcThreadDriver* threadDriver = nullptr;
 };

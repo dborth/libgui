@@ -21,6 +21,10 @@
 #include "wiidrc.h"
 #include "../InputController.h"
 
+#ifdef HW_RVL
+#include "WiiPlatform.h"
+#endif
+
 static inline float clampf(float v, float lo, float hi) {
     return (v < lo) ? lo : (v > hi) ? hi : v;
 }
@@ -154,9 +158,12 @@ void OgcInputDriver::init() {
 	PAD_Init();
 
 	#ifdef HW_RVL
+	SYS_SetPowerCallback(NotifyWiiShutdownRequested);
+
 	WPAD_Init();
 	WPAD_SetDataFormat(WPAD_CHAN_ALL, WPAD_FMT_BTNS_ACC_IR);
 	WPAD_SetVRes(WPAD_CHAN_ALL, platform->getVideo()->getScreenWidth(), platform->getVideo()->getScreenHeight());
+	WPAD_SetPowerButtonCallback((WPADShutdownCallback)NotifyWiiShutdownRequested);
 	#endif
 
 	InitUserInputControllers();

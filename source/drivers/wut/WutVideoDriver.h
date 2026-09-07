@@ -30,6 +30,12 @@ class WutVideoDriver : public VideoDriver
 		ImageRenderer* getImageRenderer() override { return imageRenderer; }
 		GlyphRenderer* getGlyphRenderer() override { return glyphRenderer; }
 
+		//!False once the OS has taken away the foreground (HOME menu overlay,
+		//!forced exit, etc.) - GX2 is off-limits at that point, so every
+		//!draw/render entry point below checks this first and no-ops rather
+		//!than issuing a GX2 call into a context we no longer own.
+		bool isForeground() const;
+
 	private:
 		// Binds the TV context state and resets the per-frame render
 		// state (viewport/scissor/blend/depth/cull) that WHBGfxInit()

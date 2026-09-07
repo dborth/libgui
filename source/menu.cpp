@@ -52,13 +52,23 @@ bool UpdateGui()
 
 	platform->getVideo()->render();
 
-	if(ExitRequested || platform->shutdownRequested())
+	SystemEvent event = platform->getSystemEvent();
+
+	if(exitRequested || event == SystemEvent::ShutdownRequested)
 	{
-		for(i = 0; i <= 255; i += 15)
+		bool skipFade = false;
+#ifdef __WIIU__
+		skipFade = (event == SystemEvent::ShutdownRequested);
+#endif
+
+		if(!skipFade)
 		{
-			mainWindow->draw();
-			platform->getVideo()->getImageRenderer()->drawRectangle(0,0,platform->getVideo()->getScreenWidth(),platform->getVideo()->getScreenHeight(),(PixelColor){0, 0, 0, (uint8_t)i});
-			platform->getVideo()->render();
+			for(i = 0; i <= 255; i += 15)
+			{
+				mainWindow->draw();
+				platform->getVideo()->getImageRenderer()->drawRectangle(0,0,platform->getVideo()->getScreenWidth(),platform->getVideo()->getScreenHeight(),(PixelColor){0, 0, 0, (uint8_t)i});
+				platform->getVideo()->render();
+			}
 		}
 		return false;
 	}

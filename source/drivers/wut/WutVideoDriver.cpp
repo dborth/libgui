@@ -18,6 +18,7 @@
 #include <gx2/surface.h>
 #include <gx2/texture.h>
 #include <whb/gfx.h>
+#include <whb/proc.h>
 
 #include "WutVideoDriver.h"
 #include "shaders/Texture2DShader.h"
@@ -79,8 +80,16 @@ void WutVideoDriver::shutdown()
 	WHBGfxShutdown();
 }
 
+bool WutVideoDriver::isForeground() const
+{
+	return WHBProcIsRunning();
+}
+
 void WutVideoDriver::prepareFrame()
 {
+	if(!isForeground())
+		return;
+
 	WHBGfxBeginRender();
 
 	auto drawPass = [&]() {
@@ -102,9 +111,12 @@ void WutVideoDriver::prepareFrame()
 
 void WutVideoDriver::render()
 {
-	WHBGfxFinishRenderTV();
-	WHBGfxFinishRenderDRC();
-	WHBGfxFinishRender();
+	if(isForeground())
+	{
+		WHBGfxFinishRenderTV();
+		WHBGfxFinishRenderDRC();
+		WHBGfxFinishRender();
+	}
 
 	frameTimer++;
 
@@ -188,7 +200,7 @@ void WutImageRenderer::destroyTexture(void * texture)
 
 void WutImageRenderer::drawTexture(void * texture, float xpos, float ypos, uint16_t width, uint16_t height, float degrees, float scaleX, float scaleY, uint8_t alpha)
 {
-	if(!texture)
+	if(!texture || !driver->isForeground())
 		return;
 
 	float offset[3];
@@ -217,6 +229,9 @@ void WutImageRenderer::drawTexture(void * texture, float xpos, float ypos, uint1
 
 void WutImageRenderer::drawRectangle(float x, float y, float width, float height, PixelColor color)
 {
+	if(!driver->isForeground())
+		return;
+
 	float offset[3];
 	float scale[3];
 	PixelRectToNdc(x, y, width, height, 1.0f, 1.0f, driver->getScreenWidth(), driver->getScreenHeight(), offset, scale);
@@ -318,7 +333,7 @@ void WutGlyphRenderer::destroyTexture(void * texturePtr)
 
 void WutGlyphRenderer::drawQuad(void * texturePtr, int16_t screenX, int16_t screenY, uint16_t width, uint16_t height, const PixelColor& color)
 {
-	if(!texturePtr)
+	if(!texturePtr || !driver->isForeground())
 		return;
 
 	float offset[3];
@@ -347,6 +362,9 @@ void WutGlyphRenderer::drawQuad(void * texturePtr, int16_t screenX, int16_t scre
 
 void WutGlyphRenderer::drawFeature(int16_t screenX, int16_t screenY, uint16_t width, uint16_t height, const PixelColor& color)
 {
+	if(!driver->isForeground())
+		return;
+
 	float offset[3];
 	float scale[3];
 	PixelRectToNdc(screenX, screenY, width, height, 1.0f, 1.0f, driver->getScreenWidth(), driver->getScreenHeight(), offset, scale);
