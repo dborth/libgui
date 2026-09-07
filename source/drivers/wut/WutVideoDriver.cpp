@@ -18,8 +18,9 @@
 #include <gx2/surface.h>
 #include <gx2/texture.h>
 #include <whb/gfx.h>
-#include <whb/proc.h>
+#include <proc_ui/procui.h>
 
+#include "../Platform.h"
 #include "WutVideoDriver.h"
 #include "shaders/Texture2DShader.h"
 #include "shaders/ColorShader.h"
@@ -82,7 +83,7 @@ void WutVideoDriver::shutdown()
 
 bool WutVideoDriver::isForeground() const
 {
-	return WHBProcIsRunning();
+	return platform->getStatus() == Status::Running;
 }
 
 void WutVideoDriver::prepareFrame()

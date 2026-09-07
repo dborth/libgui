@@ -6,8 +6,9 @@
 #include <coreinit/cache.h>
 #include <string.h>
 #include <unistd.h>
-#include <whb/proc.h>
+#include <proc_ui/procui.h>
 
+#include "../Platform.h"
 #include "WutAudioDriver.h"
 
 static WutAudioDriver *instance = nullptr;
@@ -15,7 +16,7 @@ static WutAudioDriver *instance = nullptr;
 // Once the OS has taken the foreground away from us (HOME menu overlay,
 // forced exit, etc.) we stop feeding/starting audio rather than continuing
 // to drive AX in the background.
-static inline bool isForeground() { return WHBProcIsRunning(); }
+static inline bool isForeground() { return platform->getStatus() == Status::Running; }
 
 static void wut_frame_callback() {
 	if (instance)
@@ -266,8 +267,7 @@ void WutAudioDriver::handleStreamCallback() {
 	if (!isForeground()) {
 		// Lost the foreground - stop driving the stream voices rather than
 		// continuing to feed/play audio in the background.
-		if (streamVoiceL) AXSetVoiceState(streamVoiceL, 0);
-		if (streamVoiceR) AXSetVoiceState(streamVoiceR, 0);
+		pauseStream();
 		return;
 	}
 
@@ -357,15 +357,15 @@ void WutAudioDriver::handleStreamCallback() {
 }
 
 void WutAudioDriver::stopStream() {
+	oggPlayer.stop();
 	if (streamVoiceL) AXSetVoiceState(streamVoiceL, 0);
 	if (streamVoiceR) AXSetVoiceState(streamVoiceR, 0);
-	oggPlayer.stop();
 }
 
 void WutAudioDriver::pauseStream() {
+	oggPlayer.pause(true);
 	if (streamVoiceL) AXSetVoiceState(streamVoiceL, 0);
 	if (streamVoiceR) AXSetVoiceState(streamVoiceR, 0);
-	oggPlayer.pause(true);
 }
 
 void WutAudioDriver::resumeStream() {
