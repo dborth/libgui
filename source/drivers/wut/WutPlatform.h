@@ -13,8 +13,6 @@
 #include "WutFileSystemDriver.h"
 #include "WutThreadDriver.h"
 
-//!Wii U Platform, wrapping WHBProcInit/WHBProcIsRunning to detect the OS
-//!asking the app to exit (see getSystemEvent()).
 class WutPlatform : public Platform
 {
 	public:
@@ -23,6 +21,8 @@ class WutPlatform : public Platform
 		void init(int width, int height) override;
 		void shutdown() override;
 		SystemEvent getSystemEvent() override;
+		Status getStatus() const override { return status; }
+		void triggerExit() override { status = Status::Exiting; }
 
 		AudioDriver* getAudio() override { return audioDriver; }
 		VideoDriver* getVideo() override { return videoDriver; }
@@ -31,6 +31,7 @@ class WutPlatform : public Platform
 		ThreadDriver* getThread() override { return threadDriver; }
 
 	private:
+		Status status = Status::Running;
 		WutAudioDriver* audioDriver = nullptr;
 		WutVideoDriver* videoDriver = nullptr;
 		WutInputDriver* inputDriver = nullptr;

@@ -12,6 +12,14 @@ class InputDriver;
 class FileSystemDriver;
 class ThreadDriver;
 
+//! Platform execution state.
+enum class Status
+{
+	Running,
+	Paused,
+	Exiting
+};
+
 //!A hardware/OS-level system event a Platform can report. These are
 //!mutually exclusive by construction.
 enum class SystemEvent
@@ -49,6 +57,11 @@ class Platform
 		//!Current hardware/OS-level system event, if any. A single query
 		//!rather than independent shutdown/reset flags.
 		virtual SystemEvent getSystemEvent() = 0;
+
+		//! Current platform lifecycle state (Running, Paused, Exiting).
+		virtual Status getStatus() const = 0;
+		//! Transitions platform state to move to Exiting.
+		virtual void triggerExit() = 0;
 };
 
 //! The globally accessible platform instance

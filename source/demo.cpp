@@ -23,7 +23,6 @@
 #include "libgui/Gui.h"
 
 struct SSettings Settings;
-bool exitRequested = false;
 
 #ifdef __WIIU__
 static WutPlatform platformInstance;

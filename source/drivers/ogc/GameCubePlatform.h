@@ -24,6 +24,8 @@ class GameCubePlatform : public Platform
 		void shutdown() override;
 
 		SystemEvent getSystemEvent() override { return SystemEvent::None; }
+		Status getStatus() const override { return status; }
+		void triggerExit() override { status = Status::Exiting; }
 
 		AudioDriver* getAudio() override { return audioDriver; }
 		VideoDriver* getVideo() override { return videoDriver; }
@@ -32,6 +34,7 @@ class GameCubePlatform : public Platform
 		ThreadDriver* getThread() override { return threadDriver; }
 
 	private:
+		Status status = Status::Running;
 		OgcAudioDriver* audioDriver = nullptr;
 		OgcVideoDriver* videoDriver = nullptr;
 		OgcInputDriver* inputDriver = nullptr;

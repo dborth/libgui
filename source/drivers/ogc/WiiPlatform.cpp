@@ -61,16 +61,15 @@ void WiiPlatform::shutdown()
 /****************************************************************************
  * Shutdown/reset
  ***************************************************************************/
-static bool shutdownRequestedFlag = false;
 
-void NotifyWiiShutdownRequested() { shutdownRequestedFlag = true; }
+void NotifyWiiShutdownRequested() { platform->triggerExit(); }
 
 // No reset callback is registered - SYS_ResetButtonDown() (polled in
 // getSystemEvent() below) is a real libogc polling primitive, so there's
 // nothing for a callback to add here.
 SystemEvent WiiPlatform::getSystemEvent()
 {
-	if(shutdownRequestedFlag)
+	if(platform->getStatus() == Status::Exiting)
 		return SystemEvent::ShutdownRequested;
 
 	static bool wasResetDown = false;

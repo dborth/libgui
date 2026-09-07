@@ -33,6 +33,4 @@ struct SSettings {
 };
 extern struct SSettings Settings;
 
-extern bool exitRequested;
-
 #endif

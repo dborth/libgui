@@ -11,7 +11,7 @@
 #include <vpad/input.h>
 #include <padscore/kpad.h>
 #include <padscore/wpad.h>
-#include <coreinit/foreground.h>
+#include <sysapp/switch.h>
 #include <cmath>
 #include <algorithm>
 
@@ -155,6 +155,7 @@ WutInputDriver::~WutInputDriver() {
 void WutInputDriver::init() {
 	KPADInit();
 	VPADInit();
+	OSEnableHomeButtonMenu(FALSE);
 	InitUserInputControllers();
 }
 
@@ -170,12 +171,8 @@ void WutInputDriver::shutdown() {
 	OSEnableHomeButtonMenu(TRUE);
 }
 
-void WutInputDriver::enableHomeButtonMenu(bool enable) {
-	OSEnableHomeButtonMenu(enable);
-}
-
-bool WutInputDriver::isHomeButtonMenuEnabled() {
-	return (bool)OSIsHomeButtonMenuEnabled();
+void WutInputDriver::openHomeButtonOverlay() {
+	_SYSSwitchToHBMWithMode(0);
 }
 
 void WutInputDriver::setRumble(int channel, bool rumble) {

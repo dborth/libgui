@@ -59,7 +59,7 @@ bool UpdateGui()
 
 	SystemEvent event = platform->getSystemEvent();
 
-	if(exitRequested || event == SystemEvent::ShutdownRequested)
+	if(platform->getStatus() == Status::Exiting || event == SystemEvent::ShutdownRequested)
 	{
 		bool skipFade = false;
 #ifdef __WIIU__
@@ -433,9 +433,11 @@ static int MenuSettings()
 	savingBtn.setTrigger(&trigA);
 	savingBtn.setEffectGrow();
 
-	char menuLabel[20] = "Menu";
+
 #ifdef __WUT__
-	snprintf(menuLabel, sizeof(menuLabel), "%s Overlay", static_cast<WutInputDriver*>(platform->getInput())->isHomeButtonMenuEnabled() ? "Disable" : "Enable");
+	char menuLabel[20] = "Wii U Overlay";
+#else
+	char menuLabel[20] = "Menu";
 #endif
 	GuiText menuBtnTxt(menuLabel, 22, (PixelColor){0, 0, 0, 255});
 	menuBtnTxt.setWrap(true, btnLargeOutline.getWidth()-30);
@@ -522,6 +524,7 @@ static int MenuSettings()
 		else if(menuBtn.getState() == STATE::CLICKED)
 		{
 			#ifdef __WUT__
+			static_cast<WutInputDriver*>(platform->getInput())->openHomeButtonOverlay();
 			menuBtn.resetState();
 			#else
 			menu = MENU_SETTINGS_FILE;
@@ -534,6 +537,7 @@ static int MenuSettings()
 		else if(exitBtn.getState() == STATE::CLICKED)
 		{
 			menu = MENU_EXIT;
+			platform->triggerExit();
 		}
 		else if(resetBtn.getState() == STATE::CLICKED)
 		{

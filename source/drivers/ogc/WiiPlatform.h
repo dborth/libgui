@@ -28,6 +28,8 @@ class WiiPlatform : public Platform
 		void shutdown() override;
 
 		SystemEvent getSystemEvent() override;
+		Status getStatus() const override { return status; }
+		void triggerExit() override { status = Status::Exiting; }
 
 		AudioDriver* getAudio() override { return audioDriver; }
 		VideoDriver* getVideo() override { return videoDriver; }
@@ -36,6 +38,7 @@ class WiiPlatform : public Platform
 		ThreadDriver* getThread() override { return threadDriver; }
 
 	private:
+		Status status = Status::Running;
 		OgcAudioDriver* audioDriver = nullptr;
 		OgcVideoDriver* videoDriver = nullptr;
 		OgcInputDriver* inputDriver = nullptr;

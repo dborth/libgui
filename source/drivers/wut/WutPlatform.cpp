@@ -5,6 +5,8 @@
  ***************************************************************************/
 #include "WutPlatform.h"
 
+#include <proc_ui/procui.h>
+
 void WutPlatform::init(int width, int height)
 {
 	WHBProcInit();
@@ -65,12 +67,30 @@ void WutPlatform::shutdown()
 	WHBProcShutdown();
 }
 
-//!Wii U has no separate reset signal - a lost foreground (OS asking us
-//!to quit, via WHBProcIsRunning() going false) is the only system
-//!event this platform can report, and it maps directly onto
-//!ShutdownRequested. This is also the same signal video/audio guard
-//!themselves against - see WutVideoDriver::render()/WutAudioDriver.
+//! Polls Cafe OS process events. Transitions permanently to Exiting once
+//! WHBProcIsRunning() returns false, and tracks Paused vs Running via ProcUIInForeground().
 SystemEvent WutPlatform::getSystemEvent()
 {
-	return WHBProcIsRunning() ? SystemEvent::None : SystemEvent::ShutdownRequested;
+	// Once latched in Exiting, always return ShutdownRequested
+	if (status == Status::Exiting)
+		return SystemEvent::ShutdownRequested;
+
+	// WHBProcIsRunning() pumps the ProcUI message queue - only call this once per frame
+	if (!WHBProcIsRunning())
+	{
+		status = Status::Exiting;
+		return SystemEvent::ShutdownRequested;
+	}
+
+	// Fast in-memory check for focus/foreground state
+	if (!ProcUIInForeground())
+	{
+		status = Status::Paused;
+	}
+	else
+	{
+		status = Status::Running;
+	}
+
+	return SystemEvent::None;
 }
