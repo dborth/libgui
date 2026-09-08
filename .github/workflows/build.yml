@@ -24,6 +24,18 @@ jobs:
       if: ${{ matrix.image == 'WiiU' }}
       run: dkp-pacman -Syu --noconfirm wiiu-dev
 
+    - name: Build and install libmocha
+      if: ${{ matrix.image == 'WiiU' }}
+      run: |
+        git clone --depth 1 https://github.com/wiiu-env/libmocha.git /tmp/libmocha
+        cd /tmp/libmocha && make install
+		
+    - name: Build and install libfat
+      if: ${{ matrix.image == 'WiiU' }}
+      run: |
+        git clone --depth 1 https://github.com/dborth/libfat.git /tmp/libfat
+        cd /tmp/libfat && make install
+
     - name: Build Wii
       if: ${{ matrix.image == 'Wii' }}
       run: make -f Makefile.wii -j3

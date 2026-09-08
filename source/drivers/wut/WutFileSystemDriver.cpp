@@ -3,30 +3,19 @@
  * Daryl Borth 2026
  * WutFileSystemDriver.cpp
  *
- * Wii U storage device enumeration + mounting: SD (via WHB) and
- * dynamically-probed FAT USB volumes.
- *
- * Unlike Wii/GameCube's DISC_INTERFACE, stock wut has no public API to
- * mount arbitrary FAT-formatted USB storage or to be notified of USB
- * hotplug events - the official Wii U USB storage path (nn::spm,
- * "/vol/storage_usb01") is for Nintendo-formatted game/save storage, not
- * plain FAT sticks. Reading a FAT USB drive from homebrew requires a
- * loader/CFW component (eg. Aroma, or a plugin like wafel_usb_partition)
- * to register a devoptab for it first. So on Wii U, "enumeration" means
- * polling the devoptab prefixes such tools are known to register.
+ * Wii U storage device enumeration + mounting: SD via WHB, USB via
+ * libmocha's raw disc interface + vendored libfat.
  ***************************************************************************/
 #include <whb/sdcard.h>
+#include <mocha/mocha.h>
+#include <mocha/disc_interface.h>
+#include <fat.h>
 #include <sys/statvfs.h>
 #include <sys/stat.h>
 #include <string.h>
 #include <stdio.h>
 
 #include "WutFileSystemDriver.h"
-
-// Candidate devoptab mount prefixes probed each poll for a newly-attached
-// USB volume. If your loader/plugin registers something else, add it here.
-static const char * const kUsbProbePrefixes[] = { "usb:/", "usb0:/", "usb1:/", "usb2:/", "usb3:/" };
-static const int kUsbProbePrefixCount = sizeof(kUsbProbePrefixes) / sizeof(kUsbProbePrefixes[0]);
 
 static bool DevicePresent(const char * prefix)
 {
@@ -42,9 +31,14 @@ void WutFileSystemDriver::init()
 	FSAInit();
 	m_fsaClient = FSAAddClient(nullptr); // best-effort; volume-label lookups just fall back if this is 0
 
+	// USB (via Mocha_usb_disc_interface) needs Mocha; SD (via WHB) doesn't.
+	// If this fails - not booted under Aroma/compatible CFW - USB just
+	// stays permanently absent rather than the whole driver failing.
+	m_mochaReady = (Mocha_InitLibrary() == MOCHA_RESULT_SUCCESS);
+
 	WHBMountSdCard();
 
-	WutDeviceState & sd = m_devices[m_deviceCount++];
+	WutDeviceState & sd = m_devices[DEVICE_SD];
 	memset(&sd, 0, sizeof(sd));
 	sd.id = DEVICE_SD;
 	strcpy(sd.name, "SD Card");
@@ -60,18 +54,41 @@ void WutFileSystemDriver::init()
 	sd.isPresent = DevicePresent(sd.prefix);
 	sd.isMounted = false;
 	sd.unmountRequired = false;
-
 	refreshDisplayName(sd);
+
+	WutDeviceState & usb = m_devices[DEVICE_USB];
+	memset(&usb, 0, sizeof(usb));
+	usb.id = DEVICE_USB;
+	strcpy(usb.name, "USB Storage");
+	strcpy(usb.prefix, "usb:/");
+	usb.isPresent = false;
+	usb.isMounted = false;
+	usb.unmountRequired = false;
+	// Deliberately not attempting the USB mount here: the raw open probe
+	// is a real IOSU IPC round trip, and init() runs on the main thread
+	// during app startup - not the storage-checking thread. The first
+	// pollStorageDevices() call (or an explicit mountStorageDevice(),
+	// eg. from "autoMountAtStartup") picks it up from there.
+
+	m_deviceCount = DEVICE_LENGTH;
 }
 
 void WutFileSystemDriver::shutdown()
 {
+	unmountUsb();
+
 	WHBUnmountSdCard();
 
 	if(m_fsaClient)
 	{
 		FSADelClient(m_fsaClient);
 		m_fsaClient = 0;
+	}
+
+	if(m_mochaReady)
+	{
+		Mocha_DeInitLibrary();
+		m_mochaReady = false;
 	}
 
 	memset(m_devices, 0, sizeof(m_devices));
@@ -86,46 +103,11 @@ int WutFileSystemDriver::findDeviceIndex(int deviceId) const
 	return -1;
 }
 
-int WutFileSystemDriver::allocateDeviceId()
-{
-	int newId = DEVICE_USB;
-	bool used;
-	do
-	{
-		used = false;
-		for(int i = 0; i < m_deviceCount; i++)
-		{
-			if(m_devices[i].id == newId)
-			{
-				used = true;
-				newId++;
-				break;
-			}
-		}
-	} while(used);
-	return newId;
-}
-
 void WutFileSystemDriver::refreshDisplayName(WutDeviceState & dev)
 {
-	// Base name: keep whatever was already set (eg. "SD Card" from init()),
-	// otherwise derive eg. "usb0" from "usb0:/" by stripping the trailing ":/".
-	if(dev.name[0] == '\0')
-	{
-		size_t len = strlen(dev.prefix);
-		size_t copyLen = (len >= 2) ? len - 2 : len;
-		if(copyLen >= sizeof(dev.name))
-			copyLen = sizeof(dev.name) - 1;
-		strncpy(dev.name, dev.prefix, copyLen);
-		dev.name[copyLen] = '\0';
-	}
-
-	// Volume label, kept separate from `name` so callers can show
-	// "USB Storage [MYLABEL]" rather than replacing the name outright.
+	// Volume label, kept separate from `name`
 	// Best-effort: FSAGetVolumeInfo only succeeds if dev.prefix genuinely
-	// resolves through our own FSA client - true for the SD card (which we
-	// mounted ourselves), not guaranteed for a devoptab a third-party
-	// loader/plugin registered for USB.
+	// resolves through our own FSA client.
 	dev.label[0] = '\0';
 
 	if(m_fsaClient)
@@ -138,6 +120,70 @@ void WutFileSystemDriver::refreshDisplayName(WutDeviceState & dev)
 			dev.label[sizeof(dev.label) - 1] = '\0';
 		}
 	}
+}
+
+bool WutFileSystemDriver::tryMountUsb()
+{
+	WutDeviceState & usb = m_devices[DEVICE_USB];
+
+	if(usb.isMounted)
+		return true;
+
+	if(!m_mochaReady)
+		return false;
+
+	// fatMountSimple() calls disc->startup() internally, which is what
+	// actually does the /dev/usb01 (falling back to /dev/usb02) raw open -
+	// a genuine hardware probe each time this is called, not a cached
+	// result. Safe to call repeatedly while unmounted.
+	if(!fatMountSimple("usb", &Mocha_usb_disc_interface))
+	{
+		usb.isPresent = false;
+		return false;
+	}
+
+	usb.isPresent = true;
+	usb.isMounted = true;
+	usb.unmountRequired = false;
+	refreshDisplayName(usb);
+	return true;
+}
+
+void WutFileSystemDriver::unmountUsb()
+{
+	WutDeviceState & usb = m_devices[DEVICE_USB];
+
+	if(usb.isMounted)
+		fatUnmount("usb");
+
+	// Reset Mocha's cached fds regardless of our own mount-state bookkeeping,
+	// so the next tryMountUsb() forces a real re-probe rather than reusing
+	// (or failing on) a stale handle from before a removal.
+	if(m_mochaReady)
+		Mocha_usb_disc_interface.shutdown();
+
+	usb.isPresent = false;
+	usb.isMounted = false;
+	usb.unmountRequired = false;
+}
+
+bool WutFileSystemDriver::usbStillPresent()
+{
+	if(!m_mochaReady)
+		return false;
+
+	// Deliberately routed through the normal devoptab stat(), same as SD,
+	// rather than calling Mocha_usb_disc_interface.readSectors() directly:
+	// libfat's own internal reads go through that same underlying Mocha 
+	// call, but under libfat's mutex_t lock.
+	// Calling readSectors() directly here, from the storage-checking
+	// thread, would race with those - libmocha has no locking of its own
+	// around the shared fd. stat() goes through the same lock libfat's
+	// other callers use, at the cost of occasionally being served from
+	// libfat's cache rather than genuinely re-touching the hardware, so a
+	// removal can take a poll cycle or two longer to surface than a true
+	// hardware probe would.
+	return DevicePresent(m_devices[DEVICE_USB].prefix);
 }
 
 int WutFileSystemDriver::enumerateStorageDevices(StorageDevice outDevices[MAX_STORAGE_DEVICES])
@@ -187,6 +233,10 @@ MountResult WutFileSystemDriver::mountStorageDevice(int deviceId)
 	if(idx < 0)
 		return MountResult::DeviceNotFound; // not ours
 
+	if(deviceId == DEVICE_USB)
+		return tryMountUsb() ? MountResult::Success : MountResult::DeviceNotFound;
+
+	// SD (and anything else using the DevicePresent()-style devoptab check)
 	WutDeviceState & dev = m_devices[idx];
 
 	if(dev.isMounted)
@@ -222,6 +272,12 @@ const char * WutFileSystemDriver::mountResultMessage(int deviceId, MountResult r
 
 void WutFileSystemDriver::invalidateStorageDevice(int deviceId)
 {
+	if(deviceId == DEVICE_USB)
+	{
+		unmountUsb();
+		return;
+	}
+
 	int idx = findDeviceIndex(deviceId);
 	if(idx < 0)
 		return;
@@ -235,58 +291,48 @@ void WutFileSystemDriver::pollStorageDevices(int removedIds[MAX_STORAGE_DEVICES]
 	outRemovedCount = 0;
 	deviceListChanged = false;
 
-	// 1. Re-verify every device we already know about (covers both
-	//    removal and re-insertion of something we've seen before).
-	for(int i = 0; i < m_deviceCount; i++)
+	// SD: re-verify via stat() on its devoptab prefix, same as before.
 	{
-		WutDeviceState & dev = m_devices[i];
-		bool present = DevicePresent(dev.prefix);
+		WutDeviceState & sd = m_devices[DEVICE_SD];
+		bool present = DevicePresent(sd.prefix);
 
-		if(dev.isPresent && !present)
+		if(sd.isPresent && !present)
 		{
-			dev.isPresent = false;
-			dev.isMounted = false;
-			dev.unmountRequired = true;
+			sd.isPresent = false;
+			sd.isMounted = false;
+			sd.unmountRequired = true;
 
 			if(outRemovedCount < MAX_STORAGE_DEVICES)
-				removedIds[outRemovedCount++] = dev.id;
+				removedIds[outRemovedCount++] = sd.id;
 			deviceListChanged = true;
 		}
-		else if(!dev.isPresent && present)
+		else if(!sd.isPresent && present)
 		{
-			dev.isPresent = true;
-			refreshDisplayName(dev);
+			sd.isPresent = true;
+			refreshDisplayName(sd);
 			deviceListChanged = true;
 		}
 	}
 
-	// 2. Probe for USB volumes we haven't seen at all yet.
-	for(int p = 0; p < kUsbProbePrefixCount && m_deviceCount < MAX_STORAGE_DEVICES; p++)
+	// USB: no external devoptab to stat() - we own the mount ourselves
 	{
-		const char * prefix = kUsbProbePrefixes[p];
+		WutDeviceState & usb = m_devices[DEVICE_USB];
 
-		bool alreadyTracked = false;
-		for(int i = 0; i < m_deviceCount; i++)
+		if(usb.isMounted)
 		{
-			if(strcmp(m_devices[i].prefix, prefix) == 0)
+			if(!usbStillPresent())
 			{
-				alreadyTracked = true;
-				break;
+				unmountUsb();
+
+				if(outRemovedCount < MAX_STORAGE_DEVICES)
+					removedIds[outRemovedCount++] = DEVICE_USB;
+				deviceListChanged = true;
 			}
 		}
-		if(alreadyTracked || !DevicePresent(prefix))
-			continue;
-
-		WutDeviceState & dev = m_devices[m_deviceCount++];
-		memset(&dev, 0, sizeof(dev));
-		dev.id = allocateDeviceId();
-		strncpy(dev.prefix, prefix, sizeof(dev.prefix) - 1);
-		dev.isPresent = true;
-		dev.isMounted = false;
-		dev.unmountRequired = false;
-		refreshDisplayName(dev);
-
-		deviceListChanged = true;
+		else if(tryMountUsb())
+		{
+			deviceListChanged = true;
+		}
 	}
 }
 

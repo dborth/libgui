@@ -9,8 +9,7 @@
 
 enum {
 	DEVICE_SD,
-	DEVICE_USB, //!< first dynamically-allocated id for a detected USB volume;
-	            //!< more are allocated as needed (see allocateDeviceId())
+	DEVICE_USB,
 	DEVICE_LENGTH
 };
 
@@ -39,10 +38,19 @@ struct WutDeviceState
 	bool unmountRequired;
 };
 
-//!Wii U FileSystemDriver: SD via WHBMountSdCard() (a runtime-assigned FSA
-//!path rather than a static devoptab name), USB by polling a fixed list
-//!of candidate devoptab prefixes each cycle since stock wut has no public
-//!API for arbitrary FAT USB mounting or hotplug notification.
+//!Wii U FileSystemDriver.
+//!
+//!SD: WHBMountSdCard() - a runtime-assigned FSA path, not a static devoptab name
+//!USB: stock Cafe OS has no FAT driver for USB at all so we use libmocha
+//!
+//!Hotplug: Mocha_usb_isInserted() only reports whether we already have the
+//!fd open - it doesn't re-probe hardware - so it can't drive polling the
+//!way __io_usbstorage.isInserted() does on GC/Wii. Instead: while
+//!unmounted, pollStorageDevices() retries fatMountSimple() each cycle
+//!(which does force a fresh /dev/usb0N open attempt); while mounted, it
+//!reads one raw sector directly through the disc interface as a genuine
+//!liveness check, since stat()-ing the mount root wouldn't necessarily
+//!touch the hardware at all.
 class WutFileSystemDriver : public FileSystemDriver
 {
 	public:
@@ -62,11 +70,22 @@ class WutFileSystemDriver : public FileSystemDriver
 		bool getStorageMetrics(int deviceId, WutStorageMetrics & outMetrics);
 
 	private:
-		WutDeviceState  m_devices[MAX_STORAGE_DEVICES];
+		WutDeviceState  m_devices[DEVICE_LENGTH];
 		int             m_deviceCount;
-		FSAClientHandle m_fsaClient; //!< used only for best-effort volume-label lookups; 0 if unavailable
+		FSAClientHandle m_fsaClient;  //!< used only for best-effort volume-label lookups; 0 if unavailable
+		bool            m_mochaReady; //!< Mocha_InitLibrary() succeeded - USB unavailable entirely if not
 
 		int  findDeviceIndex(int deviceId) const;
-		int  allocateDeviceId();
 		void refreshDisplayName(WutDeviceState & dev);
+
+		//! Attempts fatMountSimple("usb", &Mocha_usb_disc_interface). Updates
+		//! m_devices[DEVICE_USB] and returns whether it's mounted afterwards.
+		bool tryMountUsb();
+		//! fatUnmount("usb") + Mocha_usb_disc_interface.shutdown(), so the
+		//! next tryMountUsb() genuinely re-probes hardware rather than
+		//! reusing a stale fd. Safe to call whether or not USB is mounted.
+		void unmountUsb();
+		//! Real liveness check for an already-mounted USB volume: reads one
+		//! raw sector directly through Mocha_usb_disc_interface.
+		bool usbStillPresent();
 };
