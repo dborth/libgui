@@ -22,6 +22,7 @@ class GameCubePlatform : public Platform
 
 		void init(int width, int height) override;
 		void shutdown() override;
+		void requestExit() override;
 
 		SystemEvent getSystemEvent() override { return SystemEvent::None; }
 		Status getStatus() const override { return status; }

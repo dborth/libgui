@@ -54,15 +54,32 @@ void WiiPlatform::shutdown()
 		delete threadDriver;
 		threadDriver = nullptr;
 	}
-	
-	exit(0);
 }
 
 /****************************************************************************
  * Shutdown/reset
  ***************************************************************************/
 
-void NotifyWiiShutdownRequested() { platform->triggerExit(); }
+// Status::Exiting alone doesn't tell requestExit() what to do below
+static bool hardwarePowerOffRequested = false;
+
+void NotifyWiiShutdownRequested() { hardwarePowerOffRequested = true; platform->triggerExit(); }
+
+// shutdown() only tears down the HAL drivers - it has no opinion on what
+// should happen to the console afterward. requestExit() is where that
+// decision actually gets made: if the event that brought us here was a
+// real power button press (console or Wiimote), honor it with a proper
+// IOS-mediated power-off via SYS_ResetSystem rather than falling through
+// to a plain exit()
+void WiiPlatform::requestExit()
+{
+	this->shutdown();
+
+	if(hardwarePowerOffRequested)
+		SYS_ResetSystem(SYS_POWEROFF_STANDBY, 0, FALSE);
+	else
+		exit(0);
+}
 
 // No reset callback is registered - SYS_ResetButtonDown() (polled in
 // getSystemEvent() below) is a real libogc polling primitive, so there's

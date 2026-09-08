@@ -21,6 +21,7 @@
 #include "demo.h"
 #include "filebrowser.h"
 #include "libgui/Gui.h"
+#include "drivers/Thread.h"
 
 struct SSettings Settings;
 
@@ -61,5 +62,6 @@ int main(int, char **)
 	InitDeviceCheckingThread();
 	MainMenu(MENU_SETTINGS);
 
-	platform->shutdown();
+	Thread::JoinAll();
+	platform->requestExit();
 }

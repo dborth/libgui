@@ -3,6 +3,8 @@
  * Daryl Borth 2026
  * WutPlatform.cpp
  ***************************************************************************/
+#include <stdlib.h>
+
 #include "WutPlatform.h"
 
 #include <proc_ui/procui.h>
@@ -65,6 +67,15 @@ void WutPlatform::shutdown()
 	}
 
 	WHBProcShutdown();
+}
+
+// Once WHBProcShutdown() has run (in shutdown(), above), returning from
+// the app is all that's needed - the OS reclaims the foreground on its
+// own. There's no separate loader/power-off distinction to make here.
+void WutPlatform::requestExit()
+{
+	this->shutdown();
+	exit(0);
 }
 
 //! Polls Cafe OS process events. Transitions permanently to Exiting once

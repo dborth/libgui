@@ -55,6 +55,10 @@ void OgcAudioDriver::shutdown() {
 	ASND_Pause(1);
 	ASND_End();
 	AUDIO_StopDMA();
+	AUDIO_RegisterDMACallback(NULL);
+	DSP_Halt(); // fully stop the DSP - without this it's left mid-stream,
+	            // which can turn into a squeal/lockup if the process exits
+	            // (or the console is powered off) right after this returns
 	instance = nullptr;
 }
 

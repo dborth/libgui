@@ -54,5 +54,13 @@ void GameCubePlatform::shutdown()
 		delete threadDriver;
 		threadDriver = nullptr;
 	}
+}
+
+// GameCube has no power-button/shutdown concept to honor (getSystemEvent()
+// always reports None - see Platform.h) and no menu/loader distinction
+// worth making here, so this is unconditional.
+void GameCubePlatform::requestExit()
+{
+	this->shutdown();
 	exit(0);
 }

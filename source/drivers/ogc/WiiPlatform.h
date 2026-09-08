@@ -26,6 +26,7 @@ class WiiPlatform : public Platform
 
 		void init(int width, int height) override;
 		void shutdown() override;
+		void requestExit() override;
 
 		SystemEvent getSystemEvent() override;
 		Status getStatus() const override { return status; }

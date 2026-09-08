@@ -72,12 +72,28 @@ void HaltDeviceCheckingThread()
 }
 
 /****************************************************************************
+ * WakeDeviceThread()
+ * Thread::JoinAll()'s wake callback for deviceThread - breaks devicecallback
+ * out of either the sleep loop or the parked halt-wait so it can notice
+ * stopRequested() and actually return. Mirrors HaltDeviceCheckingThread(),
+ * but doesn't wait for deviceIdle - JoinAll() calls join() right after this,
+ * which is the wait.
+ ***************************************************************************/
+static void WakeDeviceThread()
+{
+	DeviceSync().mutex.lock();
+	deviceCheckingHalt = false; // let a parked wait fall through to re-check stopRequested()
+	DeviceSync().workCond.signal();
+	DeviceSync().mutex.unlock();
+}
+
+/****************************************************************************
  * devicecallback()
  * Checks devices for hotplug changes (SD/USB removed or inserted)
  ***************************************************************************/
 static void * devicecallback(void *)
 {
-	while (1)
+	while (!deviceThread.stopRequested())
 	{
 		int removed[MAX_STORAGE_DEVICES];
 		int removedCount = 0;
@@ -88,17 +104,20 @@ static void * devicecallback(void *)
 		if(removedCount > 0 || deviceListChanged)
 			browserDeviceListChanged = true; // signal the UI to refresh
 
-		// sleep ~1 sec in 100us steps so we can react to a halt request quickly
-		for(int i = 0; i < 10000 && !deviceCheckingHalt; i++)
+		// sleep ~1 sec in 100us steps so we can react to a halt/stop request quickly
+		for(int i = 0; i < 10000 && !deviceCheckingHalt && !deviceThread.stopRequested(); i++)
 			usleep(THREAD_SLEEP);
 
-		// if halted, block here until ResumeDeviceCheckingThread wakes us
+		if(deviceThread.stopRequested())
+			break;
+
+		// if halted, block here until ResumeDeviceCheckingThread (or a stop request) wakes us
 		if(deviceCheckingHalt)
 		{
 			DeviceSync().mutex.lock();
 			deviceIdle = true;
 			DeviceSync().idleCond.signal(); // tell HaltDeviceCheckingThread we've stopped
-			while(deviceCheckingHalt)
+			while(deviceCheckingHalt && !deviceThread.stopRequested())
 				DeviceSync().workCond.wait(DeviceSync().mutex);
 			deviceIdle = false;
 			DeviceSync().mutex.unlock();
@@ -117,7 +136,7 @@ void InitDeviceCheckingThread()
 	{
 		DeviceSync();
 		deviceThreadStarted = true;
-		deviceThread.start(devicecallback, nullptr, DEVICE_THREAD_STACKSIZE, ThreadPriority::Low);
+		deviceThread.start(devicecallback, nullptr, DEVICE_THREAD_STACKSIZE, ThreadPriority::Low, WakeDeviceThread);
 	}
 }
 

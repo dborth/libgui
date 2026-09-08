@@ -45,8 +45,19 @@ class Platform
 		//!\param width Design canvas width in pixels
 		//!\param height Design canvas height in pixels
 		virtual void init(int width, int height) = 0;
-		//!Shuts down and releases all five drivers.
+		//!Shuts down and releases all five drivers. Does not itself end
+		//!the process/return to a menu/power off - see requestExit(). Any
+		//!background Thread that might still call into a driver must be
+		//!stopped and joined (eg. via Thread::JoinAll()) before calling
+		//!this, since the drivers it deletes may be in active use.
 		virtual void shutdown() = 0;
+		//!Tears down the platform (via shutdown()) and then performs
+		//!whatever platform-appropriate action actually ends the app -
+		//!return to loader/menu, power off, or just exit(), depending on
+		//!how getSystemEvent() last reported and how the platform was
+		//!reached. Callers should call this instead of shutdown() to
+		//!leave the platform; it does not return.
+		virtual void requestExit() = 0;
 
 		virtual AudioDriver* getAudio() = 0;
 		virtual VideoDriver* getVideo() = 0;
