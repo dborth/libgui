@@ -7,12 +7,6 @@
 #include "../FileSystemDriver.h"
 #include <coreinit/filesystem_fsa.h>
 
-enum {
-	DEVICE_SD,
-	DEVICE_USB,
-	DEVICE_LENGTH
-};
-
 //! Optional capacity/health telemetry for a single device, filled in on
 //! request via getStorageMetrics(). Kept separate from the generic
 //! FileSystemDriver contract (rather than, say, a virtual on the base)
@@ -26,7 +20,11 @@ struct WutStorageMetrics
 	bool     readOnly;
 };
 
-//! State tracker for a single dynamically-probed storage device.
+//! State tracker for a single storage device slot. Wii U tracks exactly
+//! two slots - DEVICE_SD (always present once WHBMountSdCard() succeeds)
+//! and DEVICE_USB (empty, ie. prefix[0] == 0 / isPresent false, until
+//! tryMountUsb() claims it) - one mount per device type, like every other
+//! platform (see the Device enum in FileSystemDriver.h).
 struct WutDeviceState
 {
 	int  id;
@@ -64,13 +62,21 @@ class WutFileSystemDriver : public FileSystemDriver
 		void pollStorageDevices(int removedIds[MAX_STORAGE_DEVICES], int & outRemovedCount, bool & deviceListChanged) override;
 		bool hasRemovableStorageDevices() const override { return true; }
 
+		const char * getMountPath(int device) const override;
+		const int * getValidLoadDevices(int & outCount) const override;
+		const int * getValidSaveDevices(int & outCount) const override;
+
 		//! WUT-specific extension: fills outMetrics with capacity/health info
 		//! for deviceId via statvfs(). Returns false if the device isn't
 		//! currently present or statvfs() failed.
 		bool getStorageMetrics(int deviceId, WutStorageMetrics & outMetrics);
 
 	private:
-		WutDeviceState  m_devices[DEVICE_LENGTH];
+		static const int kSlotSD  = 0;
+		static const int kSlotUSB = 1;
+		static const int kSlotCount = 2;
+
+		WutDeviceState  m_devices[kSlotCount];
 		int             m_deviceCount;
 		FSAClientHandle m_fsaClient;  //!< used only for best-effort volume-label lookups; 0 if unavailable
 		bool            m_mochaReady; //!< Mocha_InitLibrary() succeeded - USB unavailable entirely if not

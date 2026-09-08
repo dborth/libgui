@@ -38,7 +38,7 @@ void WutFileSystemDriver::init()
 
 	WHBMountSdCard();
 
-	WutDeviceState & sd = m_devices[DEVICE_SD];
+	WutDeviceState & sd = m_devices[kSlotSD];
 	memset(&sd, 0, sizeof(sd));
 	sd.id = DEVICE_SD;
 	strcpy(sd.name, "SD Card");
@@ -56,7 +56,7 @@ void WutFileSystemDriver::init()
 	sd.unmountRequired = false;
 	refreshDisplayName(sd);
 
-	WutDeviceState & usb = m_devices[DEVICE_USB];
+	WutDeviceState & usb = m_devices[kSlotUSB];
 	memset(&usb, 0, sizeof(usb));
 	usb.id = DEVICE_USB;
 	strcpy(usb.name, "USB Storage");
@@ -70,7 +70,7 @@ void WutFileSystemDriver::init()
 	// pollStorageDevices() call (or an explicit mountStorageDevice(),
 	// eg. from "autoMountAtStartup") picks it up from there.
 
-	m_deviceCount = DEVICE_LENGTH;
+	m_deviceCount = kSlotCount;
 }
 
 void WutFileSystemDriver::shutdown()
@@ -124,7 +124,7 @@ void WutFileSystemDriver::refreshDisplayName(WutDeviceState & dev)
 
 bool WutFileSystemDriver::tryMountUsb()
 {
-	WutDeviceState & usb = m_devices[DEVICE_USB];
+	WutDeviceState & usb = m_devices[kSlotUSB];
 
 	if(usb.isMounted)
 		return true;
@@ -151,7 +151,7 @@ bool WutFileSystemDriver::tryMountUsb()
 
 void WutFileSystemDriver::unmountUsb()
 {
-	WutDeviceState & usb = m_devices[DEVICE_USB];
+	WutDeviceState & usb = m_devices[kSlotUSB];
 
 	if(usb.isMounted)
 		fatUnmount("usb");
@@ -183,7 +183,7 @@ bool WutFileSystemDriver::usbStillPresent()
 	// libfat's cache rather than genuinely re-touching the hardware, so a
 	// removal can take a poll cycle or two longer to surface than a true
 	// hardware probe would.
-	return DevicePresent(m_devices[DEVICE_USB].prefix);
+	return DevicePresent(m_devices[kSlotUSB].prefix);
 }
 
 int WutFileSystemDriver::enumerateStorageDevices(StorageDevice outDevices[MAX_STORAGE_DEVICES])
@@ -293,7 +293,7 @@ void WutFileSystemDriver::pollStorageDevices(int removedIds[MAX_STORAGE_DEVICES]
 
 	// SD: re-verify via stat() on its devoptab prefix, same as before.
 	{
-		WutDeviceState & sd = m_devices[DEVICE_SD];
+		WutDeviceState & sd = m_devices[kSlotSD];
 		bool present = DevicePresent(sd.prefix);
 
 		if(sd.isPresent && !present)
@@ -316,7 +316,7 @@ void WutFileSystemDriver::pollStorageDevices(int removedIds[MAX_STORAGE_DEVICES]
 
 	// USB: no external devoptab to stat() - we own the mount ourselves
 	{
-		WutDeviceState & usb = m_devices[DEVICE_USB];
+		WutDeviceState & usb = m_devices[kSlotUSB];
 
 		if(usb.isMounted)
 		{
@@ -359,4 +359,28 @@ bool WutFileSystemDriver::getStorageMetrics(int deviceId, WutStorageMetrics & ou
 	}
 
 	return haveMetrics;
+}
+
+const char * WutFileSystemDriver::getMountPath(int device) const
+{
+	int idx = findDeviceIndex(device);
+	if(idx < 0 || m_devices[idx].prefix[0] == '\0')
+		return "";
+	return m_devices[idx].prefix;
+}
+
+const int * WutFileSystemDriver::getValidLoadDevices(int & outCount) const
+{
+	// No DEVICE_DVD (no optical drive) and no DEVICE_SMB (deliberately not
+	// ported to Wii U for this pass).
+	static const int devices[] = { DEVICE_AUTO, DEVICE_SD, DEVICE_USB };
+	outCount = sizeof(devices) / sizeof(devices[0]);
+	return devices;
+}
+
+const int * WutFileSystemDriver::getValidSaveDevices(int & outCount) const
+{
+	static const int devices[] = { DEVICE_AUTO, DEVICE_SD, DEVICE_USB };
+	outCount = sizeof(devices) / sizeof(devices[0]);
+	return devices;
 }
