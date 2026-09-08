@@ -7,7 +7,9 @@
 
 #include "WutPlatform.h"
 
+#include <sysapp/launch.h>
 #include <proc_ui/procui.h>
+#include <unistd.h>
 
 void WutPlatform::init(int width, int height)
 {
@@ -65,8 +67,6 @@ void WutPlatform::shutdown()
 		delete threadDriver;
 		threadDriver = nullptr;
 	}
-
-	WHBProcShutdown();
 }
 
 // Once WHBProcShutdown() has run (in shutdown(), above), returning from
@@ -74,7 +74,15 @@ void WutPlatform::shutdown()
 // own. There's no separate loader/power-off distinction to make here.
 void WutPlatform::requestExit()
 {
-	this->shutdown();
+	// If the exit was user-initiated, Cafe OS has not been notified yet.
+	// SYSLaunchMenu() tells Cafe OS to switch back to the system menu or loader.
+	if(ProcUIIsRunning()) {
+		SYSLaunchMenu();
+		while (WHBProcIsRunning()) {
+			usleep(1000);
+		}
+	}
+
 	exit(0);
 }
 
