@@ -34,7 +34,7 @@ jobs:
       if: ${{ matrix.image == 'WiiU' }}
       run: |
         git clone --depth 1 https://github.com/dborth/libfat.git /tmp/libfat
-        cd /tmp/libfat && make install
+        cd /tmp/libfat && make wiiu-install
 
     - name: Build Wii
       if: ${{ matrix.image == 'Wii' }}
