@@ -29,7 +29,7 @@ jobs:
       run: |
         git clone --depth 1 https://github.com/wiiu-env/libmocha.git /tmp/libmocha
         cd /tmp/libmocha && make install
-		
+
     - name: Build and install libfat
       if: ${{ matrix.image == 'WiiU' }}
       run: |
@@ -39,7 +39,7 @@ jobs:
     - name: Build Wii
       if: ${{ matrix.image == 'Wii' }}
       run: make -f Makefile.wii -j3
-        
+
     - name: Build GameCube
       if: ${{ matrix.image == 'GameCube' }}
       run: make -f Makefile.gc -j3
