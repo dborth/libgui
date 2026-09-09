@@ -27,7 +27,7 @@ jobs:
     - name: Build and install libmocha
       if: ${{ matrix.image == 'WiiU' }}
       run: |
-        git clone --depth 1 https://github.com/wiiu-env/libmocha.git /tmp/libmocha
+        git clone --depth 1 https://github.com/dborth/libmocha.git /tmp/libmocha
         cd /tmp/libmocha && make install
 
     - name: Build and install libdvm
