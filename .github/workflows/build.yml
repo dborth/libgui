@@ -36,6 +36,12 @@ jobs:
         git clone --depth 1 https://github.com/dborth/libfat.git /tmp/libfat
         cd /tmp/libfat && make wiiu-install
 
+    - name: Build and install libsmb2
+      if: ${{ matrix.image == 'WiiU' }}
+      run: |
+        git clone --depth 1 https://github.com/sahlberg/libsmb2.git /tmp/libsmb2
+        cd /tmp/libsmb2 && make -f Makefile.platform wiiu_install
+
     - name: Build Wii
       if: ${{ matrix.image == 'Wii' }}
       run: make -f Makefile.wii -j3
