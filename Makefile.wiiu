@@ -37,7 +37,7 @@ LDFLAGS		=	-g $(MACHDEP) $(RPXSPECS) -Wl,-Map,$(notdir $@).map
 # link order matters: libwhb depends on wut/coreinit symbols, so it comes
 # first; freetype/png/z are portlibs, same as the Wii build.
 #---------------------------------------------------------------------------------
-LIBS :=	-lwut -lmocha -lfat -lsmb2 -lpng -lz -lvorbisidec -logg $(FREETYPE_LIBS)
+LIBS :=	-lwut -lmocha -ldvm -lsmb2 -lpng -lz -lvorbisidec -logg $(FREETYPE_LIBS)
 #---------------------------------------------------------------------------------
 # list of directories containing libraries, this must be the top level containing
 # include and lib

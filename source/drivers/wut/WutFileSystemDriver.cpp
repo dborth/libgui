@@ -4,18 +4,18 @@
  * WutFileSystemDriver.cpp
  *
  * Wii U storage device enumeration + mounting: SD via WHB, USB via
- * libmocha's raw disc interface + vendored libfat.
+ * libmocha's raw disc interface + libdvm (see dvm_wut.c/h).
  ***************************************************************************/
 #include <whb/sdcard.h>
 #include <mocha/mocha.h>
 #include <mocha/disc_interface.h>
-#include <fat.h>
 #include <sys/statvfs.h>
 #include <sys/stat.h>
 #include <string.h>
 #include <stdio.h>
 
 #include "WutFileSystemDriver.h"
+#include "dvm_wut.h"
 
 static bool DevicePresent(const char * prefix)
 {
@@ -31,10 +31,14 @@ void WutFileSystemDriver::init()
 	FSAInit();
 	m_fsaClient = FSAAddClient(nullptr); // best-effort; volume-label lookups just fall back if this is 0
 
-	// USB (via Mocha_usb_disc_interface) needs Mocha; SD (via WHB) doesn't.
-	// If this fails - not booted under Aroma/compatible CFW - USB just
-	// stays permanently absent rather than the whole driver failing.
+	// USB (via Mocha_usb1/2_disc_interface) needs Mocha; SD (via WHB)
+	// doesn't. If this fails - not booted under Aroma/compatible CFW - USB
+	// just stays permanently absent rather than the whole driver failing.
 	m_mochaReady = (Mocha_InitLibrary() == MOCHA_RESULT_SUCCESS);
+
+	// Independent of Mocha - dvmWutInit() just registers libdvm's vfat/
+	// exfat filesystem drivers, which don't touch hardware themselves.
+	dvmWutInit();
 
 	WHBMountSdCard();
 
@@ -60,10 +64,14 @@ void WutFileSystemDriver::init()
 	memset(&usb, 0, sizeof(usb));
 	usb.id = DEVICE_USB;
 	strcpy(usb.name, "USB Storage");
-	strcpy(usb.prefix, "usb:/");
+	usb.prefix[0] = '\0'; // set once a physical slot actually mounts - see tryMountUsb()
 	usb.isPresent = false;
 	usb.isMounted = false;
 	usb.unmountRequired = false;
+
+	m_usbSlots[0] = { &Mocha_usb1_disc_interface, "usb1", false };
+	m_usbSlots[1] = { &Mocha_usb2_disc_interface, "usb2", false };
+	m_activeUsbSlot = -1;
 	// Deliberately not attempting the USB mount here: the raw open probe
 	// is a real IOSU IPC round trip, and init() runs on the main thread
 	// during app startup - not the storage-checking thread. The first
@@ -76,6 +84,15 @@ void WutFileSystemDriver::init()
 void WutFileSystemDriver::shutdown()
 {
 	unmountUsb();
+
+	// unmountUsb() only touches whichever slot was actually mounted - a
+	// slot that got poisoned but never became the active mount could still
+	// theoretically hold an open fd (eg. app killed mid-probe). Cheap and
+	// safe to call unconditionally; Mocha_usbN_shutdown() no-ops if the fd
+	// isn't open.
+	for(int i = 0; i < kUsbSlotCount; i++)
+		if(m_usbSlots[i].iface)
+			m_usbSlots[i].iface->shutdown();
 
 	WHBUnmountSdCard();
 
@@ -122,6 +139,50 @@ void WutFileSystemDriver::refreshDisplayName(WutDeviceState & dev)
 	}
 }
 
+bool WutFileSystemDriver::tryMountUsbSlot(int slotIndex)
+{
+	WutUsbPhysicalSlot & slot = m_usbSlots[slotIndex];
+
+	if(slot.poisoned)
+	{
+		// Known-unmountable as of the last full probe. A bare startup()
+		// call is a single cheap IOSU open, versus a real mount attempt's
+		// open+read+signature-check pipeline, so this is the backoff:
+		// don't repeat the expensive probe every poll cycle for a port
+		// group we already know can't mount.
+		if(slot.iface->isInserted())
+			return false; // the fd we poisoned earlier is still open - nothing has changed here
+
+		// fd isn't open (tryMountUsbSlot() shuts it down whenever it
+		// poisons a slot, below) - see if anything is there right now.
+		if(!slot.iface->startup())
+			return false; // still nothing / still gone - cheap to recheck next cycle
+
+		// The port group's fd state just changed - something was removed
+		// and something (maybe the same device, maybe not) is there now.
+		// Clear the poison and fall through to a real mount attempt.
+		slot.poisoned = false;
+	}
+
+	// dvmWutMountUsb() takes a non-const DISC_INTERFACE* (matching
+	// dvmDiscCreate()'s own signature upstream) but never mutates it -
+	// only ever calls through its function pointers.
+	if(dvmWutMountUsb(slot.mountName, (DISC_INTERFACE *) slot.iface, kUsbCachePages, kUsbSectorsPerPage))
+		return true;
+
+	// Either genuinely nothing in this port group (startup() itself failed
+	// during the mount attempt) or something's there but unrecognized -
+	// either way, stop paying for a full mount attempt every poll cycle.
+	// dvmWutMountUsb() already shuts the interface down on failure, but
+	// calling shutdown() again ourselves is a harmless no-op (Mocha checks
+	// isInserted() first) - kept as a defensive belt-and-suspenders so the
+	// isInserted()/startup() pair above is guaranteed to see a closed fd
+	// regardless of exactly how the failure happened.
+	slot.iface->shutdown();
+	slot.poisoned = true;
+	return false;
+}
+
 bool WutFileSystemDriver::tryMountUsb()
 {
 	WutDeviceState & usb = m_devices[kSlotUSB];
@@ -132,36 +193,51 @@ bool WutFileSystemDriver::tryMountUsb()
 	if(!m_mochaReady)
 		return false;
 
-	// fatMountSimple() calls disc->startup() internally, which is what
-	// actually does the /dev/usb01 (falling back to /dev/usb02) raw open -
-	// a genuine hardware probe each time this is called, not a cached
-	// result. Safe to call repeatedly while unmounted.
-	if(!fatMountSimple("usb", &Mocha_usb_disc_interface))
+	// Try every physical port group that isn't currently poisoned, in
+	// order, stopping at the first that mounts. A device sitting in one
+	// group - mountable or not - never hides the other one anymore.
+	for(int i = 0; i < kUsbSlotCount; i++)
 	{
-		usb.isPresent = false;
-		return false;
+		if(!tryMountUsbSlot(i))
+			continue;
+
+		m_activeUsbSlot = i;
+		usb.isPresent = true;
+		usb.isMounted = true;
+		usb.unmountRequired = false;
+		snprintf(usb.prefix, sizeof(usb.prefix), "%s:/", m_usbSlots[i].mountName);
+		refreshDisplayName(usb);
+		return true;
 	}
 
-	usb.isPresent = true;
-	usb.isMounted = true;
-	usb.unmountRequired = false;
-	refreshDisplayName(usb);
-	return true;
+	usb.isPresent = false;
+	return false;
 }
 
 void WutFileSystemDriver::unmountUsb()
 {
 	WutDeviceState & usb = m_devices[kSlotUSB];
 
-	if(usb.isMounted)
-		fatUnmount("usb");
+	if(m_activeUsbSlot >= 0)
+	{
+		WutUsbPhysicalSlot & slot = m_usbSlots[m_activeUsbSlot];
 
-	// Reset Mocha's cached fds regardless of our own mount-state bookkeeping,
-	// so the next tryMountUsb() forces a real re-probe rather than reusing
-	// (or failing on) a stale handle from before a removal.
-	if(m_mochaReady)
-		Mocha_usb_disc_interface.shutdown();
+		// dvmWutUnmountUsb() drops the fat driver's reference on the
+		// DvmDisc it was mounted through, which - once that's the last
+		// reference - destroys the disc and calls slot.iface->shutdown()
+		// itself (see dvm_wut.c and fat_driver.c's dvmDiscAddUser()/
+		// dvmDiscRemoveUser() pairing). No separate shutdown() call needed
+		// here the way the pre-dvm version needed one.
+		if(usb.isMounted)
+			dvmWutUnmountUsb(slot.mountName);
 
+		// An app-driven unmount (eg. "safely remove" from a menu, or this
+		// same slot going away and being re-detected) isn't evidence the
+		// device is bad - don't carry poisoning across a clean unmount.
+		slot.poisoned = false;
+	}
+
+	m_activeUsbSlot = -1;
 	usb.isPresent = false;
 	usb.isMounted = false;
 	usb.unmountRequired = false;
@@ -169,21 +245,17 @@ void WutFileSystemDriver::unmountUsb()
 
 bool WutFileSystemDriver::usbStillPresent()
 {
-	if(!m_mochaReady)
+	if(!m_mochaReady || m_activeUsbSlot < 0)
 		return false;
 
-	// Deliberately routed through the normal devoptab stat(), same as SD,
-	// rather than calling Mocha_usb_disc_interface.readSectors() directly:
-	// libfat's own internal reads go through that same underlying Mocha 
-	// call, but under libfat's mutex_t lock.
-	// Calling readSectors() directly here, from the storage-checking
-	// thread, would race with those - libmocha has no locking of its own
-	// around the shared fd. stat() goes through the same lock libfat's
-	// other callers use, at the cost of occasionally being served from
-	// libfat's cache rather than genuinely re-touching the hardware, so a
-	// removal can take a poll cycle or two longer to surface than a true
-	// hardware probe would.
-	return DevicePresent(m_devices[kSlotUSB].prefix);
+	// Forces a genuine, uncached raw sector read through the active slot's
+	// mounted disc - see dvmDiscProbePresence() in the libdvm fork. Unlike
+	// stat()-ing the mount root (which libdvm's own sector cache, like
+	// libfat's before it, can answer entirely from memory without ever
+	// touching hardware again after mount), this always re-touches the
+	// device, and does so under libdvm's own cache lock so it can't race
+	// a concurrent file read/write on another thread.
+	return dvmWutUsbStillPresent(m_usbSlots[m_activeUsbSlot].mountName);
 }
 
 int WutFileSystemDriver::enumerateStorageDevices(StorageDevice outDevices[MAX_STORAGE_DEVICES])

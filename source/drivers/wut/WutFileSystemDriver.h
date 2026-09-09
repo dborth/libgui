@@ -6,6 +6,7 @@
 #pragma once
 #include "../FileSystemDriver.h"
 #include <coreinit/filesystem_fsa.h>
+#include <mocha/disc_interface.h>
 
 //! Optional capacity/health telemetry for a single device, filled in on
 //! request via getStorageMetrics(). Kept separate from the generic
@@ -20,17 +21,34 @@ struct WutStorageMetrics
 	bool     readOnly;
 };
 
+//! One physical USB port group as Cafe OS actually exposes it - "/dev/usb01"
+//! (rear ports) and "/dev/usb02" (front ports) are independent IOSU device
+//! nodes, each with its own fd lifecycle. A device sitting in one group,
+//! mountable or not, has no bearing on the other. WutFileSystemDriver still
+//! only ever exposes a single DEVICE_USB to the rest of the app (see
+//! WutDeviceState below) - this struct is purely internal bookkeeping for
+//! which physical group is backing that one exposed device, and for not
+//! re-probing a group we already know can't mount.
+struct WutUsbPhysicalSlot
+{
+	const DISC_INTERFACE * iface;      //!< &Mocha_usb1_disc_interface or &Mocha_usb2_disc_interface
+	const char *           mountName;  //!< devoptab basename, eg. "usb1" - also the dvm_wut.c volume name
+	bool                    poisoned;   //!< saw something here we couldn't mount - see tryMountUsbSlot()
+};
+
 //! State tracker for a single storage device slot. Wii U tracks exactly
 //! two slots - DEVICE_SD (always present once WHBMountSdCard() succeeds)
 //! and DEVICE_USB (empty, ie. prefix[0] == 0 / isPresent false, until
 //! tryMountUsb() claims it) - one mount per device type, like every other
-//! platform (see the Device enum in FileSystemDriver.h).
+//! platform (see the Device enum in FileSystemDriver.h). DEVICE_USB is
+//! backed by whichever entry in m_usbSlots actually mounted - see
+//! WutUsbPhysicalSlot above and m_activeUsbSlot.
 struct WutDeviceState
 {
 	int  id;
 	char name[16];		//!< human-readable base name, eg. "SD Card" or derived from prefix (eg. "usb0")
 	char label[16];		//!< volume label when we can read one via FSAGetVolumeInfo, empty otherwise
-	char prefix[32];	//!< devoptab mount prefix, eg. "usb0:/" or the runtime SD path
+	char prefix[32];	//!< devoptab mount prefix, eg. "usb1:/" (whichever physical slot is active) or the runtime SD path
 	bool isPresent;		//!< found on the last poll (stat()-able)
 	bool isMounted;
 	bool unmountRequired;
@@ -39,16 +57,35 @@ struct WutDeviceState
 //!Wii U FileSystemDriver.
 //!
 //!SD: WHBMountSdCard() - a runtime-assigned FSA path, not a static devoptab name
-//!USB: stock Cafe OS has no FAT driver for USB at all so we use libmocha
+//!USB: stock Cafe OS has no FAT/exFAT driver for USB at all, so mounting
+//!goes through libdvm - libdvm gets us exFAT for free and is what supplies
+//!dvmDiscProbePresence() for genuine hot-unplug detection below.
+//! Raw disc access below libdvm is through libmocha's DISC_INTERFACE.
 //!
-//!Hotplug: Mocha_usb_isInserted() only reports whether we already have the
-//!fd open - it doesn't re-probe hardware - so it can't drive polling the
-//!way __io_usbstorage.isInserted() does on GC/Wii. Instead: while
-//!unmounted, pollStorageDevices() retries fatMountSimple() each cycle
-//!(which does force a fresh /dev/usb0N open attempt); while mounted, it
-//!reads one raw sector directly through the disc interface as a genuine
-//!liveness check, since stat()-ing the mount root wouldn't necessarily
-//!touch the hardware at all.
+//!Cafe OS exposes USB as two independent port groups (rear = "/dev/usb01",
+//!front = "/dev/usb02", each its own IOSU device node/fd)
+//!Both groups are probed independently (m_usbSlots) while still only
+//!exposing one DEVICE_USB outward - see WutUsbPhysicalSlot.
+//!
+//!Hotplug (insertion): Mocha_usbN_isInserted() only reports whether we
+//!already have the fd open - it doesn't re-probe hardware - so it can't
+//!drive polling the way __io_usbstorage.isInserted() does on GC/Wii.
+//!Instead: while unmounted, pollStorageDevices() retries dvmWutMountUsb()
+//!each cycle (which does force a fresh /dev/usb0N open attempt) for any
+//!slot that isn't currently poisoned.
+//!
+//!Hotplug (removal while mounted): dvmWutUsbStillPresent() forces a real,
+//!uncached raw sector read through the mounted disc rather than stat()-ing
+//!the mount root, which libdvm's own sector cache can answer entirely from
+//!memory without ever touching hardware again after mount.
+//!
+//!Poisoning: a slot that opens but won't mount (wrong/unrecognized format)
+//!gets shutdown() and flagged poisoned rather than retried every poll
+//!cycle - tryMountUsbSlot() only pays for a full mount attempt again once
+//!a cheap startup()-only probe shows the port group's fd state has
+//!actually changed (ie. something was removed, and something - maybe
+//!nothing - is there now). This is what stops a bad stick in one port
+//!group from burning a full IOSU round trip every second forever.
 class WutFileSystemDriver : public FileSystemDriver
 {
 	public:
@@ -76,22 +113,38 @@ class WutFileSystemDriver : public FileSystemDriver
 		static const int kSlotUSB = 1;
 		static const int kSlotCount = 2;
 
-		WutDeviceState  m_devices[kSlotCount];
-		int             m_deviceCount;
-		FSAClientHandle m_fsaClient;  //!< used only for best-effort volume-label lookups; 0 if unavailable
-		bool            m_mochaReady; //!< Mocha_InitLibrary() succeeded - USB unavailable entirely if not
+		static const int kUsbSlotCount = 2; //!< physical USB port groups: rear, front
+
+		//! Cache sizing passed to dvmWutMountUsb() - tuned and hardware-confirmed
+		static const unsigned kUsbCachePages     = 512;
+		static const unsigned kUsbSectorsPerPage = 128;
+
+		WutDeviceState     m_devices[kSlotCount];
+		int                m_deviceCount;
+		FSAClientHandle    m_fsaClient;  //!< used only for best-effort volume-label lookups; 0 if unavailable
+		bool               m_mochaReady; //!< Mocha_InitLibrary() succeeded - USB unavailable entirely if not
+
+		WutUsbPhysicalSlot m_usbSlots[kUsbSlotCount];
+		int                m_activeUsbSlot; //!< index into m_usbSlots backing DEVICE_USB right now, or -1 if unmounted
 
 		int  findDeviceIndex(int deviceId) const;
 		void refreshDisplayName(WutDeviceState & dev);
 
-		//! Attempts fatMountSimple("usb", &Mocha_usb_disc_interface). Updates
-		//! m_devices[DEVICE_USB] and returns whether it's mounted afterwards.
+		//! Tries every m_usbSlots entry that isn't currently poisoned, in
+		//! order, stopping at the first that mounts. Updates
+		//! m_devices[kSlotUSB] and m_activeUsbSlot and returns whether USB
+		//! is mounted afterwards. Safe to call repeatedly while unmounted.
 		bool tryMountUsb();
-		//! fatUnmount("usb") + Mocha_usb_disc_interface.shutdown(), so the
-		//! next tryMountUsb() genuinely re-probes hardware rather than
+		//! Single-slot attempt used by tryMountUsb(): handles the poisoned/
+		//! backoff check, then a real dvmWutMountUsb() probe if warranted.
+		bool tryMountUsbSlot(int slotIndex);
+		//! dvmWutUnmountUsb() on the active slot, which shuts down its
+		//! DISC_INTERFACE once nothing else references it, so the next
+		//! tryMountUsbSlot() genuinely re-probes hardware rather than
 		//! reusing a stale fd. Safe to call whether or not USB is mounted.
 		void unmountUsb();
-		//! Real liveness check for an already-mounted USB volume: reads one
-		//! raw sector directly through Mocha_usb_disc_interface.
+		//! Real liveness check for an already-mounted USB volume: forces an
+		//! uncached raw sector read through the active slot's mounted disc
+		//! via dvmWutUsbStillPresent().
 		bool usbStillPresent();
 };

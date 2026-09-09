@@ -30,11 +30,11 @@ jobs:
         git clone --depth 1 https://github.com/wiiu-env/libmocha.git /tmp/libmocha
         cd /tmp/libmocha && make install
 
-    - name: Build and install libfat
+    - name: Build and install libdvm
       if: ${{ matrix.image == 'WiiU' }}
       run: |
-        git clone --depth 1 https://github.com/dborth/libfat.git /tmp/libfat
-        cd /tmp/libfat && make wiiu-install
+        git clone --depth 1 --recurse-submodules --shallow-submodules https://github.com/dborth/libdvm.git /tmp/libdvm
+        cd /tmp/libdvm && make install
 
     - name: Build and install libsmb2
       if: ${{ matrix.image == 'WiiU' }}
