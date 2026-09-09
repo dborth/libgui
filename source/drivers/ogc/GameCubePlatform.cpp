@@ -21,6 +21,12 @@ void GameCubePlatform::init(int width, int height)
 
 	this->fileSystemDriver = new GameCubeFileSystemDriver();
 	this->fileSystemDriver->init();
+
+	this->logger = new Logger();
+	this->logger->registerBackend(LOGGER_OSREPORT, new OgcLoggerSysReport());
+	this->logger->registerBackend(LOGGER_SERIAL,   new OgcLoggerUsbGecko());
+	this->logger->registerBackend(LOGGER_SD,       new LoggerSd());
+	this->logger->init(LogConfig{});
 }
 
 void GameCubePlatform::shutdown()
@@ -47,6 +53,12 @@ void GameCubePlatform::shutdown()
 		videoDriver->shutdown();
 		delete videoDriver;
 		videoDriver = nullptr;
+	}
+
+	if (logger) {
+		logger->shutdown();
+		delete logger;
+		logger = nullptr;
 	}
 
 	if (threadDriver) {

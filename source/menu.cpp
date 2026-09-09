@@ -700,13 +700,17 @@ static int MenuSettingsFile()
 
 	return menu;
 }
-
+#include "drivers/Logger.h"
 /****************************************************************************
  * MainMenu
  ***************************************************************************/
 void MainMenu(int menu)
 {
 	ResumeDeviceCheckingThread();
+
+
+
+	LOG_INFO("hello world");
 
 	int currentMenu = menu;
 
@@ -716,7 +720,7 @@ void MainMenu(int menu)
 	pointer[3] = new GuiImageData(player4_point_png);
 
 	mainWindow = new GuiWindow(platform->getVideo()->getScreenWidth(), platform->getVideo()->getScreenHeight());
-
+	LOG_INFO("hello world 2");
 	bgImg = new GuiImage(platform->getVideo()->getScreenWidth(), platform->getVideo()->getScreenHeight(), (PixelColor){50, 50, 50, 255});
 	bgImg->setStripe(30);
 	mainWindow->append(bgImg);

@@ -11,6 +11,9 @@
 #include "OgcThreadDriver.h"
 #include "OgcAudioDriver.h"
 #include "GameCubeFileSystemDriver.h"
+#include "OgcLoggerSysReport.h"
+#include "OgcLoggerUsbGecko.h"
+#include "../LoggerSd.h"
 
 //!GameCube (HW_DOL) Platform: same driver set as WiiPlatform except for
 //!file system, which uses GameCubeFileSystemDriver (memory card/GC
@@ -33,6 +36,7 @@ class GameCubePlatform : public Platform
 		InputDriver* getInput() override { return inputDriver; }
 		FileSystemDriver* getFileSystem() override { return fileSystemDriver; }
 		ThreadDriver* getThread() override { return threadDriver; }
+		Logger* getLogger() override { return logger; }
 
 	private:
 		Status status = Status::Running;
@@ -41,4 +45,5 @@ class GameCubePlatform : public Platform
 		OgcInputDriver* inputDriver = nullptr;
 		GameCubeFileSystemDriver* fileSystemDriver = nullptr;
 		OgcThreadDriver* threadDriver = nullptr;
+		Logger* logger = nullptr;
 };

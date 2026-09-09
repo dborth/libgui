@@ -21,6 +21,13 @@ void WiiPlatform::init(int width, int height)
 
 	this->fileSystemDriver = new WiiFileSystemDriver();
 	this->fileSystemDriver->init();
+
+	this->logger = new Logger();
+	this->logger->registerBackend(LOGGER_OSREPORT, new OgcLoggerSysReport());
+	this->logger->registerBackend(LOGGER_UDP,      new OgcLoggerUdp());
+	this->logger->registerBackend(LOGGER_SERIAL,   new OgcLoggerUsbGecko());
+	this->logger->registerBackend(LOGGER_SD,       new LoggerSd());
+	this->logger->init(LogConfig{});
 }
 
 void WiiPlatform::shutdown()
@@ -47,6 +54,12 @@ void WiiPlatform::shutdown()
 		videoDriver->shutdown();
 		delete videoDriver;
 		videoDriver = nullptr;
+	}
+
+	if (logger) {
+		logger->shutdown();
+		delete logger;
+		logger = nullptr;
 	}
 
 	if (threadDriver) {

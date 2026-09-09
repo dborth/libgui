@@ -12,6 +12,10 @@
 #include "WutInputDriver.h"
 #include "WutFileSystemDriver.h"
 #include "WutThreadDriver.h"
+#include "WutLoggerOSReport.h"
+#include "WutLoggerUdp.h"
+#include "WutLoggerUsbSerial.h"
+#include "../LoggerSd.h"
 
 class WutPlatform : public Platform
 {
@@ -30,6 +34,7 @@ class WutPlatform : public Platform
 		InputDriver* getInput() override { return inputDriver; }
 		FileSystemDriver* getFileSystem() override { return fileSystemDriver; }
 		ThreadDriver* getThread() override { return threadDriver; }
+		Logger* getLogger() override { return logger; }
 
 	private:
 		Status status = Status::Running;
@@ -38,4 +43,5 @@ class WutPlatform : public Platform
 		WutInputDriver* inputDriver = nullptr;
 		WutFileSystemDriver* fileSystemDriver = nullptr;
 		WutThreadDriver* threadDriver = nullptr;
+		Logger* logger = nullptr;
 };

@@ -13,6 +13,10 @@
 #include "OgcThreadDriver.h"
 #include "OgcAudioDriver.h"
 #include "WiiFileSystemDriver.h"
+#include "OgcLoggerSysReport.h"
+#include "OgcLoggerUdp.h"
+#include "OgcLoggerUsbGecko.h"
+#include "../LoggerSd.h"
 
 void NotifyWiiShutdownRequested();
 
@@ -37,6 +41,7 @@ class WiiPlatform : public Platform
 		InputDriver* getInput() override { return inputDriver; }
 		FileSystemDriver* getFileSystem() override { return fileSystemDriver; }
 		ThreadDriver* getThread() override { return threadDriver; }
+		Logger* getLogger() override { return logger; }
 
 	private:
 		Status status = Status::Running;
@@ -45,4 +50,5 @@ class WiiPlatform : public Platform
 		OgcInputDriver* inputDriver = nullptr;
 		WiiFileSystemDriver* fileSystemDriver = nullptr;
 		OgcThreadDriver* threadDriver = nullptr;
+		Logger* logger = nullptr;
 };

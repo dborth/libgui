@@ -29,6 +29,13 @@ void WutPlatform::init(int width, int height)
 
 	this->fileSystemDriver = new WutFileSystemDriver();
 	this->fileSystemDriver->init();
+
+	this->logger = new Logger();
+	this->logger->registerBackend(LOGGER_OSREPORT, new WutLoggerOSReport());
+	this->logger->registerBackend(LOGGER_UDP,      new WutLoggerUdp());
+	this->logger->registerBackend(LOGGER_SERIAL,    new WutLoggerUsbSerial());
+	this->logger->registerBackend(LOGGER_SD,   new LoggerSd());
+	this->logger->init(LogConfig{});
 }
 
 void WutPlatform::shutdown()
@@ -59,6 +66,13 @@ void WutPlatform::shutdown()
 		videoDriver->shutdown();
 		delete videoDriver;
 		videoDriver = nullptr;
+	}
+
+	if(logger)
+	{
+		logger->shutdown();
+		delete logger;
+		logger = nullptr;
 	}
 
 	if(threadDriver)

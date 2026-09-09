@@ -12,12 +12,14 @@
 #include "InputDriver.h"
 #include "FileSystemDriver.h"
 #include "ThreadDriver.h"
+#include "Logger.h"
 
 class AudioDriver;
 class VideoDriver;
 class InputDriver;
 class FileSystemDriver;
 class ThreadDriver;
+class Logger;
 
 //! Platform execution state.
 enum class Status
@@ -71,6 +73,10 @@ class Platform
 		virtual InputDriver* getInput() = 0;
 		virtual FileSystemDriver* getFileSystem() = 0;
 		virtual ThreadDriver* getThread() = 0;
+		//!May return nullptr on a Platform that hasn't finished init()
+		//!yet - LogPrintf()/LOG_*() already guard against this, but code
+		//!calling platform->getLogger() directly should too.
+		virtual Logger* getLogger() = 0;
 
 		//!Current hardware/OS-level system event, if any. A single query
 		//!rather than independent shutdown/reset flags.
