@@ -1,12 +1,9 @@
 /****************************************************************************
- * libgui - drivers/wut
+ * Platform Abstraction Layer (WUT driver)
  * Daryl Borth 2026
  * WutThreadDriver.cpp
  *
- * Wraps wut/coreinit OSThread and OSMutex. Unlike libogc/LWP, OSThread and
- * OSMutex are real structs the caller owns the memory of (not opaque
- * integer handles), so each is heap-allocated here (thread control block +
- * its stack) to satisfy the void* handle contract used by ThreadDriver.
+ * Wraps wut/coreinit OSThread and OSMutex
  ***************************************************************************/
 #include <coreinit/thread.h>
 #include <coreinit/mutex.h>
@@ -133,11 +130,11 @@ void WutThreadDriver::cancelThread(void * thread)
 	// time the target thread hits a cancellation point (implicitly tested
 	// in mutex/spinlock operations), so there's no way to know from here
 	// when the thread is actually done touching its stack/control block.
-	// Best effort, same as OgcThreadDriver::cancelThread: request the
-	// cancellation and intentionally leak the thread/stack allocation
-	// rather than risk freeing memory the thread may still be running on.
-	// Prefer signalling the thread to exit cooperatively and calling
-	// joinThread() instead, which does clean up properly.
+	// Best effort, request the cancellation and intentionally leak the
+	// thread/stack allocation rather than risk freeing memory the thread
+	// may still be running on. Prefer signalling the thread to exit
+	// cooperatively and calling joinThread() instead, which does clean up
+	// properly.
 	WutThreadHandle * handle = static_cast<WutThreadHandle *>(thread);
 	OSCancelThread(handle->thread);
 	delete handle;

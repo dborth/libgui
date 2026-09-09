@@ -1,5 +1,5 @@
 /****************************************************************************
- * libgui - drivers
+ * Platform Abstraction Layer
  * Daryl Borth 2026
  * OneEuroFilter.h
  *

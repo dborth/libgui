@@ -1,8 +1,8 @@
 /****************************************************************************
- * libgui - drivers/ogc
+ * Platform Abstraction Layer (OGC driver)
  * Daryl Borth 2009-2026
  * OgcInputDriver.cpp
- * Hardware Translation Layer (Driver)
+ *
  * Wii/GameCube controller management and normalization
  ***************************************************************************/
 

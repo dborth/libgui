@@ -1,5 +1,5 @@
 /****************************************************************************
- * libgui - drivers/wut/shaders
+ * Platform Abstraction Layer (WUT driver)
  * Daryl Borth 2026
  * VertexShader.h
  ***************************************************************************/

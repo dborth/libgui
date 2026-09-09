@@ -1,6 +1,9 @@
 /****************************************************************************
- * libdvm - wut backend integration
+ * Platform Abstraction Layer (WUT driver)
+ * Daryl Borth 2026
  * dvm_wut.c
+ *
+ * libdvm - wut backend integration
  ***************************************************************************/
 #include "dvm_wut.h"
 #include <dvm.h>

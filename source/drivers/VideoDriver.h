@@ -1,7 +1,6 @@
 /****************************************************************************
- * libgui
- *
- * Daryl Borth 2009-2026
+ * Platform Abstraction Layer
+ * Daryl Borth 2026
  * VideoDriver.h
  *
  * Platform video backend GuiImage and GuiText delegates to. Exactly one driver

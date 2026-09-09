@@ -1,7 +1,6 @@
 /****************************************************************************
- * libgui
- *
- * Daryl Borth 2009-2026
+ * Platform Abstraction Layer
+ * Daryl Borth 2026
  * ThreadDriver.h
  *
  * Platform threading backend Thread and Mutex delegate to. Exactly one

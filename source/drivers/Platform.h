@@ -1,3 +1,10 @@
+/****************************************************************************
+ * Platform Abstraction Layer
+ * Daryl Borth 2026
+ * Platform.h
+ *
+ * Primary entry point
+ ***************************************************************************/
 #pragma once
 
 #include "AudioDriver.h"

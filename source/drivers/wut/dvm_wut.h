@@ -1,5 +1,6 @@
 /****************************************************************************
- * libdvm - wut backend integration
+ * Platform Abstraction Layer (WUT driver)
+ * Daryl Borth 2026
  * dvm_wut.h
  *
  * Wii U USB mounting on top of libdvm
