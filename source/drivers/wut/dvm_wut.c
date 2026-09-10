@@ -47,6 +47,7 @@ static DvmWutUsbVolume * claimVolumeSlot(const char * name)
 		if(g_usbVolumes[i].name[0] == '\0')
 		{
 			strncpy(g_usbVolumes[i].name, name, sizeof(g_usbVolumes[i].name) - 1);
+			g_usbVolumes[i].name[sizeof(g_usbVolumes[i].name) - 1] = '\0';
 			return &g_usbVolumes[i];
 		}
 	}
@@ -67,7 +68,17 @@ bool dvmWutMountUsb(const char * name, DISC_INTERFACE * iface, unsigned cachePag
 		return false;
 
 	if(cachePages)
-		disc = dvmDiscCacheCreate(disc, cachePages, sectorsPerPage);
+	{
+		DvmDisc * cachedDisc = dvmDiscCacheCreate(disc, cachePages, sectorsPerPage);
+		if(!cachedDisc)
+		{
+			// Wrapping failed (eg. allocation failure) - fall back to the
+			// raw, uncached disc rather than leaking it and handing a NULL
+			// disc pointer down to dvmProbeMountDisc().
+			cachedDisc = disc;
+		}
+		disc = cachedDisc;
+	}
 
 	// dvmProbeMountDisc() mounts every partition it recognizes, naming the
 	// first "name" and any further ones "name2", "name3"... (see

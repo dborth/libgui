@@ -30,7 +30,7 @@ void WutFileSystemDriver::init()
 	m_deviceCount = 0;
 
 	FSAInit();
-	m_fsaClient = FSAAddClient(nullptr); // best-effort; volume-label lookups just fall back if this is 0
+	m_fsaClient = FSAAddClient(nullptr); // best-effort; volume-label lookups just fall back if this is negative (FSError on failure, not necessarily 0)
 
 	// USB (via Mocha_usb1/2_disc_interface) needs Mocha; SD (via WHB)
 	// doesn't. If this fails - not booted under Aroma/compatible CFW - USB
@@ -112,11 +112,11 @@ void WutFileSystemDriver::shutdown()
 
 	WHBUnmountSdCard();
 
-	if(m_fsaClient)
+	if(m_fsaClient >= 0)
 	{
 		FSADelClient(m_fsaClient);
-		m_fsaClient = 0;
 	}
+	m_fsaClient = -1;
 
 	if(m_mochaReady)
 	{
@@ -143,7 +143,7 @@ void WutFileSystemDriver::refreshDisplayName(WutDeviceState & dev)
 	// resolves through our own FSA client.
 	dev.label[0] = '\0';
 
-	if(m_fsaClient)
+	if(m_fsaClient >= 0)
 	{
 		FSAVolumeInfo volInfo;
 		memset(&volInfo, 0, sizeof(volInfo));
@@ -205,6 +205,14 @@ bool WutFileSystemDriver::tryMountUsb()
 
 	if(usb.isMounted)
 		return true;
+
+	if(usb.unmountRequired)
+	{
+		// invalidateStorageDevice(DEVICE_USB) deferred the actual dvm
+		// unmount to here rather than doing I/O inline - do it now, once,
+		// before attempting to remount. unmountUsb() clears the flag.
+		unmountUsb();
+	}
 
 	if(!m_mochaReady)
 		return false;
@@ -355,14 +363,25 @@ const char * WutFileSystemDriver::mountResultMessage(int deviceId, MountResult r
 	if(result == MountResult::MountFailed)
 		return "Unable to mount device.";
 
-	return (deviceId == DEVICE_SD) ? "SD card not found!" : "USB drive not found!";
+	if(deviceId == DEVICE_SD)
+		return "SD card not found!";
+	if(deviceId == DEVICE_USB)
+		return "USB drive not found!";
+
+	return "Storage device not found!";
 }
 
 void WutFileSystemDriver::invalidateStorageDevice(int deviceId)
 {
 	if(deviceId == DEVICE_USB)
 	{
-		unmountUsb();
+		// Pure flag-set, no I/O here - matches the base-class contract.
+		// unmountUsb() does a real dvm cache flush + iface shutdown, so it's
+		// deferred to the next tryMountUsb() (from pollStorageDevices() or an
+		// explicit mountStorageDevice(DEVICE_USB) call), which sees
+		// unmountRequired and does the actual teardown then.
+		m_devices[kSlotUSB].isMounted = false;
+		m_devices[kSlotUSB].unmountRequired = true;
 		return;
 	}
 

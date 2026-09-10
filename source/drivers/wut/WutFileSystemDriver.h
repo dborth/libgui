@@ -121,7 +121,7 @@ class WutFileSystemDriver : public FileSystemDriver
 
 		WutDeviceState     m_devices[kSlotCount];
 		int                m_deviceCount;
-		FSAClientHandle    m_fsaClient;  //!< used only for best-effort volume-label lookups; 0 if unavailable
+		FSAClientHandle    m_fsaClient = -1;  //!< used only for best-effort volume-label lookups; negative if unavailable
 		bool               m_mochaReady; //!< Mocha_InitLibrary() succeeded - USB unavailable entirely if not
 
 		WutUsbPhysicalSlot m_usbSlots[kUsbSlotCount];

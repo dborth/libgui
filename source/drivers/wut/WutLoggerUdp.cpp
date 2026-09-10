@@ -22,13 +22,22 @@ bool WutLoggerUdp::init(const LogConfig & config)
 	if (config.nonBlocking)
 	{
 		int flags = fcntl(sock, F_GETFL, 0);
-		fcntl(sock, F_SETFL, flags | O_NONBLOCK);
+		if (flags >= 0)
+			fcntl(sock, F_SETFL, flags | O_NONBLOCK);
 	}
 
 	memset(&serverAddr, 0, sizeof(serverAddr));
 	serverAddr.sin_family = AF_INET;
 	serverAddr.sin_port = htons(config.targetPort);
-	inet_pton(AF_INET, config.targetIp, &serverAddr.sin_addr);
+
+	if (inet_pton(AF_INET, config.targetIp, &serverAddr.sin_addr) != 1)
+	{
+		// Malformed targetIp - fail activation loudly rather than silently
+		// sending to a zeroed 0.0.0.0 address.
+		close(sock);
+		sock = -1;
+		return false;
+	}
 
 	return true;
 }

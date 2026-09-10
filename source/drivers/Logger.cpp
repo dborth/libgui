@@ -205,9 +205,7 @@ void Logger::log(LogLevel level, const char * fmt, va_list args)
 	if (!initialized || level < config.level)
 		return;
 
-	// Fixed stack buffer only - no malloc/new anywhere in this path, so
-	// logging from a time-sensitive loop (audio callback, emulator core)
-	// has bounded, predictable cost and can't fail from heap exhaustion.
+	// Fixed stack buffer only - no malloc/new anywhere in this path.
 	char line[512];
 	size_t offset = 0;
 

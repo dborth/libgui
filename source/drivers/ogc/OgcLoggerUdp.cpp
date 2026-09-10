@@ -27,13 +27,24 @@ bool OgcLoggerUdp::init(const LogConfig & config)
 	if (config.nonBlocking)
 	{
 		int flags = net_fcntl(sock, F_GETFL, 0);
-		net_fcntl(sock, F_SETFL, flags | O_NONBLOCK);
+		if (flags >= 0)
+			net_fcntl(sock, F_SETFL, flags | O_NONBLOCK);
 	}
 
 	memset(&serverAddr, 0, sizeof(serverAddr));
 	serverAddr.sin_family = AF_INET;
 	serverAddr.sin_port = htons(config.targetPort);
-	serverAddr.sin_addr.s_addr = inet_addr(config.targetIp);
+
+	in_addr_t addr = inet_addr(config.targetIp);
+	if (addr == INADDR_NONE)
+	{
+		// Malformed targetIp - fail activation loudly rather than silently
+		// sending to a zeroed/broadcast address.
+		net_close(sock);
+		sock = -1;
+		return false;
+	}
+	serverAddr.sin_addr.s_addr = addr;
 
 	return true;
 }

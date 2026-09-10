@@ -43,7 +43,8 @@ void WutPlatform::init(int width, int height)
 	const char * mountPath = FindFirstMountedPath(this->fileSystemDriver, deviceCandidates, 1);
 
 	if(mountPath[0] != '\0') {
-		snprintf(config.filePath, sizeof(config.filePath), "%s/debug.log", mountPath);
+		// mountPath already ends in "/" (eg. "/vol/external01/") - no separator needed.
+		snprintf(config.filePath, sizeof(config.filePath), "%sdebug.log", mountPath);
 	}
 
 	this->logger->init(config);
