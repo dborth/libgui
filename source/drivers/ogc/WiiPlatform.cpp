@@ -29,10 +29,13 @@ void WiiPlatform::init(int width, int height)
 	this->logger->registerBackend(LOGGER_FILE,		new LoggerFile());
 
 	LogConfig config;
-	const char * sdPath = this->fileSystemDriver->getMountPath(DEVICE_SD);
+	static const int deviceCandidates[] = { DEVICE_SD, DEVICE_USB };
 
-	if(sdPath != nullptr) {
-		snprintf(config.filePath, sizeof(config.filePath), "%s/debug.log", sdPath);
+	const char * mountPath = FindFirstMountedPath(this->fileSystemDriver, deviceCandidates, 2);
+
+	if(mountPath[0] != '\0') {
+		// mountPath already ends in "/" (eg. "sd:/") - no separator needed.
+		snprintf(config.filePath, sizeof(config.filePath), "%sdebug.log", mountPath);
 	}
 
 	this->logger->init(config);

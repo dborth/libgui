@@ -56,7 +56,7 @@ void WutFileSystemDriver::init()
 	sd.prefix[sizeof(sd.prefix) - 1] = '\0';
 
 	sd.isPresent = DevicePresent(sd.prefix);
-	sd.isMounted = false;
+	sd.isMounted = sd.isPresent;
 	sd.unmountRequired = false;
 	refreshDisplayName(sd);
 
@@ -436,7 +436,7 @@ bool WutFileSystemDriver::getStorageMetrics(int deviceId, WutStorageMetrics & ou
 const char * WutFileSystemDriver::getMountPath(int device) const
 {
 	int idx = findDeviceIndex(device);
-	if(idx < 0 || m_devices[idx].prefix[0] == '\0')
+	if(idx < 0 || !m_devices[idx].isMounted || m_devices[idx].prefix[0] == '\0')
 		return "";
 	return m_devices[idx].prefix;
 }

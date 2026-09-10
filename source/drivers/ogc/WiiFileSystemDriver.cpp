@@ -227,7 +227,7 @@ static const char * const kMountPath[DEVICE_LENGTH] =
 
 const char * WiiFileSystemDriver::getMountPath(int device) const
 {
-	if(device < 0 || device >= DEVICE_LENGTH)
+	if(device < 0 || device >= DEVICE_LENGTH || !isMounted[device])
 		return "";
 	return kMountPath[device];
 }

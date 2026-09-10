@@ -129,3 +129,16 @@ class FileSystemDriver
 		virtual const int * getValidLoadDevices(int & outCount) const = 0;
 		virtual const int * getValidSaveDevices(int & outCount) const = 0;
 };
+
+//! Convenience for "try these devices in priority order, use whichever one
+//! is actually mounted" call sites.
+inline const char * FindFirstMountedPath(FileSystemDriver * fs, const int * candidates, int count)
+{
+	for(int i = 0; i < count; i++)
+	{
+		const char * path = fs->getMountPath(candidates[i]);
+		if(path && path[0] != '\0')
+			return path;
+	}
+	return "";
+}
