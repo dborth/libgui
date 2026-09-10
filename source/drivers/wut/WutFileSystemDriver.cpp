@@ -96,8 +96,8 @@ void WutFileSystemDriver::init()
 	usb2.isMounted = false;
 	usb2.unmountRequired = false;
 
-	m_usbSlots[0] = { &Mocha_usb1_disc_interface, "usb1", false };
-	m_usbSlots[1] = { &Mocha_usb2_disc_interface, "usb2", false };
+	m_usbSlots[0] = { &Mocha_usb1_disc_interface, "usb1", 0, 0 };
+	m_usbSlots[1] = { &Mocha_usb2_disc_interface, "usb2", 0, 0 };
 
 	// Deliberately not attempting the USB mount here: the raw open probe
 	// is a real IOSU IPC round trip, and init() runs on the main thread
@@ -112,11 +112,10 @@ void WutFileSystemDriver::shutdown()
 {
 	WHBUnmountSdCard();
 
-	// unmountUsb() only touches whichever slot was actually mounted - a
-	// slot that got poisoned but never became the active mount could still
-	// theoretically hold an open fd (eg. app killed mid-probe). Cheap and
-	// safe to call unconditionally; Mocha_usbN_shutdown() no-ops if the fd
-	// isn't open.
+	// unmountUsbSlot() only touches whichever slots were actually mounted -
+	// a slot that's mid-backoff and never mounted could still theoretically
+	// hold an open fd (eg. app killed mid-probe). Cheap and safe to call
+	// unconditionally; Mocha_usbN_shutdown() no-ops if the fd isn't open.
 	for(int i = 0; i < kUsbSlotCount; i++)
 	{
 		unmountUsbSlot(i);
@@ -184,25 +183,17 @@ bool WutFileSystemDriver::tryMountUsbSlot(int usbSlotIdx)
 	if(!m_mochaReady)
 		return false;
 
-	if(slot.poisoned)
+	// Backing off after repeated failures against an unremoved device -
+	// skip the IOSU round trip entirely until the countdown elapses,
+	// rather than re-probing every single poll cycle forever. This is a
+	// plain poll counter rather than anything keyed off isInserted(),
+	// since Mocha_usbN_isInserted() only reflects "do we currently have an
+	// fd open" - it never re-probes hardware, so it can't distinguish
+	// "still the same bad device" from "something changed" on its own.
+	if(slot.backoffPollsLeft > 0)
 	{
-		// Known-unmountable as of the last full probe. A bare startup()
-		// call is a single cheap IOSU open, versus a real mount attempt's
-		// open+read+signature-check pipeline, so this is the backoff:
-		// don't repeat the expensive probe every poll cycle for a port
-		// group we already know can't mount.
-		if(slot.iface->isInserted())
-			return false; // the fd we poisoned earlier is still open - nothing has changed here
-
-		// fd isn't open (tryMountUsbSlot() shuts it down whenever it
-		// poisons a slot, below) - see if anything is there right now.
-		if(!slot.iface->startup())
-			return false; // still nothing / still gone - cheap to recheck next cycle
-
-		// The port group's fd state just changed - something was removed
-		// and something (maybe the same device, maybe not) is there now.
-		// Clear the poison and fall through to a real mount attempt.
-		slot.poisoned = false;
+		slot.backoffPollsLeft--;
+		return false;
 	}
 
 	// dvmWutMountUsb() takes a non-const DISC_INTERFACE* (matching
@@ -210,6 +201,7 @@ bool WutFileSystemDriver::tryMountUsbSlot(int usbSlotIdx)
 	// only ever calls through its function pointers.
 	if(dvmWutMountUsb(slot.mountName, (DISC_INTERFACE *) slot.iface, kUsbCachePages, kUsbSectorsPerPage))
 	{
+		slot.failCount = 0;
 		usb.isPresent = true;
 		usb.isMounted = true;
 		usb.unmountRequired = false;
@@ -218,11 +210,17 @@ bool WutFileSystemDriver::tryMountUsbSlot(int usbSlotIdx)
 		return true;
 	}
 
-	// Mount failed (e.g., WFS drive, unformatted partition, or unrecognized signature).
-	// Poison the slot, but DO NOT call slot.iface->shutdown(). Keeping the interface
-	// handle open allows slot.iface->isInserted() to accurately report 'true' until
-	// the physical drive is removed.
-	slot.poisoned = true;
+	// Mount failed (nothing there, unformatted, or a format we don't
+	// recognize). Always leave the interface shutdown() here rather than
+	// leaving the fd open across attempts.
+	slot.iface->shutdown();
+
+	slot.failCount++;
+	if(slot.failCount < kUsbMaxQuickRetries)
+		slot.backoffPollsLeft = 0;              // could be transient (eg. drive still spinning up) - try again next cycle
+	else
+		slot.backoffPollsLeft = kUsbBackoffPolls; // give up on this device for a while - never permanently
+
 	usb.isPresent = false;
 	usb.isMounted = false;
 	return false;
@@ -239,7 +237,8 @@ void WutFileSystemDriver::unmountUsbSlot(int usbSlotIdx)
 	if(usb.isMounted)
 		dvmWutUnmountUsb(slot.mountName);
 
-	slot.poisoned = false;
+	slot.failCount = 0;
+	slot.backoffPollsLeft = 0;
 	usb.isPresent = false;
 	usb.isMounted = false;
 	usb.unmountRequired = false;

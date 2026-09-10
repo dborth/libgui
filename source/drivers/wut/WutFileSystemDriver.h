@@ -31,9 +31,10 @@ struct WutStorageMetrics
 //! re-probing a group we already know can't mount.
 struct WutUsbPhysicalSlot
 {
-	const DISC_INTERFACE * iface;      //!< &Mocha_usb1_disc_interface or &Mocha_usb2_disc_interface
-	const char *           mountName;  //!< devoptab basename, eg. "usb1" - also the dvm_wut.c volume name
-	bool                    poisoned;   //!< saw something here we couldn't mount - see tryMountUsbSlot()
+	const DISC_INTERFACE * iface;           //!< &Mocha_usb1_disc_interface or &Mocha_usb2_disc_interface
+	const char *           mountName;       //!< devoptab basename, eg. "usb1" - also the dvm_wut.c volume name
+	int                     failCount;       //!< consecutive mount failures since the last success or hardware change - see tryMountUsbSlot()
+	int                     backoffPollsLeft; //!< polls left to skip before the next probe attempt (0 = probe now)
 };
 
 //! State tracker for a single storage device slot.
@@ -57,29 +58,33 @@ struct WutDeviceState
 //! Raw disc access below libdvm is through libmocha's DISC_INTERFACE.
 //!
 //!Cafe OS exposes USB as two independent port groups (rear = "/dev/usb01",
-//!front = "/dev/usb02", each its own IOSU device node/fd)
-//!Both groups are probed independently (m_usbSlots) while still only
-//!exposing one DEVICE_USB outward - see WutUsbPhysicalSlot.
+//!front = "/dev/usb02", each its own IOSU device node/fd). Both groups are
+//!probed independently (m_usbSlots) and each surfaces as its own device
+//!outward too (DEVICE_USB = rear/usb1, DEVICE_USB2 = front/usb2) - see
+//!WutUsbPhysicalSlot.
 //!
 //!Hotplug (insertion): Mocha_usbN_isInserted() only reports whether we
 //!already have the fd open - it doesn't re-probe hardware - so it can't
-//!drive polling the way __io_usbstorage.isInserted() does on GC/Wii.
-//!Instead: while unmounted, pollStorageDevices() retries dvmWutMountUsb()
-//!each cycle (which does force a fresh /dev/usb0N open attempt) for any
-//!slot that isn't currently poisoned.
+//!drive polling the way __io_usbstorage.isInserted() does on GC/Wii, and
+//!in particular can't be used to tell "still the same bad device" apart
+//!from "something changed". Instead: while unmounted, pollStorageDevices() retries
+//!dvmWutMountUsb() (which does force a fresh /dev/usb0N open attempt)
+//!according to each slot's own poll-count backoff - see failCount/
+//!backoffPollsLeft on WutUsbPhysicalSlot and tryMountUsbSlot().
 //!
 //!Hotplug (removal while mounted): dvmWutUsbStillPresent() forces a real,
 //!uncached raw sector read through the mounted disc rather than stat()-ing
 //!the mount root, which libdvm's own sector cache can answer entirely from
 //!memory without ever touching hardware again after mount.
 //!
-//!Poisoning: a slot that opens but won't mount (wrong/unrecognized format)
-//!gets shutdown() and flagged poisoned rather than retried every poll
-//!cycle - tryMountUsbSlot() only pays for a full mount attempt again once
-//!a cheap startup()-only probe shows the port group's fd state has
-//!actually changed (ie. something was removed, and something - maybe
-//!nothing - is there now). This is what stops a bad stick in one port
-//!group from burning a full IOSU round trip every second forever.
+//!Backoff: a slot that opens but won't mount (wrong/unrecognized format,
+//!or genuinely nothing there) gets a few quick immediate retries (in case
+//!it's transient, eg. a drive still spinning up) and then backs off to a
+//!probe roughly every backoffPollsLeft polls, rather than paying for a
+//!full mount attempt - and the IOSU round trip that comes with it - every
+//!single cycle forever. The interface is always left shutdown() between
+//!attempts so a real unplug/replug is genuinely observed rather than
+//!hidden behind a stale open fd; the backoff never becomes permanent.
 class WutFileSystemDriver : public FileSystemDriver
 {
 	public:
@@ -114,6 +119,14 @@ class WutFileSystemDriver : public FileSystemDriver
 		static const unsigned kUsbCachePages     = 512;
 		static const unsigned kUsbSectorsPerPage = 128;
 
+		//! Backoff tuning for tryMountUsbSlot() - a handful of immediate
+		//! retries (covers a drive still spinning up / a transient IOSU
+		//! hiccup), then back off to roughly one probe every
+		//! kUsbBackoffPolls calls to pollStorageDevices() for a port group
+		//! that just isn't mounting.
+		static const int kUsbMaxQuickRetries = 3;
+		static const int kUsbBackoffPolls    = 180;
+
 		WutDeviceState     m_devices[kSlotCount];
 		int                m_deviceCount;
 		FSAClientHandle    m_fsaClient = -1;  //!< used only for best-effort volume-label lookups; negative if unavailable
@@ -125,8 +138,9 @@ class WutFileSystemDriver : public FileSystemDriver
 		int  findDeviceIndex(int deviceId) const;
 		void refreshDisplayName(WutDeviceState & dev);
 
-		//! Single-slot attempt used by tryMountUsb(): handles the poisoned/
-		//! backoff check, then a real dvmWutMountUsb() probe if warranted.
+		//! Single-slot attempt: handles the backoff check, then a real
+		//! dvmWutMountUsb() probe if warranted - see failCount/
+		//! backoffPollsLeft on WutUsbPhysicalSlot above.
 		bool tryMountUsbSlot(int usbSlotIdx);
 		//! dvmWutUnmountUsb() on the slot, which shuts down its
 		//! DISC_INTERFACE once nothing else references it, so the next
