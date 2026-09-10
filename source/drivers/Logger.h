@@ -48,7 +48,7 @@ enum class LogMode : uint8_t
 	OSReport,   //!< OSReport (Wii U) / SYS_Report (GC+Wii) - always safe, no hardware required
 	UDP,
 	SerialGecko,
-	SDFile,
+	File,
 	Multi       //!< fan out to every backend set in LogConfig::multiBackendMask
 };
 
