@@ -35,8 +35,7 @@ bool OgcLoggerUdp::init(const LogConfig & config)
 	serverAddr.sin_family = AF_INET;
 	serverAddr.sin_port = htons(config.targetPort);
 
-	in_addr_t addr = inet_addr(config.targetIp);
-	if (addr == INADDR_NONE)
+	if (inet_aton(config.targetIp, &serverAddr.sin_addr) == 0)
 	{
 		// Malformed targetIp - fail activation loudly rather than silently
 		// sending to a zeroed/broadcast address.
@@ -44,7 +43,6 @@ bool OgcLoggerUdp::init(const LogConfig & config)
 		sock = -1;
 		return false;
 	}
-	serverAddr.sin_addr.s_addr = addr;
 
 	return true;
 }
