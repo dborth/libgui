@@ -99,6 +99,7 @@ void WutFileSystemDriver::init()
 
 void WutFileSystemDriver::shutdown()
 {
+	WHBUnmountSdCard();
 	unmountUsb();
 
 	// unmountUsb() only touches whichever slot was actually mounted - a
@@ -109,8 +110,6 @@ void WutFileSystemDriver::shutdown()
 	for(int i = 0; i < kUsbSlotCount; i++)
 		if(m_usbSlots[i].iface)
 			m_usbSlots[i].iface->shutdown();
-
-	WHBUnmountSdCard();
 
 	if(m_fsaClient >= 0)
 	{
