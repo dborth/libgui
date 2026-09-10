@@ -76,18 +76,29 @@ void WutFileSystemDriver::init()
 	sd.unmountRequired = false;
 	refreshDisplayName(sd);
 
-	WutDeviceState & usb = m_devices[kSlotUSB];
-	memset(&usb, 0, sizeof(usb));
-	usb.id = DEVICE_USB;
-	strcpy(usb.name, "USB Storage");
-	usb.prefix[0] = '\0'; // set once a physical slot actually mounts - see tryMountUsb()
-	usb.isPresent = false;
-	usb.isMounted = false;
-	usb.unmountRequired = false;
+	// USB 1 Setup
+	WutDeviceState & usb1 = m_devices[kSlotUSB1];
+	memset(&usb1, 0, sizeof(usb1));
+	usb1.id = DEVICE_USB;
+	strcpy(usb1.name, "USB Storage 1");
+	usb1.prefix[0] = '\0';
+	usb1.isPresent = false;
+	usb1.isMounted = false;
+	usb1.unmountRequired = false;
+
+	// USB 2 Setup
+	WutDeviceState & usb2 = m_devices[kSlotUSB2];
+	memset(&usb2, 0, sizeof(usb2));
+	usb2.id = DEVICE_USB2;
+	strcpy(usb2.name, "USB Storage 2");
+	usb2.prefix[0] = '\0';
+	usb2.isPresent = false;
+	usb2.isMounted = false;
+	usb2.unmountRequired = false;
 
 	m_usbSlots[0] = { &Mocha_usb1_disc_interface, "usb1", false };
 	m_usbSlots[1] = { &Mocha_usb2_disc_interface, "usb2", false };
-	m_activeUsbSlot = -1;
+
 	// Deliberately not attempting the USB mount here: the raw open probe
 	// is a real IOSU IPC round trip, and init() runs on the main thread
 	// during app startup - not the storage-checking thread. The first
@@ -100,7 +111,6 @@ void WutFileSystemDriver::init()
 void WutFileSystemDriver::shutdown()
 {
 	WHBUnmountSdCard();
-	unmountUsb();
 
 	// unmountUsb() only touches whichever slot was actually mounted - a
 	// slot that got poisoned but never became the active mount could still
@@ -108,8 +118,11 @@ void WutFileSystemDriver::shutdown()
 	// safe to call unconditionally; Mocha_usbN_shutdown() no-ops if the fd
 	// isn't open.
 	for(int i = 0; i < kUsbSlotCount; i++)
+	{
+		unmountUsbSlot(i);
 		if(m_usbSlots[i].iface)
 			m_usbSlots[i].iface->shutdown();
+	}
 
 	if(m_fsaClient >= 0)
 	{
@@ -154,9 +167,22 @@ void WutFileSystemDriver::refreshDisplayName(WutDeviceState & dev)
 	}
 }
 
-bool WutFileSystemDriver::tryMountUsbSlot(int slotIndex)
+bool WutFileSystemDriver::tryMountUsbSlot(int usbSlotIdx)
 {
-	WutUsbPhysicalSlot & slot = m_usbSlots[slotIndex];
+	if(usbSlotIdx < 0 || usbSlotIdx >= kUsbSlotCount)
+		return false;
+
+	WutDeviceState & usb = m_devices[kSlotUSB1 + usbSlotIdx];
+	WutUsbPhysicalSlot & slot = m_usbSlots[usbSlotIdx];
+
+	if(usb.isMounted)
+		return true;
+
+	if(usb.unmountRequired)
+		unmountUsbSlot(usbSlotIdx);
+
+	if(!m_mochaReady)
+		return false;
 
 	if(slot.poisoned)
 	{
@@ -183,87 +209,50 @@ bool WutFileSystemDriver::tryMountUsbSlot(int slotIndex)
 	// dvmDiscCreate()'s own signature upstream) but never mutates it -
 	// only ever calls through its function pointers.
 	if(dvmWutMountUsb(slot.mountName, (DISC_INTERFACE *) slot.iface, kUsbCachePages, kUsbSectorsPerPage))
+	{
+		usb.isPresent = true;
+		usb.isMounted = true;
+		usb.unmountRequired = false;
+		snprintf(usb.prefix, sizeof(usb.prefix), "%s:/", slot.mountName);
+		refreshDisplayName(usb);
 		return true;
+	}
 
 	// Mount failed (e.g., WFS drive, unformatted partition, or unrecognized signature).
 	// Poison the slot, but DO NOT call slot.iface->shutdown(). Keeping the interface
 	// handle open allows slot.iface->isInserted() to accurately report 'true' until
 	// the physical drive is removed.
 	slot.poisoned = true;
+	usb.isPresent = false;
+	usb.isMounted = false;
 	return false;
 }
 
-bool WutFileSystemDriver::tryMountUsb()
+void WutFileSystemDriver::unmountUsbSlot(int usbSlotIdx)
 {
-	WutDeviceState & usb = m_devices[kSlotUSB];
+	if(usbSlotIdx < 0 || usbSlotIdx >= kUsbSlotCount)
+		return;
+
+	WutDeviceState & usb = m_devices[kSlotUSB1 + usbSlotIdx];
+	WutUsbPhysicalSlot & slot = m_usbSlots[usbSlotIdx];
 
 	if(usb.isMounted)
-		return true;
+		dvmWutUnmountUsb(slot.mountName);
 
-	if(usb.unmountRequired)
-	{
-		// invalidateStorageDevice(DEVICE_USB) deferred the actual dvm
-		// unmount to here rather than doing I/O inline - do it now, once,
-		// before attempting to remount. unmountUsb() clears the flag.
-		unmountUsb();
-	}
-
-	if(!m_mochaReady)
-		return false;
-
-	// Try every physical port group that isn't currently poisoned, in
-	// order, stopping at the first that mounts. A device sitting in one
-	// group - mountable or not - never hides the other one anymore.
-	for(int i = 0; i < kUsbSlotCount; i++)
-	{
-		if(!tryMountUsbSlot(i))
-			continue;
-
-		m_activeUsbSlot = i;
-		usb.isPresent = true;
-		usb.isMounted = true;
-		usb.unmountRequired = false;
-		snprintf(usb.prefix, sizeof(usb.prefix), "%s:/", m_usbSlots[i].mountName);
-		refreshDisplayName(usb);
-		return true;
-	}
-
-	usb.isPresent = false;
-	return false;
-}
-
-void WutFileSystemDriver::unmountUsb()
-{
-	WutDeviceState & usb = m_devices[kSlotUSB];
-
-	if(m_activeUsbSlot >= 0)
-	{
-		WutUsbPhysicalSlot & slot = m_usbSlots[m_activeUsbSlot];
-
-		// dvmWutUnmountUsb() drops the fat driver's reference on the
-		// DvmDisc it was mounted through, which - once that's the last
-		// reference - destroys the disc and calls slot.iface->shutdown()
-		// itself (see dvm_wut.c and fat_driver.c's dvmDiscAddUser()/
-		// dvmDiscRemoveUser() pairing). No separate shutdown() call needed
-		// here the way the pre-dvm version needed one.
-		if(usb.isMounted)
-			dvmWutUnmountUsb(slot.mountName);
-
-		// An app-driven unmount (eg. "safely remove" from a menu, or this
-		// same slot going away and being re-detected) isn't evidence the
-		// device is bad - don't carry poisoning across a clean unmount.
-		slot.poisoned = false;
-	}
-
-	m_activeUsbSlot = -1;
+	slot.poisoned = false;
 	usb.isPresent = false;
 	usb.isMounted = false;
 	usb.unmountRequired = false;
+	usb.prefix[0] = '\0';
 }
 
-bool WutFileSystemDriver::usbStillPresent()
+bool WutFileSystemDriver::usbStillPresent(int usbSlotIdx)
 {
-	if(!m_mochaReady || m_activeUsbSlot < 0)
+	if(usbSlotIdx < 0 || usbSlotIdx >= kUsbSlotCount || !m_mochaReady)
+		return false;
+
+	WutDeviceState & usb = m_devices[kSlotUSB1 + usbSlotIdx];
+	if(!usb.isMounted)
 		return false;
 
 	// Forces a genuine, uncached raw sector read through the active slot's
@@ -273,7 +262,7 @@ bool WutFileSystemDriver::usbStillPresent()
 	// touching hardware again after mount), this always re-touches the
 	// device, and does so under libdvm's own cache lock so it can't race
 	// a concurrent file read/write on another thread.
-	return dvmWutUsbStillPresent(m_usbSlots[m_activeUsbSlot].mountName);
+	return dvmWutUsbStillPresent(m_usbSlots[usbSlotIdx].mountName);
 }
 
 int WutFileSystemDriver::enumerateStorageDevices(StorageDevice outDevices[MAX_STORAGE_DEVICES])
@@ -324,7 +313,9 @@ MountResult WutFileSystemDriver::mountStorageDevice(int deviceId)
 		return MountResult::DeviceNotFound; // not ours
 
 	if(deviceId == DEVICE_USB)
-		return tryMountUsb() ? MountResult::Success : MountResult::DeviceNotFound;
+		return tryMountUsbSlot(0) ? MountResult::Success : MountResult::DeviceNotFound;
+	else if(deviceId == DEVICE_USB2)
+		return tryMountUsbSlot(1) ? MountResult::Success : MountResult::DeviceNotFound;
 
 	// SD (and anything else using the DevicePresent()-style devoptab check)
 	WutDeviceState & dev = m_devices[idx];
@@ -359,26 +350,16 @@ const char * WutFileSystemDriver::mountResultMessage(int deviceId, MountResult r
 
 	if(deviceId == DEVICE_SD)
 		return "SD card not found!";
-	if(deviceId == DEVICE_USB)
-		return "USB drive not found!";
+	else if(deviceId == DEVICE_USB)
+		return "USB1 drive not found!";
+	else if(deviceId == DEVICE_USB2)
+		return "USB2 drive not found!";
 
 	return "Storage device not found!";
 }
 
 void WutFileSystemDriver::invalidateStorageDevice(int deviceId)
 {
-	if(deviceId == DEVICE_USB)
-	{
-		// Pure flag-set, no I/O here - matches the base-class contract.
-		// unmountUsb() does a real dvm cache flush + iface shutdown, so it's
-		// deferred to the next tryMountUsb() (from pollStorageDevices() or an
-		// explicit mountStorageDevice(DEVICE_USB) call), which sees
-		// unmountRequired and does the actual teardown then.
-		m_devices[kSlotUSB].isMounted = false;
-		m_devices[kSlotUSB].unmountRequired = true;
-		return;
-	}
-
 	int idx = findDeviceIndex(deviceId);
 	if(idx < 0)
 		return;
@@ -415,22 +396,23 @@ void WutFileSystemDriver::pollStorageDevices(int removedIds[MAX_STORAGE_DEVICES]
 		}
 	}
 
-	// USB: no external devoptab to stat() - we own the mount ourselves
+	// USB1 & USB2 Independent Polling
+	for(int usbIdx = 0; usbIdx < kUsbSlotCount; usbIdx++)
 	{
-		WutDeviceState & usb = m_devices[kSlotUSB];
+		WutDeviceState & usb = m_devices[kSlotUSB1 + usbIdx];
 
 		if(usb.isMounted)
 		{
-			if(!usbStillPresent())
+			if(!usbStillPresent(usbIdx))
 			{
-				unmountUsb();
+				unmountUsbSlot(usbIdx);
 
 				if(outRemovedCount < MAX_STORAGE_DEVICES)
-					removedIds[outRemovedCount++] = DEVICE_USB;
+					removedIds[outRemovedCount++] = usb.id;
 				deviceListChanged = true;
 			}
 		}
-		else if(tryMountUsb())
+		else if(tryMountUsbSlot(usbIdx))
 		{
 			deviceListChanged = true;
 		}
@@ -443,23 +425,18 @@ bool WutFileSystemDriver::getStorageMetrics(int deviceId, WutStorageMetrics & ou
 	if(idx < 0 || !m_devices[idx].isPresent)
 		return false;
 
-	bool haveMetrics = false;
-
 	struct statvfs st;
 	if(statvfs(m_devices[idx].prefix, &st) == 0)
 	{
 		outMetrics.totalBytes = (uint64_t)st.f_blocks * st.f_frsize;
 		outMetrics.freeBytes  = (uint64_t)st.f_bavail * st.f_frsize;
 		outMetrics.blockSize  = (uint32_t)st.f_frsize;
-		haveMetrics = true;
-		outMetrics.readOnly = (st.f_flag & ST_RDONLY) != 0;
-	}
-	else
-	{
-		outMetrics.readOnly = false; // no signal either way - default false rather than guess true
+		outMetrics.readOnly   = (st.f_flag & ST_RDONLY) != 0;
+		return true;
 	}
 
-	return haveMetrics;
+	outMetrics.readOnly = false;
+	return false;
 }
 
 const char * WutFileSystemDriver::getMountPath(int device) const
@@ -472,16 +449,14 @@ const char * WutFileSystemDriver::getMountPath(int device) const
 
 const int * WutFileSystemDriver::getValidLoadDevices(int & outCount) const
 {
-	// No DEVICE_DVD (no optical drive) and no DEVICE_SMB (deliberately not
-	// ported to Wii U for this pass).
-	static const int devices[] = { DEVICE_AUTO, DEVICE_SD, DEVICE_USB };
+	static const int devices[] = { DEVICE_AUTO, DEVICE_SD, DEVICE_USB, DEVICE_USB2 };
 	outCount = sizeof(devices) / sizeof(devices[0]);
 	return devices;
 }
 
 const int * WutFileSystemDriver::getValidSaveDevices(int & outCount) const
 {
-	static const int devices[] = { DEVICE_AUTO, DEVICE_SD, DEVICE_USB };
+	static const int devices[] = { DEVICE_AUTO, DEVICE_SD, DEVICE_USB, DEVICE_USB2 };
 	outCount = sizeof(devices) / sizeof(devices[0]);
 	return devices;
 }

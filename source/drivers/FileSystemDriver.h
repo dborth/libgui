@@ -16,6 +16,7 @@ enum Device
 	DEVICE_AUTO = 0,
 	DEVICE_SD,
 	DEVICE_USB,
+	DEVICE_USB2,
 	DEVICE_DVD,
 	DEVICE_SMB,
 	DEVICE_SD_SLOTA,     //!< GameCube memory card slot A

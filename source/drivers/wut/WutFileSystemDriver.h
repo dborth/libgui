@@ -36,13 +36,7 @@ struct WutUsbPhysicalSlot
 	bool                    poisoned;   //!< saw something here we couldn't mount - see tryMountUsbSlot()
 };
 
-//! State tracker for a single storage device slot. Wii U tracks exactly
-//! two slots - DEVICE_SD (always present once WHBMountSdCard() succeeds)
-//! and DEVICE_USB (empty, ie. prefix[0] == 0 / isPresent false, until
-//! tryMountUsb() claims it) - one mount per device type, like every other
-//! platform (see the Device enum in FileSystemDriver.h). DEVICE_USB is
-//! backed by whichever entry in m_usbSlots actually mounted - see
-//! WutUsbPhysicalSlot above and m_activeUsbSlot.
+//! State tracker for a single storage device slot.
 struct WutDeviceState
 {
 	int  id;
@@ -109,9 +103,10 @@ class WutFileSystemDriver : public FileSystemDriver
 		bool getStorageMetrics(int deviceId, WutStorageMetrics & outMetrics);
 
 	private:
-		static const int kSlotSD  = 0;
-		static const int kSlotUSB = 1;
-		static const int kSlotCount = 2;
+		static const int kSlotSD   = 0;
+		static const int kSlotUSB1 = 1;
+		static const int kSlotUSB2 = 2;
+		static const int kSlotCount = 3;
 
 		static const int kUsbSlotCount = 2; //!< physical USB port groups: rear, front
 
@@ -130,21 +125,16 @@ class WutFileSystemDriver : public FileSystemDriver
 		int  findDeviceIndex(int deviceId) const;
 		void refreshDisplayName(WutDeviceState & dev);
 
-		//! Tries every m_usbSlots entry that isn't currently poisoned, in
-		//! order, stopping at the first that mounts. Updates
-		//! m_devices[kSlotUSB] and m_activeUsbSlot and returns whether USB
-		//! is mounted afterwards. Safe to call repeatedly while unmounted.
-		bool tryMountUsb();
 		//! Single-slot attempt used by tryMountUsb(): handles the poisoned/
 		//! backoff check, then a real dvmWutMountUsb() probe if warranted.
-		bool tryMountUsbSlot(int slotIndex);
-		//! dvmWutUnmountUsb() on the active slot, which shuts down its
+		bool tryMountUsbSlot(int usbSlotIdx);
+		//! dvmWutUnmountUsb() on the slot, which shuts down its
 		//! DISC_INTERFACE once nothing else references it, so the next
 		//! tryMountUsbSlot() genuinely re-probes hardware rather than
 		//! reusing a stale fd. Safe to call whether or not USB is mounted.
-		void unmountUsb();
+		void unmountUsbSlot(int usbSlotIdx);
 		//! Real liveness check for an already-mounted USB volume: forces an
-		//! uncached raw sector read through the active slot's mounted disc
+		//! uncached raw sector read through the slot's mounted disc
 		//! via dvmWutUsbStillPresent().
-		bool usbStillPresent();
+		bool usbStillPresent(int usbSlotIdx);
 };
