@@ -65,7 +65,7 @@ enum LogBackendId : uint32_t
 	LOGGER_FILE		= 1u << 3,
 };
 
-//!How SdFileLogBackend flushes writes to storage.
+//!How LoggerFile flushes writes to storage.
 enum class LogFlushPolicy : uint8_t
 {
 	Immediate,    //!< fflush() after every write - safest against a crash/power loss, slowest
