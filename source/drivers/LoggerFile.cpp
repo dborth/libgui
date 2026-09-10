@@ -1,11 +1,11 @@
 /****************************************************************************
  * Platform Abstraction Layer
  * Daryl Borth 2026
- * LoggerSd.cpp
+ * LoggerFile.cpp
  ***************************************************************************/
-#include "LoggerSd.h"
+#include "LoggerFile.h"
 
-bool LoggerSd::init(const LogConfig & config)
+bool LoggerFile::init(const LogConfig & config)
 {
 	shutdown();
 
@@ -25,7 +25,7 @@ bool LoggerSd::init(const LogConfig & config)
 	return true;
 }
 
-void LoggerSd::shutdown()
+void LoggerFile::shutdown()
 {
 	if (file)
 	{
@@ -36,7 +36,7 @@ void LoggerSd::shutdown()
 	writesSinceFlush = 0;
 }
 
-void LoggerSd::write(LogLevel /*level*/, const char * line, size_t len)
+void LoggerFile::write(LogLevel /*level*/, const char * line, size_t len)
 {
 	if (!file)
 		return;

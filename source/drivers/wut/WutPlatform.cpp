@@ -31,10 +31,10 @@ void WutPlatform::init(int width, int height)
 	this->fileSystemDriver->init();
 
 	this->logger = new Logger();
-	this->logger->registerBackend(LOGGER_OSREPORT, new WutLoggerOSReport());
-	this->logger->registerBackend(LOGGER_UDP,      new WutLoggerUdp());
-	this->logger->registerBackend(LOGGER_SERIAL,    new WutLoggerUsbSerial());
-	this->logger->registerBackend(LOGGER_SD,   new LoggerSd());
+	this->logger->registerBackend(LOGGER_OSREPORT,	new WutLoggerOSReport());
+	this->logger->registerBackend(LOGGER_UDP,		new WutLoggerUdp());
+	this->logger->registerBackend(LOGGER_SERIAL,	new WutLoggerUsbSerial());
+	this->logger->registerBackend(LOGGER_FILE,		new LoggerFile());
 	this->logger->init(LogConfig{});
 }
 

@@ -15,7 +15,7 @@
 #include "WutLoggerOSReport.h"
 #include "WutLoggerUdp.h"
 #include "WutLoggerUsbSerial.h"
-#include "../LoggerSd.h"
+#include "../LoggerFile.h"
 
 class WutPlatform : public Platform
 {

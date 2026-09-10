@@ -63,12 +63,12 @@ uint32_t Logger::resolveActiveMask() const
 
 	switch (config.mode)
 	{
-		case LogMode::OSReport:    mask = LOGGER_OSREPORT; break;
-		case LogMode::UDP:         mask = LOGGER_UDP;      break;
-		case LogMode::SerialGecko: mask = LOGGER_SERIAL;    break;
-		case LogMode::SDFile:      mask = LOGGER_SD;   break;
-		case LogMode::Multi:       mask = config.multiBackendMask; break;
-		default:                   mask = LOGGER_NONE;    break;
+		case LogMode::OSReport:		mask = LOGGER_OSREPORT;			break;
+		case LogMode::UDP:			mask = LOGGER_UDP;				break;
+		case LogMode::SerialGecko:	mask = LOGGER_SERIAL;			break;
+		case LogMode::File:			mask = LOGGER_FILE;				break;
+		case LogMode::Multi:		mask = config.multiBackendMask; break;
+		default:					mask = LOGGER_NONE;				break;
 	}
 
 	if (config.mirrorToOSReport)

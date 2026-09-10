@@ -16,7 +16,7 @@
 #include "OgcLoggerSysReport.h"
 #include "OgcLoggerUdp.h"
 #include "OgcLoggerUsbGecko.h"
-#include "../LoggerSd.h"
+#include "../LoggerFile.h"
 
 void NotifyWiiShutdownRequested();
 

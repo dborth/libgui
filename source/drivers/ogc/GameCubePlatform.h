@@ -13,7 +13,7 @@
 #include "GameCubeFileSystemDriver.h"
 #include "OgcLoggerSysReport.h"
 #include "OgcLoggerUsbGecko.h"
-#include "../LoggerSd.h"
+#include "../LoggerFile.h"
 
 //!GameCube (HW_DOL) Platform: same driver set as WiiPlatform except for
 //!file system, which uses GameCubeFileSystemDriver (memory card/GC

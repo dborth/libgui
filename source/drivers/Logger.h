@@ -58,11 +58,11 @@ enum class LogMode : uint8_t
 //!around by a caller).
 enum LogBackendId : uint32_t
 {
-	LOGGER_NONE     = 0,
-	LOGGER_OSREPORT = 1u << 0,
-	LOGGER_UDP      = 1u << 1,
-	LOGGER_SERIAL    = 1u << 2,
-	LOGGER_SD   = 1u << 3,
+	LOGGER_NONE		= 0,
+	LOGGER_OSREPORT	= 1u << 0,
+	LOGGER_UDP		= 1u << 1,
+	LOGGER_SERIAL	= 1u << 2,
+	LOGGER_FILE		= 1u << 3,
 };
 
 //!How SdFileLogBackend flushes writes to storage.
@@ -79,11 +79,11 @@ enum class LogFlushPolicy : uint8_t
 //!safe/inert: OSReport only, nothing that touches hardware or network).
 struct LogConfig
 {
-	LogMode  mode  = LogMode::SDFile;
+	LogMode  mode  = LogMode::File;
 	LogLevel level = LogLevel::Info;
 
 	//! Only consulted when mode == LogMode::Multi. OR LOGGER_* flags
-	//! together, e.g. LOGGER_UDP | LOGGER_SD.
+	//! together, e.g. LOGGER_UDP | LOGGER_FILE.
 	uint32_t multiBackendMask = LOGGER_OSREPORT;
 
 	//! Regardless of mode/multiBackendMask, also mirror every line to the
@@ -139,7 +139,7 @@ class LoggingDriver
 		//!Writes one already-formatted, newline-terminated line. `len`
 		//!does not include the terminating NUL. Must not allocate.
 		virtual void write(LogLevel level, const char * line, size_t len) = 0;
-		//!Short identifier for diagnostics (eg. "UDP", "SDFile").
+		//!Short identifier for diagnostics (eg. "UDP", "File").
 		virtual const char * name() const = 0;
 };
 

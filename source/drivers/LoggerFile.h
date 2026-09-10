@@ -1,7 +1,7 @@
 /****************************************************************************
  * Platform Abstraction Layer
  * Daryl Borth 2026
- * LoggerSd.h
+ * LoggerFile.h
  *
  * Generic - works unmodified on GC, Wii, and Wii U. All three platforms
  * expose their mounted storage through a standard devoptab path (eg.
@@ -20,16 +20,16 @@
 #include <cstdio>
 #include "Logger.h"
 
-class LoggerSd : public LoggingDriver
+class LoggerFile : public LoggingDriver
 {
 	public:
-		LoggerSd() = default;
-		~LoggerSd() override { shutdown(); }
+		LoggerFile() = default;
+		~LoggerFile() override { shutdown(); }
 
 		bool init(const LogConfig & config) override;
 		void shutdown() override;
 		void write(LogLevel level, const char * line, size_t len) override;
-		const char * name() const override { return "SDFile"; }
+		const char * name() const override { return "File"; }
 
 	private:
 		FILE *         file = nullptr;
