@@ -22,6 +22,7 @@ void WiiPlatform::init(int width, int height)
 	this->fileSystemDriver = new WiiFileSystemDriver();
 	this->fileSystemDriver->init();
 
+#if LOGGING_ENABLED
 	this->logger = new Logger();
 	this->logger->registerBackend(LOGGER_OSREPORT,	new OgcLoggerSysReport());
 	this->logger->registerBackend(LOGGER_UDP,		new OgcLoggerUdp());
@@ -39,6 +40,7 @@ void WiiPlatform::init(int width, int height)
 	}
 
 	this->logger->init(config);
+#endif
 }
 
 void WiiPlatform::shutdown()

@@ -30,6 +30,7 @@ void WutPlatform::init(int width, int height)
 	this->fileSystemDriver = new WutFileSystemDriver();
 	this->fileSystemDriver->init();
 
+#if LOGGING_ENABLED
 	this->logger = new Logger();
 	this->logger->registerBackend(LOGGER_OSREPORT,	new WutLoggerOSReport());
 	this->logger->registerBackend(LOGGER_UDP,		new WutLoggerUdp());
@@ -46,6 +47,7 @@ void WutPlatform::init(int width, int height)
 	}
 
 	this->logger->init(config);
+#endif
 }
 
 void WutPlatform::shutdown()
@@ -92,11 +94,15 @@ void WutPlatform::shutdown()
 	}
 }
 
-// Once WHBProcShutdown() has run (in shutdown(), above), returning from
-// the app is all that's needed - the OS reclaims the foreground on its
-// own. There's no separate loader/power-off distinction to make here.
+// Either WHBProcIsRunning() returned false already and we're leaving
+// because the OS requested it (eg: Close button was used in the Wii U
+// menu), or the user explicitly exited from within the app - in which
+// case we're still in the foreground and need to tell Cafe OS we're
+// ready to shut down.
 void WutPlatform::requestExit()
 {
+	this->shutdown();
+
 	// If the exit was user-initiated, Cafe OS has not been notified yet.
 	// SYSLaunchMenu() tells Cafe OS to switch back to the system menu or loader.
 	if(ProcUIIsRunning()) {
@@ -106,6 +112,7 @@ void WutPlatform::requestExit()
 		}
 	}
 
+	WHBProcShutdown();
 	exit(0);
 }
 

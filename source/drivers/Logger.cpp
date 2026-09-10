@@ -145,6 +145,17 @@ void Logger::shutdown()
 {
 	MutexLock guard(lock);
 
+	// Close the file-backed log first
+	for (int i = 0; i < slotCount; i++)
+	{
+		if (slots[i].id == LOGGER_FILE && slots[i].active)
+		{
+			slots[i].backend->shutdown();
+			slots[i].active = false;
+			break;
+		}
+	}
+
 	for (int i = 0; i < slotCount; i++)
 	{
 		if (slots[i].active)

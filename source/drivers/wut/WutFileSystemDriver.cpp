@@ -16,6 +16,7 @@
 
 #include "WutFileSystemDriver.h"
 #include "dvm_wut.h"
+#include "../Logger.h"
 
 static bool DevicePresent(const char * prefix)
 {
@@ -48,12 +49,27 @@ void WutFileSystemDriver::init()
 	strcpy(sd.name, "SD Card");
 
 	// The SD mount path is only known at runtime - WHBMountSdCard() picks
-	// the real FS path (typically "/vol/external01") and only exposes it
-	// through WHBGetSdCardMountPath(). There's no "sd:/"-style static
-	// devoptab name on Wii U the way there is on Wii/GameCube.
+	// the real FS path (typically "/vol/external01", with NO trailing
+	// slash) and only exposes it through WHBGetSdCardMountPath(). 
+	// It's normalized here by adding a slash
 	const char * sdPath = WHBGetSdCardMountPath();
-	strncpy(sd.prefix, (sdPath && sdPath[0]) ? sdPath : "sdmc:/", sizeof(sd.prefix) - 1);
-	sd.prefix[sizeof(sd.prefix) - 1] = '\0';
+	if(sdPath && sdPath[0])
+	{
+		strncpy(sd.prefix, sdPath, sizeof(sd.prefix) - 2); // leave room for '/' + NUL
+		sd.prefix[sizeof(sd.prefix) - 2] = '\0';
+
+		size_t len = strlen(sd.prefix);
+		if(len == 0 || sd.prefix[len - 1] != '/')
+		{
+			sd.prefix[len] = '/';
+			sd.prefix[len + 1] = '\0';
+		}
+	}
+	else
+	{
+		strncpy(sd.prefix, "sdmc:/", sizeof(sd.prefix) - 1);
+		sd.prefix[sizeof(sd.prefix) - 1] = '\0';
+	}
 
 	sd.isPresent = DevicePresent(sd.prefix);
 	sd.isMounted = sd.isPresent;
