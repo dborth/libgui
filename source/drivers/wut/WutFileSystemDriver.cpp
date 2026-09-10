@@ -185,15 +185,10 @@ bool WutFileSystemDriver::tryMountUsbSlot(int slotIndex)
 	if(dvmWutMountUsb(slot.mountName, (DISC_INTERFACE *) slot.iface, kUsbCachePages, kUsbSectorsPerPage))
 		return true;
 
-	// Either genuinely nothing in this port group (startup() itself failed
-	// during the mount attempt) or something's there but unrecognized -
-	// either way, stop paying for a full mount attempt every poll cycle.
-	// dvmWutMountUsb() already shuts the interface down on failure, but
-	// calling shutdown() again ourselves is a harmless no-op (Mocha checks
-	// isInserted() first) - kept as a defensive belt-and-suspenders so the
-	// isInserted()/startup() pair above is guaranteed to see a closed fd
-	// regardless of exactly how the failure happened.
-	slot.iface->shutdown();
+	// Mount failed (e.g., WFS drive, unformatted partition, or unrecognized signature).
+	// Poison the slot, but DO NOT call slot.iface->shutdown(). Keeping the interface
+	// handle open allows slot.iface->isInserted() to accurately report 'true' until
+	// the physical drive is removed.
 	slot.poisoned = true;
 	return false;
 }
