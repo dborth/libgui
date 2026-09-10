@@ -29,6 +29,13 @@ void WiiFileSystemDriver::init()
 {
 	DI_Init();
 	USBStorage_Initialize();
+
+	StorageDevice devices[MAX_STORAGE_DEVICES];
+	int count = enumerateStorageDevices(devices);
+
+	for(int i = 0; i < count; i++)
+		if(devices[i].autoMountAtStartup)
+			mountStorageDevice(devices[i].id);
 }
 
 void WiiFileSystemDriver::shutdown()

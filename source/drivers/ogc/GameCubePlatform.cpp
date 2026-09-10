@@ -26,11 +26,25 @@ void GameCubePlatform::init(int width, int height)
 	this->logger->registerBackend(LOGGER_OSREPORT,	new OgcLoggerSysReport());
 	this->logger->registerBackend(LOGGER_SERIAL,	new OgcLoggerUsbGecko());
 	this->logger->registerBackend(LOGGER_FILE,		new LoggerFile());
-	this->logger->init(LogConfig{});
+
+	LogConfig config;
+	const char * sdPath = this->fileSystemDriver->getMountPath(DEVICE_SD_PORT2);
+
+	if(sdPath != nullptr) {
+		snprintf(config.filePath, sizeof(config.filePath), "%s/debug.log", sdPath);
+	}
+
+	this->logger->init(config);
 }
 
 void GameCubePlatform::shutdown()
 {
+	if (logger) {
+		logger->shutdown();
+		delete logger;
+		logger = nullptr;
+	}
+
 	if (fileSystemDriver) {
 		fileSystemDriver->shutdown();
 		delete fileSystemDriver;
@@ -53,12 +67,6 @@ void GameCubePlatform::shutdown()
 		videoDriver->shutdown();
 		delete videoDriver;
 		videoDriver = nullptr;
-	}
-
-	if (logger) {
-		logger->shutdown();
-		delete logger;
-		logger = nullptr;
 	}
 
 	if (threadDriver) {

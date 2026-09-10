@@ -35,11 +35,25 @@ void WutPlatform::init(int width, int height)
 	this->logger->registerBackend(LOGGER_UDP,		new WutLoggerUdp());
 	this->logger->registerBackend(LOGGER_SERIAL,	new WutLoggerUsbSerial());
 	this->logger->registerBackend(LOGGER_FILE,		new LoggerFile());
-	this->logger->init(LogConfig{});
+
+	LogConfig config;
+	const char * sdPath = this->fileSystemDriver->getMountPath(DEVICE_SD);
+
+	if(sdPath != nullptr) {
+		snprintf(config.filePath, sizeof(config.filePath), "%s/debug.log", sdPath);
+	}
+
+	this->logger->init(config);
 }
 
 void WutPlatform::shutdown()
 {
+	if (logger) {
+		logger->shutdown();
+		delete logger;
+		logger = nullptr;
+	}
+
 	if(fileSystemDriver)
 	{
 		fileSystemDriver->shutdown();
@@ -66,13 +80,6 @@ void WutPlatform::shutdown()
 		videoDriver->shutdown();
 		delete videoDriver;
 		videoDriver = nullptr;
-	}
-
-	if(logger)
-	{
-		logger->shutdown();
-		delete logger;
-		logger = nullptr;
 	}
 
 	if(threadDriver)

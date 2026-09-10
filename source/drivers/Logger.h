@@ -107,7 +107,7 @@ struct LogConfig
 	uint32_t serialBaudRate = 115200;
 
 	// ---- SD / file ----
-	const char *   filePath = "sd:/debug.log";
+	char filePath[1024] = "sd:/debug.log";
 	LogFlushPolicy flushPolicy = LogFlushPolicy::Immediate;
 	uint32_t       flushEveryNWrites = 16;
 

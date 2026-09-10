@@ -25,6 +25,13 @@ static char volumeLabel[MAX_STORAGE_DEVICES][16] = { { 0 } };
 void GameCubeFileSystemDriver::init()
 {
 	DVD_Init();
+
+	StorageDevice devices[MAX_STORAGE_DEVICES];
+	int count = enumerateStorageDevices(devices);
+
+	for(int i = 0; i < count; i++)
+		if(devices[i].autoMountAtStartup)
+			mountStorageDevice(devices[i].id);
 }
 
 void GameCubeFileSystemDriver::shutdown()
@@ -45,7 +52,7 @@ int GameCubeFileSystemDriver::enumerateStorageDevices(StorageDevice outDevices[M
 	int count = 0;
 	outDevices[count] = StorageDevice{ DEVICE_SD_SLOTA,    "carda",    "carda:/",    false, false, 0, 0, 0, false, false, "" }; CopyLabel(outDevices[count], DEVICE_SD_SLOTA);    count++;
 	outDevices[count] = StorageDevice{ DEVICE_SD_SLOTB,    "cardb",    "cardb:/",    false, false, 0, 0, 0, false, false, "" }; CopyLabel(outDevices[count], DEVICE_SD_SLOTB);    count++;
-	outDevices[count] = StorageDevice{ DEVICE_SD_PORT2,    "port2",    "port2:/",    false, false, 0, 0, 0, false, false, "" }; CopyLabel(outDevices[count], DEVICE_SD_PORT2);    count++;
+	outDevices[count] = StorageDevice{ DEVICE_SD_PORT2,    "port2",    "port2:/",    false, true, 0, 0, 0, false, false, "" }; CopyLabel(outDevices[count], DEVICE_SD_PORT2);    count++;
 	outDevices[count] = StorageDevice{ DEVICE_SD_GCLOADER, "gcloader", "gcloader:/", false, false, 0, 0, 0, false, false, "" }; CopyLabel(outDevices[count], DEVICE_SD_GCLOADER); count++;
 	outDevices[count] = StorageDevice{ DEVICE_DVD,         "",         "dvd:/",      false, false, 0, 0, 0, false, false, "" }; count++;
 	return count;
