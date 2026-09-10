@@ -84,6 +84,12 @@ void Logger::init(const LogConfig & newConfig)
 	config = newConfig;
 	uint32_t activeMask = resolveActiveMask();
 
+	// Tracked per-slot rather than reported inline: we want every
+	// failure surfaced only once OSReport/SYS_Report (if any) is known
+	// to be active, and registration order isn't guaranteed to put that
+	// backend first.
+	bool activationFailed[MAX_BACKENDS] = {};
+
 	for (int i = 0; i < slotCount; i++)
 	{
 		bool wantActive = (slots[i].id & activeMask) != 0;
@@ -91,6 +97,7 @@ void Logger::init(const LogConfig & newConfig)
 		if (wantActive && !slots[i].active)
 		{
 			slots[i].active = slots[i].backend->init(config);
+			activationFailed[i] = !slots[i].active;
 		}
 		else if (!wantActive && slots[i].active)
 		{
@@ -103,6 +110,31 @@ void Logger::init(const LogConfig & newConfig)
 			// the new config (target IP/path/etc may have changed).
 			slots[i].backend->shutdown();
 			slots[i].active = slots[i].backend->init(config);
+			activationFailed[i] = !slots[i].active;
+		}
+	}
+
+	// Surface activation failures directly through the OSReport/
+	// SYS_Report backend, if one is active
+	int osReportSlot = -1;
+	for (int i = 0; i < slotCount; i++)
+		if (slots[i].id == LOGGER_OSREPORT && slots[i].active)
+			osReportSlot = i;
+
+	if (osReportSlot >= 0)
+	{
+		for (int i = 0; i < slotCount; i++)
+		{
+			if (!activationFailed[i])
+				continue;
+
+			char msg[128];
+			int n = snprintf(msg, sizeof(msg), "[Logger] backend '%s' failed to activate (init() returned false)\n", slots[i].backend->name());
+			if (n > 0)
+			{
+				size_t len = (size_t)n < sizeof(msg) ? (size_t)n : sizeof(msg) - 1;
+				slots[osReportSlot].backend->write(LogLevel::Warning, msg, len);
+			}
 		}
 	}
 
