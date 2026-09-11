@@ -6,9 +6,7 @@
  * Registers a "smb:/" newlib devoptab backed by libsmb2's synchronous
  * client API (smb2_open/smb2_pread/smb2_opendir/...)
  *
- * All paths handed in by newlib arrive with a leading '/' (the device
- * name/colon has already been stripped) - libsmb2's own path convention
- * has no leading slash (eg. smb2_opendir(ctx, "") for the share root),
+ * All paths handed in by newlib arrive with leading 'smb:/'
  * so every callback strips it via RelativePath() below.
  ***************************************************************************/
 #include <cerrno>
@@ -55,8 +53,13 @@ static void CaptureSmb2Error(const char * context)
  ***************************************************************************/
 static const char * RelativePath(const char * path)
 {
-	// newlib hands us the path with the device's own leading slash intact
-	// libsmb2 wants a path relative to the share with no leading slash
+	// Devoptab callbacks get the ORIGINAL path exactly as the app passed
+	// it to opendir()/open()/etc - including our own "smb:" device prefix
+	// Strip the device prefix before passing to libsmb2
+	const char * colon = strchr(path, ':');
+	if(colon)
+		path = colon + 1;
+
 	if(path[0] == '/')
 		path++;
 	return path;
@@ -329,7 +332,7 @@ void WutSmbDriver::shutdown()
 	{
 		ACFinalize();
 		acInitialized = false;
-	}
+}
 }
 
 bool WutSmbDriver::ensureNetworkUp()
