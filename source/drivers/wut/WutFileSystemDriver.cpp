@@ -119,7 +119,6 @@ void WutFileSystemDriver::shutdown()
 {
 	WHBUnmountSdCard();
 	smbDriver.shutdown();
-	unmountUsb();
 
 	// unmountUsbSlot() only touches whichever slots were actually mounted -
 	// a slot that's mid-backoff and never mounted could still theoretically
