@@ -5,10 +5,11 @@
  ***************************************************************************/
 #pragma once
 #include "../FileSystemDriver.h"
+#include "OgcSmbDriver.h"
 
 //!Wii FileSystemDriver: hot-pluggable SD and USB (both FAT, via
-//!fatMountSimple) plus DVD (ISO9660). pollStorageDevices() checks each
-//!disc interface's isInserted() every cycle.
+//!fatMountSimple) plus DVD (ISO9660), plus DEVICE_SMB via the shared
+//!OgcSmbDriver.
 class WiiFileSystemDriver : public FileSystemDriver
 {
 	public:
@@ -26,7 +27,11 @@ class WiiFileSystemDriver : public FileSystemDriver
 		const int * getValidLoadDevices(int & outCount) const override;
 		const int * getValidSaveDevices(int & outCount) const override;
 
+		SmbDriver * getSmb() override { return &smbDriver; }
+
 	private:
 		MountResult mountFAT(int deviceId);
 		MountResult mountDVD();
+
+		OgcSmbDriver smbDriver;
 };

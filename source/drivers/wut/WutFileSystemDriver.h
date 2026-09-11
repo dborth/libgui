@@ -5,6 +5,7 @@
  ***************************************************************************/
 #pragma once
 #include "../FileSystemDriver.h"
+#include "WutSmbDriver.h"
 #include <coreinit/filesystem_fsa.h>
 #include <mocha/disc_interface.h>
 
@@ -31,8 +32,8 @@ struct WutStorageMetrics
 //! re-probing a group we already know can't mount.
 struct WutUsbPhysicalSlot
 {
-	const DISC_INTERFACE * iface;           //!< &Mocha_usb1_disc_interface or &Mocha_usb2_disc_interface
-	const char *           mountName;       //!< devoptab basename, eg. "usb1" - also the dvm_wut.c volume name
+	const DISC_INTERFACE * iface;      //!< &Mocha_usb1_disc_interface or &Mocha_usb2_disc_interface
+	const char *           mountName;  //!< devoptab basename, eg. "usb1" - also the dvm_wut.c volume name
 	int                     failCount;       //!< consecutive mount failures since the last success or hardware change - see tryMountUsbSlot()
 	int                     backoffPollsLeft; //!< polls left to skip before the next probe attempt (0 = probe now)
 };
@@ -107,11 +108,14 @@ class WutFileSystemDriver : public FileSystemDriver
 		//! currently present or statvfs() failed.
 		bool getStorageMetrics(int deviceId, WutStorageMetrics & outMetrics);
 
+		SmbDriver * getSmb() override { return &smbDriver; }
+
 	private:
-		static const int kSlotSD   = 0;
+		static const int kSlotSD  = 0;
 		static const int kSlotUSB1 = 1;
 		static const int kSlotUSB2 = 2;
-		static const int kSlotCount = 3;
+		static const int kSlotSMB = 3;
+		static const int kSlotCount = 4;
 
 		static const int kUsbSlotCount = 2; //!< physical USB port groups: rear, front
 
@@ -135,8 +139,12 @@ class WutFileSystemDriver : public FileSystemDriver
 		WutUsbPhysicalSlot m_usbSlots[kUsbSlotCount];
 		int                m_activeUsbSlot; //!< index into m_usbSlots backing DEVICE_USB right now, or -1 if unmounted
 
+		WutSmbDriver       smbDriver;
+
 		int  findDeviceIndex(int deviceId) const;
 		void refreshDisplayName(WutDeviceState & dev);
+
+		void refreshSmbSlot();
 
 		//! Single-slot attempt: handles the backoff check, then a real
 		//! dvmWutMountUsb() probe if warranted - see failCount/

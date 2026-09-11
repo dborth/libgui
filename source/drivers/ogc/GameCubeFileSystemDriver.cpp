@@ -25,6 +25,7 @@ static char volumeLabel[MAX_STORAGE_DEVICES][16] = { { 0 } };
 void GameCubeFileSystemDriver::init()
 {
 	DVD_Init();
+	smbDriver.init();
 
 	StorageDevice devices[MAX_STORAGE_DEVICES];
 	int count = enumerateStorageDevices(devices);
@@ -36,6 +37,7 @@ void GameCubeFileSystemDriver::init()
 
 void GameCubeFileSystemDriver::shutdown()
 {
+	smbDriver.shutdown();
 	fatUnmount("port2:");
 	fatUnmount("carda:");
 	fatUnmount("cardb:");
@@ -50,11 +52,13 @@ static void CopyLabel(StorageDevice & out, int deviceId)
 int GameCubeFileSystemDriver::enumerateStorageDevices(StorageDevice outDevices[MAX_STORAGE_DEVICES])
 {
 	int count = 0;
-	outDevices[count] = StorageDevice{ DEVICE_SD_SLOTA,    "carda",    "carda:/",    false, false, 0, 0, 0, false, false, "" }; CopyLabel(outDevices[count], DEVICE_SD_SLOTA);    count++;
-	outDevices[count] = StorageDevice{ DEVICE_SD_SLOTB,    "cardb",    "cardb:/",    false, false, 0, 0, 0, false, false, "" }; CopyLabel(outDevices[count], DEVICE_SD_SLOTB);    count++;
-	outDevices[count] = StorageDevice{ DEVICE_SD_PORT2,    "port2",    "port2:/",    false, true, 0, 0, 0, false, false, "" }; CopyLabel(outDevices[count], DEVICE_SD_PORT2);    count++;
-	outDevices[count] = StorageDevice{ DEVICE_SD_GCLOADER, "gcloader", "gcloader:/", false, false, 0, 0, 0, false, false, "" }; CopyLabel(outDevices[count], DEVICE_SD_GCLOADER); count++;
-	outDevices[count] = StorageDevice{ DEVICE_DVD,         "",         "dvd:/",      false, false, 0, 0, 0, false, false, "" }; count++;
+	outDevices[count] = StorageDevice{ DEVICE_SD_SLOTA,		"carda",    "carda:/",    false, false, 0, 0, 0, false, false, "" }; CopyLabel(outDevices[count], DEVICE_SD_SLOTA);    count++;
+	outDevices[count] = StorageDevice{ DEVICE_SD_SLOTB,		"cardb",    "cardb:/",    false, false, 0, 0, 0, false, false, "" }; CopyLabel(outDevices[count], DEVICE_SD_SLOTB);    count++;
+	outDevices[count] = StorageDevice{ DEVICE_SD_PORT2,		"port2",    "port2:/",    false, true, 0, 0, 0, false, false, "" }; CopyLabel(outDevices[count], DEVICE_SD_PORT2);    count++;
+	outDevices[count] = StorageDevice{ DEVICE_SD_GCLOADER,	"gcloader", "gcloader:/", false, false, 0, 0, 0, false, false, "" }; CopyLabel(outDevices[count], DEVICE_SD_GCLOADER); count++;
+	outDevices[count] = StorageDevice{ DEVICE_DVD,			"",         "dvd:/",      false, false, 0, 0, 0, false, false, "" }; count++;
+	outDevices[count] = StorageDevice{ DEVICE_SMB,			"network", "smb:/", false, false, 0, 0, 0, false, false, "" }; count++;
+
 	return count;
 }
 
@@ -144,6 +148,9 @@ MountResult GameCubeFileSystemDriver::mountDVD()
 
 MountResult GameCubeFileSystemDriver::mountStorageDevice(int deviceId)
 {
+	if(deviceId == DEVICE_SMB)
+		return smbDriver.isConnected() ? MountResult::Success : MountResult::DeviceNotFound;
+
 	if(isMounted[deviceId])
 		return MountResult::Success;
 
@@ -157,7 +164,7 @@ MountResult GameCubeFileSystemDriver::mountStorageDevice(int deviceId)
 		case DEVICE_DVD:
 			return mountDVD();
 		default:
-			return MountResult::DeviceNotFound; // not ours - eg. DEVICE_SMB is network, handled by fileop.cpp directly
+			return MountResult::DeviceNotFound;
 	}
 }
 
@@ -185,6 +192,7 @@ const char * GameCubeFileSystemDriver::mountResultMessage(int deviceId, MountRes
 		case DEVICE_SD_GCLOADER:
 			return "SD card not found!";
 		case DEVICE_DVD: return "No disc inserted!";
+		case DEVICE_SMB: return "Network share not connected!";
 		default:         return "Device not found!";
 	}
 }
@@ -221,6 +229,9 @@ static const char * const kMountPath[DEVICE_LENGTH] =
 
 const char * GameCubeFileSystemDriver::getMountPath(int device) const
 {
+	if(device == DEVICE_SMB)
+		return smbDriver.getMountPath();
+
 	if(device < 0 || device >= DEVICE_LENGTH || !isMounted[device])
 		return "";
 	return kMountPath[device];

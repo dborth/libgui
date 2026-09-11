@@ -5,9 +5,11 @@
  ***************************************************************************/
 #pragma once
 #include "../FileSystemDriver.h"
+#include "OgcSmbDriver.h"
 
-//!GameCube FileSystemDriver: memory card slots, GC Loader, and DVD.
-//!Nothing here is removable at runtime (see hasRemovableStorageDevices()),
+//!GameCube FileSystemDriver: memory card slots, GC Loader, and DVD, plus
+//!DEVICE_SMB (broadband adapter) via the shared OgcSmbDriver.
+//!Nothing else here is removable at runtime (see hasRemovableStorageDevices()),
 //!unlike Wii's SD/USB.
 class GameCubeFileSystemDriver : public FileSystemDriver
 {
@@ -26,7 +28,11 @@ class GameCubeFileSystemDriver : public FileSystemDriver
 		const int * getValidLoadDevices(int & outCount) const override;
 		const int * getValidSaveDevices(int & outCount) const override;
 
+		SmbDriver * getSmb() override { return &smbDriver; }
+
 	private:
 		MountResult mountFAT(int deviceId);
 		MountResult mountDVD();
+
+		OgcSmbDriver smbDriver;
 };

@@ -105,12 +105,21 @@ void WutFileSystemDriver::init()
 	// pollStorageDevices() call (or an explicit mountStorageDevice(),
 	// eg. from "autoMountAtStartup") picks it up from there.
 
+	smbDriver.init();
+
+	WutDeviceState & smb = m_devices[kSlotSMB];
+	memset(&smb, 0, sizeof(smb));
+	smb.id = DEVICE_SMB;
+	strcpy(smb.name, "Network Share");
+	
 	m_deviceCount = kSlotCount;
 }
 
 void WutFileSystemDriver::shutdown()
 {
 	WHBUnmountSdCard();
+	smbDriver.shutdown();
+	unmountUsb();
 
 	// unmountUsbSlot() only touches whichever slots were actually mounted -
 	// a slot that's mid-backoff and never mounted could still theoretically
@@ -264,8 +273,30 @@ bool WutFileSystemDriver::usbStillPresent(int usbSlotIdx)
 	return dvmWutUsbStillPresent(m_usbSlots[usbSlotIdx].mountName);
 }
 
+void WutFileSystemDriver::refreshSmbSlot()
+{
+	WutDeviceState & smb = m_devices[kSlotSMB];
+	bool connected = smbDriver.isConnected();
+
+	smb.isPresent = connected;
+	smb.isMounted = connected;
+
+	if(connected)
+	{
+		strncpy(smb.prefix, smbDriver.getMountPath(), sizeof(smb.prefix) - 1);
+		smb.prefix[sizeof(smb.prefix) - 1] = '\0';
+	}
+	else
+	{
+		smb.prefix[0] = '\0';
+		smb.label[0] = '\0';
+	}
+}
+
 int WutFileSystemDriver::enumerateStorageDevices(StorageDevice outDevices[MAX_STORAGE_DEVICES])
 {
+	refreshSmbSlot();
+
 	int count = 0;
 	for(int i = 0; i < m_deviceCount && count < MAX_STORAGE_DEVICES; i++)
 	{
@@ -280,8 +311,8 @@ int WutFileSystemDriver::enumerateStorageDevices(StorageDevice outDevices[MAX_ST
 		out.label[sizeof(out.label) - 1] = '\0';
 		strncpy(out.prefix, m_devices[i].prefix, sizeof(out.prefix) - 1);
 		out.prefix[sizeof(out.prefix) - 1] = '\0';
-		out.removable = true;
-		out.autoMountAtStartup = true;
+		out.removable = (m_devices[i].id != DEVICE_SMB);
+		out.autoMountAtStartup = (m_devices[i].id != DEVICE_SMB); // SMB needs explicit getSmb()->connect() first
 
 		WutStorageMetrics metrics;
 		out.metricsValid = getStorageMetrics(m_devices[i].id, metrics);
@@ -315,6 +346,12 @@ MountResult WutFileSystemDriver::mountStorageDevice(int deviceId)
 		return tryMountUsbSlot(0) ? MountResult::Success : MountResult::DeviceNotFound;
 	else if(deviceId == DEVICE_USB2)
 		return tryMountUsbSlot(1) ? MountResult::Success : MountResult::DeviceNotFound;
+
+	if(deviceId == DEVICE_SMB)
+	{
+		refreshSmbSlot();
+		return smbDriver.isConnected() ? MountResult::Success : MountResult::DeviceNotFound;
+	}
 
 	// SD (and anything else using the DevicePresent()-style devoptab check)
 	WutDeviceState & dev = m_devices[idx];
@@ -353,12 +390,20 @@ const char * WutFileSystemDriver::mountResultMessage(int deviceId, MountResult r
 		return "USB1 drive not found!";
 	else if(deviceId == DEVICE_USB2)
 		return "USB2 drive not found!";
+	else if(deviceId == DEVICE_SMB)
+		return "Network share not connected!";
 
 	return "Storage device not found!";
 }
-
 void WutFileSystemDriver::invalidateStorageDevice(int deviceId)
 {
+	if(deviceId == DEVICE_SMB)
+	{
+		smbDriver.disconnect();
+		refreshSmbSlot();
+		return;
+	}
+
 	int idx = findDeviceIndex(deviceId);
 	if(idx < 0)
 		return;
@@ -440,6 +485,9 @@ bool WutFileSystemDriver::getStorageMetrics(int deviceId, WutStorageMetrics & ou
 
 const char * WutFileSystemDriver::getMountPath(int device) const
 {
+	if(device == DEVICE_SMB)
+		const_cast<WutFileSystemDriver *>(this)->refreshSmbSlot();
+
 	int idx = findDeviceIndex(device);
 	if(idx < 0 || !m_devices[idx].isMounted || m_devices[idx].prefix[0] == '\0')
 		return "";
@@ -448,14 +496,14 @@ const char * WutFileSystemDriver::getMountPath(int device) const
 
 const int * WutFileSystemDriver::getValidLoadDevices(int & outCount) const
 {
-	static const int devices[] = { DEVICE_AUTO, DEVICE_SD, DEVICE_USB, DEVICE_USB2 };
+	static const int devices[] = { DEVICE_AUTO, DEVICE_SD, DEVICE_USB, DEVICE_USB2, DEVICE_SMB };
 	outCount = sizeof(devices) / sizeof(devices[0]);
 	return devices;
 }
 
 const int * WutFileSystemDriver::getValidSaveDevices(int & outCount) const
 {
-	static const int devices[] = { DEVICE_AUTO, DEVICE_SD, DEVICE_USB, DEVICE_USB2 };
+	static const int devices[] = { DEVICE_AUTO, DEVICE_SD, DEVICE_USB, DEVICE_USB2, DEVICE_SMB };
 	outCount = sizeof(devices) / sizeof(devices[0]);
 	return devices;
 }
