@@ -7,6 +7,8 @@
 #ifndef _DEMO_H_
 #define _DEMO_H_
 
+#include "drivers/SmbDriver.h"
+
 enum {
 	METHOD_AUTO = 0,
 	METHOD_SD,
@@ -30,6 +32,7 @@ struct SSettings {
 	char	Folder1[256]; // Path to files
 	char	Folder2[256]; // Path to files
 	char	Folder3[256]; // Path to files
+	SmbShareInfo Smb; // Network share target
 };
 extern struct SSettings Settings;
 

@@ -26,12 +26,19 @@ typedef struct
 	char isdir; // 0 - file, 1 - directory
 	char filename[MAXJOLIET + 1]; // full filename
 	char displayname[MAXDISPLAY + 1]; // name for browser display
+	int deviceId;
 } BROWSERENTRY;
 
 extern BROWSERINFO browser;
 extern BROWSERENTRY * browserList;
 extern char rootdir[128];
 extern bool browserDeviceListChanged;
+
+//! Which device rootdir currently belongs to
+extern int rootDeviceId;
+
+//! Set by ParseDirectory() when opendir() fails and it falls back to the device list
+extern char browserErrorMsg[256];
 
 int UpdateDirName();
 int FileSortCallback(const void *f1, const void *f2);

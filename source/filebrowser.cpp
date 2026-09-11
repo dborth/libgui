@@ -8,6 +8,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <errno.h>
 #include <sys/dir.h>
 #include <malloc.h>
 
@@ -27,6 +28,8 @@ BROWSERENTRY * browserList = nullptr; // list of files/folders in browser
 
 char rootdir[128];
 bool browserDeviceListChanged = false;
+int rootDeviceId = -1;
+char browserErrorMsg[256] = "";
 
 /****************************************************************************
  * Thread Synchronization Primitives
@@ -184,6 +187,7 @@ int UpdateDirName()
 		{
 			rootdir[0] = '\0';
 			browser.dir[0] = '\0';
+			rootDeviceId = -1;
 			return 1;
 		}
 
@@ -213,6 +217,7 @@ int UpdateDirName()
 		if (rootdir[0] == '\0')
 		{
 			strcpy(rootdir, browserList[browser.selIndex].filename);
+			rootDeviceId = browserList[browser.selIndex].deviceId;
 			strcpy(browser.dir, "/");
 			return 1;
 		}
@@ -292,6 +297,7 @@ int ParseDeviceList()
 
 		strncpy(browserList[entryNum].filename, devices[i].prefix, MAXJOLIET);
 		browserList[entryNum].filename[MAXJOLIET] = '\0';
+		browserList[entryNum].deviceId = devices[i].id;
 
 		// Append the volume label when one is set
 		if(devices[i].label[0] != '\0')
@@ -341,10 +347,33 @@ int ParseDirectory()
 
 	dir = opendir(fulldir);
 
-	// If a device becomes suddenly unavailable, fallback to the device list
+	// If a device becomes suddenly unavailable, fall back to the device list
 	if (dir == nullptr)
 	{
-		return ParseDeviceList();
+		if(rootDeviceId == DEVICE_SMB)
+		{
+			const char * smbErr = platform->getFileSystem()->getSmb()->getLastError();
+			if(smbErr && smbErr[0])
+				snprintf(browserErrorMsg, sizeof(browserErrorMsg), "Couldn't open network share: %s", smbErr);
+			else
+				snprintf(browserErrorMsg, sizeof(browserErrorMsg), "Couldn't open network share: %s", strerror(errno));
+		}
+		else
+		{
+			snprintf(browserErrorMsg, sizeof(browserErrorMsg), "Couldn't open %s: %s", fulldir, strerror(errno));
+		}
+
+		// Only invalidate for physical/hotplug devices (SD/USB/DVD)
+		// For SMB, one folder failing to open could just be a permissions issue
+		if(rootDeviceId >= 0 && rootDeviceId != DEVICE_SMB)
+			platform->getFileSystem()->invalidateStorageDevice(rootDeviceId);
+
+		rootdir[0] = '\0';
+		browser.dir[0] = '\0';
+		rootDeviceId = -1;
+
+		ParseDeviceList();
+		return -1; // distinct from a real device-list count - see browserErrorMsg
 	}
 
 	int entryNum = 0;
@@ -417,7 +446,5 @@ int BrowserChangeFolder()
 	if(!UpdateDirName())
 		return -1;
 
-	ParseDirectory();
-
-	return browser.numEntries;
+	return ParseDirectory();
 }

@@ -45,6 +45,11 @@ void DefaultSettings()
 	sprintf (Settings.Folder3,"libgui/third folder");
 	Settings.AutoLoad = AUTO_SOME;
 	Settings.AutoSave = AUTO_SOME;
+
+	sprintf(Settings.Smb.host, "192.168.0.100");
+	sprintf(Settings.Smb.share, "Files");
+	sprintf(Settings.Smb.user, "Demo");
+	sprintf(Settings.Smb.password, "password");
 }
 
 int main(int, char **)

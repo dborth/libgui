@@ -322,7 +322,11 @@ static int MenuBrowseDevices()
 		if(browserDeviceListChanged)
 		{
 			browserDeviceListChanged = false;
-			ParseDirectory();
+			if(ParseDirectory() <= 0 && browserErrorMsg[0] != '\0')
+			{
+				WindowPrompt("Error", browserErrorMsg, "OK", nullptr);
+				browserErrorMsg[0] = '\0';
+			}
 			fileBrowser.resetState();
 			if(browser.numEntries > 0)
 				fileBrowser.fileList[0]->setState(STATE::SELECTED);
@@ -339,7 +343,7 @@ static int MenuBrowseDevices()
 				// check corresponding browser entry
 				if(browserList[browser.selIndex].isdir)
 				{
-					if(BrowserChangeFolder())
+					if(BrowserChangeFolder() > 0)
 					{
 						fileBrowser.resetState();
 						fileBrowser.fileList[0]->setState(STATE::SELECTED);
@@ -347,6 +351,11 @@ static int MenuBrowseDevices()
 					}
 					else
 					{
+						if(browserErrorMsg[0] != '\0')
+						{
+							WindowPrompt("Error", browserErrorMsg, "OK", nullptr);
+							browserErrorMsg[0] = '\0';
+						}
 						menu = MENU_BROWSE_DEVICES;
 						break;
 					}
@@ -532,7 +541,7 @@ static int MenuSettings()
 		}
 		else if(networkBtn.getState() == STATE::CLICKED)
 		{
-			menu = MENU_SETTINGS_FILE;
+			menu = MENU_SETTINGS_NETWORK;
 		}
 		else if(exitBtn.getState() == STATE::CLICKED)
 		{
@@ -702,6 +711,139 @@ static int MenuSettingsFile()
 }
 
 /****************************************************************************
+ * MenuSettingsNetwork
+ *
+ * Basic network share screen: the host/share/user are hardcoded in
+ * DefaultSettings() rather than editable here yet.
+ ***************************************************************************/
+static int MenuSettingsNetwork()
+{
+	int menu = MENU_NONE;
+
+	SmbDriver * smb = platform->getFileSystem()->getSmb();
+
+	GuiText titleTxt("Settings - Network Share", 28, (PixelColor){255, 255, 255, 255});
+	titleTxt.setAlignment(ALIGN_H::LEFT, ALIGN_V::TOP);
+	titleTxt.setPosition(50,50);
+
+	char shareLine[256];
+	snprintf(shareLine, sizeof(shareLine), "Share: \\\\%s\\%s", Settings.Smb.host, Settings.Smb.share);
+	GuiText shareTxt(shareLine, 20, (PixelColor){255, 255, 255, 255});
+	shareTxt.setAlignment(ALIGN_H::LEFT, ALIGN_V::TOP);
+	shareTxt.setPosition(50,110);
+	
+	char userLine[128];
+	snprintf(userLine, sizeof(userLine), "User: %s", Settings.Smb.user);
+	GuiText userTxt(userLine, 20, (PixelColor){255, 255, 255, 255});
+	userTxt.setAlignment(ALIGN_H::LEFT, ALIGN_V::TOP);
+	userTxt.setPosition(50,145);
+
+	GuiText statusTxt("", 22, (PixelColor){255, 255, 255, 255});
+	statusTxt.setAlignment(ALIGN_H::LEFT, ALIGN_V::TOP);
+	statusTxt.setPosition(50,180);
+
+	GuiSound btnSoundOver(button_over_pcm, button_over_pcm_size, SOUND::PCM);
+	GuiImageData btnOutline(button_png);
+	GuiImageData btnOutlineOver(button_over_png);
+
+	GuiTrigger trigA, trigB;
+	trigA.setPrimaryTrigger();
+	trigB.setSecondaryTrigger();
+
+	GuiText connectBtnTxt("Connect", 22, (PixelColor){0, 0, 0, 255});
+	GuiImage connectBtnImg(&btnOutline);
+	GuiImage connectBtnImgOver(&btnOutlineOver);
+	GuiButton connectBtn(btnOutline.getWidth(), btnOutline.getHeight());
+	connectBtn.setAlignment(ALIGN_H::LEFT, ALIGN_V::TOP);
+	connectBtn.setPosition(50, 220);
+	connectBtn.setLabel(&connectBtnTxt);
+	connectBtn.setImage(&connectBtnImg);
+	connectBtn.setImageOver(&connectBtnImgOver);
+	connectBtn.setSoundOver(&btnSoundOver);
+	connectBtn.setTrigger(&trigA);
+	connectBtn.setEffectGrow();
+
+	GuiText disconnectBtnTxt("Disconnect", 22, (PixelColor){0, 0, 0, 255});
+	GuiImage disconnectBtnImg(&btnOutline);
+	GuiImage disconnectBtnImgOver(&btnOutlineOver);
+	GuiButton disconnectBtn(btnOutline.getWidth(), btnOutline.getHeight());
+	disconnectBtn.setAlignment(ALIGN_H::LEFT, ALIGN_V::TOP);
+	disconnectBtn.setPosition(250, 220);
+	disconnectBtn.setLabel(&disconnectBtnTxt);
+	disconnectBtn.setImage(&disconnectBtnImg);
+	disconnectBtn.setImageOver(&disconnectBtnImgOver);
+	disconnectBtn.setSoundOver(&btnSoundOver);
+	disconnectBtn.setTrigger(&trigA);
+	disconnectBtn.setEffectGrow();
+
+	GuiText backBtnTxt("Go Back", 22, (PixelColor){0, 0, 0, 255});
+	GuiImage backBtnImg(&btnOutline);
+	GuiImage backBtnImgOver(&btnOutlineOver);
+	GuiButton backBtn(btnOutline.getWidth(), btnOutline.getHeight());
+	backBtn.setAlignment(ALIGN_H::LEFT, ALIGN_V::BOTTOM);
+	backBtn.setPosition(100, -35);
+	backBtn.setLabel(&backBtnTxt);
+	backBtn.setImage(&backBtnImg);
+	backBtn.setImageOver(&backBtnImgOver);
+	backBtn.setSoundOver(&btnSoundOver);
+	backBtn.setTrigger(&trigA);
+	backBtn.setTrigger(&trigB);
+	backBtn.setEffectGrow();
+
+	GuiWindow w(platform->getVideo()->getScreenWidth(), platform->getVideo()->getScreenHeight());
+	w.append(&titleTxt);
+	w.append(&shareTxt);
+	w.append(&userTxt);
+	w.append(&statusTxt);
+	w.append(&connectBtn);
+	w.append(&disconnectBtn);
+	w.append(&backBtn);
+	mainWindow->appendWithAutoRemove(&w);
+
+	bool firstRun = true;
+
+	while(menu == MENU_NONE)
+	{
+		if(!UpdateGui()) return MENU_EXIT;
+
+		if(firstRun)
+		{
+			firstRun = false;
+			statusTxt.setText(smb->isConnected() ? "Status: Connected" : "Status: Not connected");
+		}
+
+		if(connectBtn.getState() == STATE::CLICKED)
+		{
+			connectBtn.resetState();
+
+			SmbConnectResult result = smb->connect(Settings.Smb);
+			statusTxt.setText(smb->isConnected() ? "Status: Connected" : "Status: Not connected");
+
+			char message[256];
+			const char * detail = smb->getLastError();
+			if(result != SmbConnectResult::Success && detail && detail[0])
+				snprintf(message, sizeof(message), "%s %s", smb->connectResultMessage(result), detail);
+			else
+				snprintf(message, sizeof(message), "%s", smb->connectResultMessage(result));
+
+			WindowPrompt("Network Share", message, "OK", nullptr);
+		}
+		else if(disconnectBtn.getState() == STATE::CLICKED)
+		{
+			disconnectBtn.resetState();
+			smb->disconnect();
+			statusTxt.setText("Status: Not connected");
+		}
+		else if(backBtn.getState() == STATE::CLICKED)
+		{
+			menu = MENU_SETTINGS;
+		}
+	}
+
+	return menu;
+}
+
+/****************************************************************************
  * MainMenu
  ***************************************************************************/
 void MainMenu(int menu)
@@ -737,6 +879,9 @@ void MainMenu(int menu)
 				break;
 			case MENU_SETTINGS_FILE:
 				currentMenu = MenuSettingsFile();
+				break;
+			case MENU_SETTINGS_NETWORK:
+				currentMenu = MenuSettingsNetwork();
 				break;
 			case MENU_BROWSE_DEVICES:
 				currentMenu = MenuBrowseDevices();
