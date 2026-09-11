@@ -35,17 +35,17 @@ void WutPlatform::init(int width, int height)
 	this->logger->registerBackend(LOGGER_OSREPORT,	new WutLoggerOSReport());
 	this->logger->registerBackend(LOGGER_UDP,		new WutLoggerUdp());
 	this->logger->registerBackend(LOGGER_SERIAL,	new WutLoggerUsbSerial());
-	this->logger->registerBackend(LOGGER_FILE,		new LoggerFile());
+	//this->logger->registerBackend(LOGGER_FILE,		new LoggerFile());
 
 	LogConfig config;
-	static const int deviceCandidates[] = { DEVICE_SD };
+	/*static const int deviceCandidates[] = { DEVICE_SD };
 
 	const char * mountPath = FindFirstMountedPath(this->fileSystemDriver, deviceCandidates, 1);
 
 	if(mountPath[0] != '\0') {
 		// mountPath already ends in "/" (eg. "/vol/external01/") - no separator needed.
 		snprintf(config.filePath, sizeof(config.filePath), "%sdebug.log", mountPath);
-	}
+	}*/
 
 	this->logger->init(config);
 #endif
@@ -102,8 +102,6 @@ void WutPlatform::shutdown()
 // ready to shut down.
 void WutPlatform::requestExit()
 {
-	this->shutdown();
-
 	// If the exit was user-initiated, Cafe OS has not been notified yet.
 	// SYSLaunchMenu() tells Cafe OS to switch back to the system menu or loader.
 	if(ProcUIIsRunning()) {
@@ -112,7 +110,7 @@ void WutPlatform::requestExit()
 			usleep(1000);
 		}
 	}
-
+	this->shutdown();
 	WHBProcShutdown();
 	exit(0);
 }
