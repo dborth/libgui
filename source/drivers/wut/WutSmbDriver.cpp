@@ -24,6 +24,7 @@
 #include <smb2/smb2.h>
 #include <smb2/libsmb2.h>
 #include <cstdio>
+#include <nn/ac.h>
 #include "WutSmbDriver.h"
 #include "../Logger.h"
 
@@ -305,12 +306,60 @@ static devoptab_t BuildSmbDevoptab()
  ***************************************************************************/
 void WutSmbDriver::init()
 {
-
+	// One-time nn::ac bring-up. Cheap and does not itself touch the network -
+	// it just readies the library so ACConnect() can be called later.
+	NNResult result = ACInitialize();
+	acInitialized = NNResult_IsSuccess(result);
+	if(!acInitialized)
+		LOG_ERROR("WutSmbDriver: ACInitialize failed (0x%08X)", (unsigned)result.value);
 }
 
 void WutSmbDriver::shutdown()
 {
 	disconnect();
+
+	// Mirror init(): only close/finalize what we actually brought up.
+	if(acConnected)
+	{
+		ACClose();
+		acConnected = false;
+	}
+
+	if(acInitialized)
+	{
+		ACFinalize();
+		acInitialized = false;
+	}
+}
+
+bool WutSmbDriver::ensureNetworkUp()
+{
+	if(!acInitialized)
+	{
+		snprintf(g_lastError, sizeof(g_lastError), "AC not initialized");
+		LOG_ERROR("WutSmbDriver: %s", g_lastError);
+		return false;
+	}
+
+	// Don't assume our own acConnected flag is the only way the network got
+	// up (or down) - ask AC directly every time, since eg. Wi-Fi can drop
+	// between connect() calls without this driver being told.
+	BOOL isConnected = FALSE;
+	NNResult result = ACIsApplicationConnected(&isConnected);
+	if(NNResult_IsSuccess(result) && isConnected)
+		return true;
+
+	LOG_INFO("WutSmbDriver: network not connected, calling ACConnect()...");
+	result = ACConnect(); // blocking - may take a while on cold Wi-Fi association
+	if(NNResult_IsFailure(result))
+	{
+		snprintf(g_lastError, sizeof(g_lastError), "ACConnect failed (0x%08X)", (unsigned)result.value);
+		LOG_ERROR("WutSmbDriver: %s", g_lastError);
+		return false;
+	}
+
+	acConnected = true;
+	return true;
 }
 
 SmbConnectResult WutSmbDriver::connect(const SmbShareInfo & info)
@@ -325,6 +374,9 @@ SmbConnectResult WutSmbDriver::connect(const SmbShareInfo & info)
 		return SmbConnectResult::Success; // already connected to this exact target
 
 	disconnect(); // drop any existing connection to a *different* target first
+
+	if(!ensureNetworkUp())
+		return SmbConnectResult::NetworkUnavailable;
 
 	ctx = smb2_init_context();
 	if(!ctx)

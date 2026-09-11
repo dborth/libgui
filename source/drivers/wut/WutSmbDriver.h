@@ -31,7 +31,14 @@ class WutSmbDriver : public SmbDriver
 		static smb2_context * getContext() { return ctx; }
 
 	private:
+		//! Brings the Wii U network connection up if it isn't already, via
+		//! nn::ac (ACConnect()). Blocking. Returns false (with getLastError()
+		//! set) if AC wasn't initialized or the connect attempt failed.
+		bool ensureNetworkUp();
+
 		static smb2_context * ctx;
 		SmbShareInfo current = {};
 		bool devoptabAdded = false;
+		bool acInitialized = false; //!< true once ACInitialize() has succeeded
+		bool acConnected   = false; //!< true once we've brought the network up ourselves via ACConnect()
 };
