@@ -8,6 +8,7 @@
 #include "WutSmbDriver.h"
 #include <coreinit/filesystem_fsa.h>
 #include <mocha/disc_interface.h>
+#include "WutUsbProbe.h"
 
 //! Optional capacity/health telemetry for a single device, filled in on
 //! request via getStorageMetrics(). Kept separate from the generic
@@ -22,17 +23,10 @@ struct WutStorageMetrics
 	bool     readOnly;
 };
 
-//! One physical USB port group as Cafe OS actually exposes it - "/dev/usb01"
-//! (rear ports) and "/dev/usb02" (front ports) are independent IOSU device
-//! nodes, each with its own fd lifecycle. A device sitting in one group,
-//! mountable or not, has no bearing on the other. WutFileSystemDriver still
-//! only ever exposes a single DEVICE_USB to the rest of the app (see
-//! WutDeviceState below) - this struct is purely internal bookkeeping for
-//! which physical group is backing that one exposed device, and for not
-//! re-probing a group we already know can't mount.
+//! One USB storage slot as Cafe OS actually exposes it.
 struct WutUsbPhysicalSlot
 {
-	const DISC_INTERFACE * iface;      //!< &Mocha_usb1_disc_interface or &Mocha_usb2_disc_interface
+	const DISC_INTERFACE * iface;      //!< &Mocha_usb1_disc_interface .. &Mocha_usb4_disc_interface
 	const char *           mountName;  //!< devoptab basename, eg. "usb1" - also the dvm_wut.c volume name
 	int                     failCount;       //!< consecutive mount failures since the last success or hardware change - see tryMountUsbSlot()
 	int                     backoffPollsLeft; //!< polls left to skip before the next probe attempt (0 = probe now)
@@ -58,11 +52,10 @@ struct WutDeviceState
 //!dvmDiscProbePresence() for genuine hot-unplug detection below.
 //! Raw disc access below libdvm is through libmocha's DISC_INTERFACE.
 //!
-//!Cafe OS exposes USB as two independent port groups (rear = "/dev/usb01",
-//!front = "/dev/usb02", each its own IOSU device node/fd). Both groups are
-//!probed independently (m_usbSlots) and each surfaces as its own device
-//!outward too (DEVICE_USB = rear/usb1, DEVICE_USB2 = front/usb2) - see
-//!WutUsbPhysicalSlot.
+//!Cafe OS exposes USB as up to four independent storage slots (see
+//!WutUsbPhysicalSlot - these are attach-order slots, not fixed physical
+//!ports/port-groups. All four are probed independently (usbSlots) and each
+//!surfaces as its own device outward too (DEVICE_USB/USB2/USB3/USB4).
 //!
 //!Hotplug (insertion): Mocha_usbN_isInserted() only reports whether we
 //!already have the fd open - it doesn't re-probe hardware - so it can't
@@ -71,7 +64,9 @@ struct WutDeviceState
 //!from "something changed". Instead: while unmounted, pollStorageDevices() retries
 //!dvmWutMountUsb() (which does force a fresh /dev/usb0N open attempt)
 //!according to each slot's own poll-count backoff - see failCount/
-//!backoffPollsLeft on WutUsbPhysicalSlot and tryMountUsbSlot().
+//!backoffPollsLeft on WutUsbPhysicalSlot and tryMountUsbSlot() - and a
+//!read-only nsysuhs scan (see WutUsbDiagnostics.h) resets that backoff
+//!immediately on any real hardware-level change instead of waiting it out.
 //!
 //!Hotplug (removal while mounted): dvmWutUsbStillPresent() forces a real,
 //!uncached raw sector read through the mounted disc rather than stat()-ing
@@ -111,33 +106,42 @@ class WutFileSystemDriver : public FileSystemDriver
 		SmbDriver * getSmb() override { return &smbDriver; }
 
 	private:
-		static const int kSlotSD  = 0;
-		static const int kSlotUSB1 = 1;
-		static const int kSlotUSB2 = 2;
-		static const int kSlotSMB = 3;
-		static const int kSlotCount = 4;
+		static const int slotSD  = 0;
+		static const int slotUSB1 = 1;
+		static const int slotUSB2 = 2;
+		static const int slotUSB3 = 3;
+		static const int slotUSB4 = 4;
+		static const int slotSMB = 5;
+		static const int slotCount = 6;
 
-		static const int kUsbSlotCount = 2; //!< physical USB port groups: rear, front
+		static const int usbSlotCount = 4; //!< independent USB storage slots (see WutUsbPhysicalSlot - not fixed physical ports)
 
 		//! Cache sizing passed to dvmWutMountUsb() - tuned and hardware-confirmed
-		static const unsigned kUsbCachePages     = 512;
-		static const unsigned kUsbSectorsPerPage = 128;
+		static const unsigned usbCachePages     = 512;
+		static const unsigned usbSectorsPerPage = 128;
 
 		//! Backoff tuning for tryMountUsbSlot() - a handful of immediate
 		//! retries (covers a drive still spinning up / a transient IOSU
 		//! hiccup), then back off to roughly one probe every
-		//! kUsbBackoffPolls calls to pollStorageDevices() for a port group
+		//! usbBackoffPolls calls to pollStorageDevices() for a port group
 		//! that just isn't mounting.
-		static const int kUsbMaxQuickRetries = 3;
-		static const int kUsbBackoffPolls    = 180;
+		static const int usbMaxQuickRetries = 3;
+		static const int usbBackoffPolls    = 180;
 
-		WutDeviceState     m_devices[kSlotCount];
-		int                m_deviceCount;
-		FSAClientHandle    m_fsaClient = -1;  //!< used only for best-effort volume-label lookups; negative if unavailable
-		bool               m_mochaReady; //!< Mocha_InitLibrary() succeeded - USB unavailable entirely if not
+		WutDeviceState     devices[slotCount];
+		int                deviceCount;
+		FSAClientHandle    fsaClient = -1; //!< used only for best-effort volume-label lookups; negative if unavailable
+		bool               mochaReady; //!< Mocha_InitLibrary() succeeded - USB unavailable entirely if not
 
-		WutUsbPhysicalSlot m_usbSlots[kUsbSlotCount];
-		int                m_activeUsbSlot; //!< index into m_usbSlots backing DEVICE_USB right now, or -1 if unmounted
+		WutUsbPhysicalSlot usbSlots[usbSlotCount];
+		int                activeUsbSlot; //!< index into usbSlots backing DEVICE_USB right now, or -1 if unmounted
+
+		//! Last poll's read-only nsysuhs scan (see WutUsbDiagnostics.h). A
+		//! change here means real hardware just appeared/disappeared, so
+		//! pollStorageDevices() uses it to reset the usb slots' backoff
+		//! immediately rather than waiting out usbBackoffPolls (up to 3
+		//! minutes) for a fresh insertion to be tried again.
+		UsbHardwareSignature usbHwSignature;
 
 		WutSmbDriver       smbDriver;
 

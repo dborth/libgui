@@ -16,10 +16,10 @@
 extern "C" {
 #endif
 
-#define DVM_WUT_MAX_USB_VOLUMES 2
+#define DVM_WUT_MAX_USB_VOLUMES 4
 
-//! One physical USB port group's dvm mount state. Purely internal
-//! bookkeeping for dvm_wut.c itself - callers only ever deal in names.
+//! One USB storage slot's dvm mount state. Purely internal bookkeeping for
+//! dvm_wut.c itself - callers only ever deal in names.
 typedef struct
 {
 	char  name[8];   //!< devoptab basename this volume was mounted as, eg. "usb1"
