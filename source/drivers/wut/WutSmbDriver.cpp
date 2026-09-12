@@ -44,8 +44,6 @@ static void CaptureSmb2Error(const char * context)
 		snprintf(g_lastError, sizeof(g_lastError), "%s: %s", context, detail);
 	else
 		snprintf(g_lastError, sizeof(g_lastError), "%s", context);
-
-	LOG_ERROR("WutSmbDriver: %s", g_lastError);
 }
 
 /****************************************************************************
@@ -231,8 +229,6 @@ struct SmbDirState
 static DIR_ITER * smb_diropen_r(struct _reent *, DIR_ITER * dirState, const char * path)
 {
 	const char * relPath = RelativePath(path);
-	LOG_INFO("WutSmbDriver: diropen_r(\"%s\") -> smb2_opendir(\"%s\"), ctx=%p", path, relPath, (void *)WutSmbDriver::getContext());
-
 	smb2dir * dir = smb2_opendir(WutSmbDriver::getContext(), relPath);
 	if(!dir)
 	{
@@ -243,7 +239,6 @@ static DIR_ITER * smb_diropen_r(struct _reent *, DIR_ITER * dirState, const char
 		return nullptr;
 	}
 
-	LOG_INFO("WutSmbDriver: opendir succeeded, dir=%p", (void *)dir);
 	((SmbDirState *)dirState->dirStruct)->dir = dir;
 	return dirState;
 }
@@ -313,8 +308,6 @@ void WutSmbDriver::init()
 	// it just readies the library so ACConnect() can be called later.
 	NNResult result = ACInitialize();
 	acInitialized = NNResult_IsSuccess(result);
-	if(!acInitialized)
-		LOG_ERROR("WutSmbDriver: ACInitialize failed (0x%08X)", (unsigned)result.value);
 }
 
 void WutSmbDriver::shutdown()
@@ -340,7 +333,6 @@ bool WutSmbDriver::ensureNetworkUp()
 	if(!acInitialized)
 	{
 		snprintf(g_lastError, sizeof(g_lastError), "AC not initialized");
-		LOG_ERROR("WutSmbDriver: %s", g_lastError);
 		return false;
 	}
 
@@ -352,12 +344,10 @@ bool WutSmbDriver::ensureNetworkUp()
 	if(NNResult_IsSuccess(result) && isConnected)
 		return true;
 
-	LOG_INFO("WutSmbDriver: network not connected, calling ACConnect()...");
 	result = ACConnect(); // blocking - may take a while on cold Wi-Fi association
 	if(NNResult_IsFailure(result))
 	{
 		snprintf(g_lastError, sizeof(g_lastError), "ACConnect failed (0x%08X)", (unsigned)result.value);
-		LOG_ERROR("WutSmbDriver: %s", g_lastError);
 		return false;
 	}
 
@@ -372,8 +362,7 @@ SmbConnectResult WutSmbDriver::connect(const SmbShareInfo & info)
 	if(info.host[0] == '\0' || info.share[0] == '\0')
 		return SmbConnectResult::InvalidSettings;
 
-	if(ctx && strcmp(current.host, info.host) == 0 && strcmp(current.share, info.share) == 0
-		&& strcmp(current.user, info.user) == 0)
+	if(ctx && strcmp(current.host, info.host) == 0 && strcmp(current.share, info.share) == 0 && strcmp(current.user, info.user) == 0)
 		return SmbConnectResult::Success; // already connected to this exact target
 
 	disconnect(); // drop any existing connection to a *different* target first
@@ -385,7 +374,6 @@ SmbConnectResult WutSmbDriver::connect(const SmbShareInfo & info)
 	if(!ctx)
 	{
 		snprintf(g_lastError, sizeof(g_lastError), "smb2_init_context() failed");
-		LOG_ERROR("WutSmbDriver: %s", g_lastError);
 		return SmbConnectResult::ConnectFailed;
 	}
 
@@ -404,12 +392,10 @@ SmbConnectResult WutSmbDriver::connect(const SmbShareInfo & info)
 
 	static devoptab_t smbDevoptab = BuildSmbDevoptab();
 	int devnum = AddDevice(&smbDevoptab);
-	LOG_INFO("WutSmbDriver: AddDevice(\"%s\") -> %d", smbDevoptab.name, devnum);
 	if(devnum < 0)
 	{
 		// A real connection succeeded but the devoptab itself couldn't be registered
 		snprintf(g_lastError, sizeof(g_lastError), "AddDevice(\"%s\") failed", smbDevoptab.name);
-		LOG_ERROR("WutSmbDriver: %s", g_lastError);
 		smb2_disconnect_share(ctx);
 		smb2_destroy_context(ctx);
 		ctx = nullptr;
