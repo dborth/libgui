@@ -265,3 +265,14 @@ void LogPrintf(LogLevel level, const char * fmt, ...)
 	platform->getLogger()->log(level, fmt, args);
 	va_end(args);
 }
+
+extern "C" void Log_Printf(int level, const char * fmt, ...)
+{
+	if (!platform || !platform->getLogger())
+			return;
+
+	va_list args;
+	va_start(args, fmt);
+	platform->getLogger()->log(static_cast<LogLevel>(level), fmt, args);
+    va_end(args);
+}
