@@ -25,7 +25,7 @@ jobs:
       run: dkp-pacman -Syu --noconfirm wiiu-dev
 
     - name: Install Ninja build tool
-      run: dkp-pacman -S --noconfirm ninja
+      run: apt-get update && apt-get install -y ninja-build
 
     - name: Build and install libmocha
       if: ${{ matrix.image == 'WiiU' }}
