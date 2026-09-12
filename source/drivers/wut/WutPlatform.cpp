@@ -106,7 +106,12 @@ void WutPlatform::requestExit()
 	// SYSLaunchMenu() tells Cafe OS to switch back to the system menu or loader.
 	if(ProcUIIsRunning()) {
 		SYSLaunchMenu();
-		while (WHBProcIsRunning()) {
+
+		// On real hardware this resolves within a frame or two. Cemu doesn't
+		// implement SYSLaunchMenu(), so ProcUI never leaves the foreground and
+		// this would spin forever - cap the wait so we can still exit cleanly there.
+		const int timeoutMs = 2000;
+		for (int waited = 0; WHBProcIsRunning() && waited < timeoutMs; waited++) {
 			usleep(1000);
 		}
 	}
