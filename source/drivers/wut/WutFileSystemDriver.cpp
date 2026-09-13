@@ -106,20 +106,9 @@ void WutFileSystemDriver::init()
 	usb3.isMounted = false;
 	usb3.unmountRequired = false;
 
-	// USB 4 Setup
-	WutDeviceState & usb4 = devices[slotUSB4];
-	memset(&usb4, 0, sizeof(usb4));
-	usb4.id = DEVICE_USB4;
-	strcpy(usb4.name, "USB Storage 4");
-	usb4.prefix[0] = '\0';
-	usb4.isPresent = false;
-	usb4.isMounted = false;
-	usb4.unmountRequired = false;
-
 	usbSlots[0] = { &Mocha_usb1_disc_interface, "usb1", 0, 0 };
 	usbSlots[1] = { &Mocha_usb2_disc_interface, "usb2", 0, 0 };
 	usbSlots[2] = { &Mocha_usb3_disc_interface, "usb3", 0, 0 };
-	usbSlots[3] = { &Mocha_usb4_disc_interface, "usb4", 0, 0 };
 
 	// Deliberately not attempting the USB mount here: the raw open probe
 	// is a real IOSU IPC round trip, and init() runs on the main thread
@@ -369,8 +358,6 @@ MountResult WutFileSystemDriver::mountStorageDevice(int deviceId)
 		return tryMountUsbSlot(1) ? MountResult::Success : MountResult::DeviceNotFound;
 	else if(deviceId == DEVICE_USB3)
 		return tryMountUsbSlot(2) ? MountResult::Success : MountResult::DeviceNotFound;
-	else if(deviceId == DEVICE_USB4)
-		return tryMountUsbSlot(3) ? MountResult::Success : MountResult::DeviceNotFound;
 
 	if(deviceId == DEVICE_SMB)
 	{
@@ -411,14 +398,8 @@ const char * WutFileSystemDriver::mountResultMessage(int deviceId, MountResult r
 
 	if(deviceId == DEVICE_SD)
 		return "SD card not found!";
-	else if(deviceId == DEVICE_USB)
-		return "USB1 drive not found!";
-	else if(deviceId == DEVICE_USB2)
-		return "USB2 drive not found!";
-	else if(deviceId == DEVICE_USB3)
-		return "USB3 drive not found!";
-	else if(deviceId == DEVICE_USB4)
-		return "USB4 drive not found!";
+	else if(deviceId == DEVICE_USB || deviceId == DEVICE_USB2 || deviceId == DEVICE_USB3)
+		return "USB drive not found!";
 	else if(deviceId == DEVICE_SMB)
 		return "Network share not connected!";
 
@@ -545,14 +526,14 @@ const char * WutFileSystemDriver::getMountPath(int device) const
 
 const int * WutFileSystemDriver::getValidLoadDevices(int & outCount) const
 {
-	static const int devices[] = { DEVICE_AUTO, DEVICE_SD, DEVICE_USB, DEVICE_USB2, DEVICE_USB3, DEVICE_USB4, DEVICE_SMB };
+	static const int devices[] = { DEVICE_AUTO, DEVICE_SD, DEVICE_USB, DEVICE_USB2, DEVICE_USB3, DEVICE_SMB };
 	outCount = sizeof(devices) / sizeof(devices[0]);
 	return devices;
 }
 
 const int * WutFileSystemDriver::getValidSaveDevices(int & outCount) const
 {
-	static const int devices[] = { DEVICE_AUTO, DEVICE_SD, DEVICE_USB, DEVICE_USB2, DEVICE_USB3, DEVICE_USB4, DEVICE_SMB };
+	static const int devices[] = { DEVICE_AUTO, DEVICE_SD, DEVICE_USB, DEVICE_USB2, DEVICE_USB3, DEVICE_SMB };
 	outCount = sizeof(devices) / sizeof(devices[0]);
 	return devices;
 }

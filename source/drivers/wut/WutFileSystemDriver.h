@@ -26,7 +26,7 @@ struct WutStorageMetrics
 //! One USB storage slot as Cafe OS actually exposes it.
 struct WutUsbPhysicalSlot
 {
-	const DISC_INTERFACE * iface;      //!< &Mocha_usb1_disc_interface .. &Mocha_usb4_disc_interface
+	const DISC_INTERFACE * iface;      //!< &Mocha_usb1_disc_interface .. &Mocha_usb3_disc_interface
 	const char *           mountName;  //!< devoptab basename, eg. "usb1" - also the dvm_wut.c volume name
 	int                     failCount;       //!< consecutive mount failures since the last success or hardware change - see tryMountUsbSlot()
 	int                     backoffPollsLeft; //!< polls left to skip before the next probe attempt (0 = probe now)
@@ -55,7 +55,7 @@ struct WutDeviceState
 //!Cafe OS exposes USB as up to four independent storage slots (see
 //!WutUsbPhysicalSlot - these are attach-order slots, not fixed physical
 //!ports/port-groups. All four are probed independently (usbSlots) and each
-//!surfaces as its own device outward too (DEVICE_USB/USB2/USB3/USB4).
+//!surfaces as its own device outward too (DEVICE_USB/USB2/USB3).
 //!
 //!Hotplug (insertion): Mocha_usbN_isInserted() only reports whether we
 //!already have the fd open - it doesn't re-probe hardware - so it can't
@@ -110,11 +110,10 @@ class WutFileSystemDriver : public FileSystemDriver
 		static const int slotUSB1 = 1;
 		static const int slotUSB2 = 2;
 		static const int slotUSB3 = 3;
-		static const int slotUSB4 = 4;
-		static const int slotSMB = 5;
-		static const int slotCount = 6;
+		static const int slotSMB = 4;
+		static const int slotCount = 5;
 
-		static const int usbSlotCount = 4; //!< independent USB storage slots (see WutUsbPhysicalSlot - not fixed physical ports)
+		static const int usbSlotCount = 3; //!< independent USB storage slots (see WutUsbPhysicalSlot - not fixed physical ports)
 
 		//! Cache sizing passed to dvmWutMountUsb() - tuned and hardware-confirmed
 		static const unsigned usbCachePages     = 512;
@@ -126,7 +125,7 @@ class WutFileSystemDriver : public FileSystemDriver
 		//! usbBackoffPolls calls to pollStorageDevices() for a port group
 		//! that just isn't mounting.
 		static const int usbMaxQuickRetries = 3;
-		static const int usbBackoffPolls    = 180;
+		static const int usbBackoffPolls    = 5;
 
 		WutDeviceState     devices[slotCount];
 		int                deviceCount;

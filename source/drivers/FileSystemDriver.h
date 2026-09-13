@@ -20,7 +20,6 @@ enum Device
 	DEVICE_USB,
 	DEVICE_USB2,
 	DEVICE_USB3,
-	DEVICE_USB4,
 	DEVICE_DVD,
 	DEVICE_SMB,
 	DEVICE_SD_SLOTA,     //!< GameCube memory card slot A
