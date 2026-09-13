@@ -8,6 +8,7 @@
 #include "dvm_wut.h"
 #include <dvm.h>
 #include <fat.h>
+#include <ntfs.h>
 #include <stdalign.h>
 #include <string.h>
 
@@ -23,8 +24,9 @@ bool dvmWutInit(void)
 	// driver that's already registered).
 	bool vfatOk  = dvmRegisterFsDriver(&g_vfatFsDriver);
 	bool exfatOk = dvmRegisterFsDriver(&g_exfatFsDriver);
+	bool ntfsOk  = dvmRegisterFsDriver(&g_ntfsFsDriver);
 
-	g_driversRegistered = vfatOk && exfatOk;
+	g_driversRegistered = vfatOk && exfatOk && ntfsOk;
 	return g_driversRegistered;
 }
 

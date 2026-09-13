@@ -47,8 +47,8 @@ struct WutDeviceState
 //!Wii U FileSystemDriver.
 //!
 //!SD: WHBMountSdCard() - a runtime-assigned FSA path, not a static devoptab name
-//!USB: stock Cafe OS has no FAT/exFAT driver for USB at all, so mounting
-//!goes through libdvm - libdvm gets us exFAT for free and is what supplies
+//!USB: stock Cafe OS has no FAT/exFAT/ntfs driver for USB at all, so mounting
+//!goes through libdvm - libdvm gets us exFAT/ntfs for free and is what supplies
 //!dvmDiscProbePresence() for genuine hot-unplug detection below.
 //! Raw disc access below libdvm is through libmocha's DISC_INTERFACE.
 //!

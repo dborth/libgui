@@ -37,8 +37,7 @@ void WutFileSystemDriver::init()
 	// just stays permanently absent rather than the whole driver failing.
 	mochaReady = (Mocha_InitLibrary() == MOCHA_RESULT_SUCCESS);
 
-	// Independent of Mocha - dvmWutInit() just registers libdvm's vfat/
-	// exfat filesystem drivers, which don't touch hardware themselves.
+	// Independent of Mocha - dvmWutInit() just registers libdvm's vfat/exfat/ntfs filesystem drivers, which don't touch hardware themselves.
 	dvmWutInit();
 
 	WHBMountSdCard();

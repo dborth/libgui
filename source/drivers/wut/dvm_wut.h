@@ -27,12 +27,12 @@ typedef struct
 	void* disc;      //!< opaque DvmDisc* - valid only while isMounted, NULL otherwise
 } DvmWutUsbVolume;
 
-//! Registers libdvm's vfat + exfat filesystem drivers. Call once at
+//! Registers libdvm's vfat + exfat + ntfs filesystem drivers. Call once at
 //! startup before any dvmWutMountUsb() call. Safe to call more than once.
 bool dvmWutInit(void);
 
 //! Probes iface for a mountable partition and, if found, mounts it as
-//! "name:/" through libdvm (vfat or exfat, whichever it actually turns
+//! "name:/" through libdvm (vfat or exfat or ntfs, whichever it actually turns
 //! out to be - see dvmProbeMountDisc()). Safe to call repeatedly, 
 //! genuinely re-probes hardware via iface->startup() each time (inside dvmDiscCreate()), 
 //! and leaves iface shut down again if nothing mountable is found.
