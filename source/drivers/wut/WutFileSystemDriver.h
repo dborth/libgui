@@ -125,7 +125,7 @@ class WutFileSystemDriver : public FileSystemDriver
 		//! usbBackoffPolls calls to pollStorageDevices() for a port group
 		//! that just isn't mounting.
 		static const int usbMaxQuickRetries = 3;
-		static const int usbBackoffPolls    = 5;
+		static const int usbBackoffPolls    = 180;
 
 		WutDeviceState     devices[slotCount];
 		int                deviceCount;
