@@ -29,7 +29,6 @@ class WiiPlatform : public Platform
 		WiiPlatform() {}
 
 		void init(int width, int height) override;
-		void shutdown() override;
 		void requestExit() override;
 
 		SystemEvent getSystemEvent() override;
@@ -42,6 +41,9 @@ class WiiPlatform : public Platform
 		FileSystemDriver* getFileSystem() override { return fileSystemDriver; }
 		ThreadDriver* getThread() override { return threadDriver; }
 		Logger* getLogger() override { return logger; }
+
+	protected:
+		void shutdown() override;
 
 	private:
 		Status status = Status::Running;

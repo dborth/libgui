@@ -24,7 +24,6 @@ class GameCubePlatform : public Platform
 		GameCubePlatform() {}
 
 		void init(int width, int height) override;
-		void shutdown() override;
 		void requestExit() override;
 
 		SystemEvent getSystemEvent() override { return SystemEvent::None; }
@@ -37,6 +36,9 @@ class GameCubePlatform : public Platform
 		FileSystemDriver* getFileSystem() override { return fileSystemDriver; }
 		ThreadDriver* getThread() override { return threadDriver; }
 		Logger* getLogger() override { return logger; }
+
+	protected:
+		void shutdown() override;
 
 	private:
 		Status status = Status::Running;
