@@ -40,23 +40,21 @@ static void ProbeController(uint32_t controllerNum, void * cfgBuffer, UsbHardwar
 	{
 		memset(profiles, 0, sizeof(UhsInterfaceProfile) * kMaxProfilesPerController);
 
-		UHSStatus queryStatus = UhsQueryInterfaces(&handle, &filter, profiles, kMaxProfilesPerController);
+		UhsQueryInterfaces(&handle, &filter, profiles, kMaxProfilesPerController);
 
-		if(queryStatus == UHS_STATUS_OK) {
-			for(int i = 0; i < kMaxProfilesPerController; i++)
+		for(int i = 0; i < kMaxProfilesPerController; i++)
+		{
+			if(profiles[i].if_handle == 0)
+				continue;
+
+			bool isStorage = (profiles[i].if_desc.bInterfaceClass == USBCLASS_STORAGE);
+
+			if(isStorage && outSig && outSig->count < UsbHardwareSignature::kMaxInterfaces)
 			{
-				if(profiles[i].if_handle == 0)
-					continue;
-
-				bool isStorage = (profiles[i].if_desc.bInterfaceClass == USBCLASS_STORAGE);
-
-				if(isStorage && outSig && outSig->count < UsbHardwareSignature::kMaxInterfaces)
-				{
-					UsbHardwareInterfaceInfo & entry = outSig->interfaces[outSig->count++];
-					entry.ifHandle = profiles[i].if_handle;
-					entry.vid = profiles[i].dev_desc.idVendor;
-					entry.pid = profiles[i].dev_desc.idProduct;
-				}
+				UsbHardwareInterfaceInfo & entry = outSig->interfaces[outSig->count++];
+				entry.ifHandle = profiles[i].if_handle;
+				entry.vid = profiles[i].dev_desc.idVendor;
+				entry.pid = profiles[i].dev_desc.idProduct;
 			}
 		}
 
