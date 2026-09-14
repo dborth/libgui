@@ -119,9 +119,6 @@ static void * devicecallback(void *)
 
 		platform->getFileSystem()->pollStorageDevices(removed, removedCount, deviceListChanged);
 
-		if(removedCount > 0)
-			parseHalt = true; // abort any in-progress dir parse if a device it's using just disappeared
-
 		if(deviceListChanged)
 			browserDeviceListChanged = true; // signal the menu loop to refresh the device listing if it's on screen
 
