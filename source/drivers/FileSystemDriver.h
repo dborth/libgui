@@ -32,7 +32,7 @@ enum Device
 struct StorageDevice
 {
 	int  id;
-	char name[16];
+	char name[20];
 	char prefix[32];          //!< eg. "usb:/" on Wii, but Wii U's runtime-assigned FSA
 	                           //!< paths (eg. "/vol/external01") run longer than the
 	                           //!< 16 bytes the old libogc-style prefixes needed
