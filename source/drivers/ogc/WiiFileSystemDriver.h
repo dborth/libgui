@@ -22,6 +22,7 @@ class WiiFileSystemDriver : public FileSystemDriver
 		void invalidateStorageDevice(int deviceId) override;
 		void pollStorageDevices(int removedIds[MAX_STORAGE_DEVICES], int & outRemovedCount, bool & deviceListChanged) override;
 		bool hasRemovableStorageDevices() const override { return true; } // SD/USB/DVD can all be pulled
+		bool isDevicePresent(int deviceId) const override;
 
 		const char * getMountPath(int device) const override;
 		const int * getValidLoadDevices(int & outCount) const override;

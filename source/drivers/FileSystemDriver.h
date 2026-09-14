@@ -50,6 +50,7 @@ struct StorageDevice
 	bool		readOnly;
 	bool		metricsValid;
 	char		label[16];
+	bool		alwaysListed; //!< show in a device listing unconditionally, regardless of isDevicePresent()
 };
 
 //! Result of a single mount attempt. Deliberately has no retry/backoff behavior baked in
@@ -97,6 +98,11 @@ class FileSystemDriver
 
 		//! Whether the device-checking thread should run on this platform
 		virtual bool hasRemovableStorageDevices() const = 0;
+
+		//! Lightweight, cached hardware-presence check for a single
+		//! device - does NOT mount and does no invasive I/O. Backed by
+		//! whatever pollStorageDevices() last observed
+		virtual bool isDevicePresent(int deviceId) const = 0;
 
 		//! devoptab-style mount path for device (eg. "sd:/"), or "" if
 		//! device isn't recognized or currently mounted on this platform.

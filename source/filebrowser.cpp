@@ -284,9 +284,8 @@ int ParseDeviceList()
 
 	for(int i = 0; i < deviceCount; i++)
 	{
-		MountResult result = platform->getFileSystem()->mountStorageDevice(devices[i].id);
-		if(result != MountResult::Success)
-			continue; // not currently reachable - leave it off the list rather than show a dead entry
+		if(!devices[i].alwaysListed && !platform->getFileSystem()->isDevicePresent(devices[i].id))
+			continue;
 
 		BROWSERENTRY * newBrowserList = (BROWSERENTRY *)realloc(browserList, (entryNum+1) * sizeof(BROWSERENTRY));
 		if(!newBrowserList)
@@ -299,11 +298,7 @@ int ParseDeviceList()
 		browserList[entryNum].filename[MAXJOLIET] = '\0';
 		browserList[entryNum].deviceId = devices[i].id;
 
-		// Append the volume label when one is set
-		if(devices[i].label[0] != '\0')
-			snprintf(browserList[entryNum].displayname, MAXDISPLAY + 1, "%s (%s)", devices[i].name, devices[i].label);
-		else
-			strncpy(browserList[entryNum].displayname, devices[i].name, MAXDISPLAY);
+		strncpy(browserList[entryNum].displayname, devices[i].name, MAXDISPLAY);
 		browserList[entryNum].displayname[MAXDISPLAY] = '\0';
 
 		browserList[entryNum].isdir = 1;
