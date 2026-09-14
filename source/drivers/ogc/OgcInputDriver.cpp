@@ -18,11 +18,11 @@
 
 #include "OgcInputDriver.h"
 #include "../Platform.h"
-#include "wiidrc.h"
 #include "../InputController.h"
 
 #ifdef HW_RVL
-#include "WiiPlatform.h"
+#include "wii/WiiPlatform.h"
+#include "wii/wiidrc.h"
 #endif
 
 static inline float clampf(float v, float lo, float hi) {
