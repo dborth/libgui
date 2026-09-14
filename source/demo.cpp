@@ -12,9 +12,9 @@
 #ifdef __WIIU__
 #include "drivers/wut/WutPlatform.h"
 #elif defined(HW_DOL)
-#include "drivers/ogc/GameCubePlatform.h"
+#include "drivers/ogc/gamecube/GameCubePlatform.h"
 #else
-#include "drivers/ogc/WiiPlatform.h"
+#include "drivers/ogc/wii/WiiPlatform.h"
 #endif
 #include "menu.h"
 #include "filelist.h"

@@ -5,15 +5,15 @@
  ***************************************************************************/
 #pragma once
 
-#include "../Platform.h"
-#include "OgcVideoDriver.h"
-#include "OgcInputDriver.h"
-#include "OgcThreadDriver.h"
-#include "OgcAudioDriver.h"
+#include "../../Platform.h"
+#include "../OgcVideoDriver.h"
+#include "../OgcInputDriver.h"
+#include "../OgcThreadDriver.h"
+#include "../OgcAudioDriver.h"
 #include "GameCubeFileSystemDriver.h"
-#include "OgcLoggerSysReport.h"
-#include "OgcLoggerUsbGecko.h"
-#include "../LoggerFile.h"
+#include "../OgcLoggerSysReport.h"
+#include "../OgcLoggerUsbGecko.h"
+#include "../../LoggerFile.h"
 
 //!GameCube (HW_DOL) Platform: same driver set as WiiPlatform except for
 //!file system, which uses GameCubeFileSystemDriver (memory card/GC
