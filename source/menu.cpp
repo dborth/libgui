@@ -13,7 +13,7 @@
 #include "libgui/Gui.h"
 #include "drivers/Platform.h"
 
-#ifdef __WUT__
+#ifdef __WIIU__
 #include "drivers/wut/WutInputDriver.h"
 #endif
 
@@ -443,7 +443,7 @@ static int MenuSettings()
 	savingBtn.setEffectGrow();
 
 
-#ifdef __WUT__
+#ifdef __WIIU__
 	char menuLabel[20] = "Wii U Overlay";
 #else
 	char menuLabel[20] = "Menu";
@@ -532,7 +532,7 @@ static int MenuSettings()
 		}
 		else if(menuBtn.getState() == STATE::CLICKED)
 		{
-			#ifdef __WUT__
+			#ifdef __WIIU__
 			static_cast<WutInputDriver*>(platform->getInput())->openHomeButtonOverlay();
 			menuBtn.resetState();
 			#else
