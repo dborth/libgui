@@ -8,6 +8,7 @@
 #include <stdio.h>
 
 #include "SmbDriver.h"
+#include "Mutex.h"
 
 #define MAX_STORAGE_DEVICES 16
 
@@ -32,25 +33,12 @@ enum Device
 struct StorageDevice
 {
 	int  id;
+	char prefix[32];
 	char name[20];
-	char prefix[32];          //!< eg. "usb:/" on Wii, but Wii U's runtime-assigned FSA
-	                           //!< paths (eg. "/vol/external01") run longer than the
-	                           //!< 16 bytes the old libogc-style prefixes needed
+	char volumeLabel[16];
 	bool removable;          //!< can this device disappear at runtime? (polled by the device-checking thread)
-	bool autoMountAtStartup; //!< silently attempted at boot (eg. Wii's SD/USB)
-
-	// Optional capacity/health telemetry. A driver that can't (or hasn't yet)
-	// determined these leaves metricsValid false - check it before trusting
-	// totalBytes/freeBytes/blockSize/readOnly. Aggregate-initialized structs
-	// (eg. WiiFileSystemDriver's static device table) get these zeroed for
-	// free since they're trailing members.
-	uint64_t	totalBytes;
-	uint64_t	freeBytes;
-	uint32_t	blockSize;      //!< allocation unit / cluster size in bytes - useful for sizing savestate writes
-	bool		readOnly;
-	bool		metricsValid;
-	char		label[16];
-	bool		alwaysListed; //!< show in a device listing unconditionally, regardless of isDevicePresent()
+	bool autoMountAtStartup; //!< silently attempted at boot
+	bool alwaysListed; //!< show in a device listing unconditionally, regardless of isDevicePresent()
 };
 
 //! Result of a single mount attempt. Deliberately has no retry/backoff behavior baked in
@@ -104,8 +92,14 @@ class FileSystemDriver
 		//! whatever pollStorageDevices() last observed
 		virtual bool isDevicePresent(int deviceId) const = 0;
 
+		//! The devoptab prefix this device *would* use (eg. "usb:/"),
+		//! regardless of whether it is currently mounted.
+		virtual const char * getDevicePrefix(int device) const = 0;
+
 		//! devoptab-style mount path for device (eg. "sd:/"), or "" if
 		//! device isn't recognized or currently mounted on this platform.
+		//! Only for "is this usable already?" call sites - use
+		//! getDevicePrefix() to map a path back to a device id.
 		virtual const char * getMountPath(int device) const = 0;
 
 		//! Writes getMountPath(device) + suffix into out (bounds-checked to
@@ -140,8 +134,15 @@ class FileSystemDriver
 		virtual const int * getValidLoadDevices(int & outCount) const = 0;
 		virtual const int * getValidSaveDevices(int & outCount) const = 0;
 
-		//! The network-share backend for DEVICE_SMB
 		virtual SmbDriver * getSmb() = 0;
+
+		//! Serializes raw devoptab I/O (open/read/write/readdir/stat) issued
+		//! by more than one thread against a mounted volume.
+		static Mutex & getIoLock()
+		{
+			static Mutex lock;
+			return lock;
+		}
 };
 
 //! Convenience for "try these devices in priority order, use whichever one

@@ -7,13 +7,13 @@
  * FileSystemDriver and returned from FileSystemDriver::getSmb().
  *
  * On a successful connect(), a devoptab-style mount path is available via
- * getMountPath() and the rest of the app reads through it with ordinary 
+ * getMountPath() and the rest of the app reads through it with ordinary
  * POSIX calls.
  ***************************************************************************/
 #pragma once
 
 //! Credentials/target for a single SMB share. All fields are plain
-//! null-terminated strings. A share with no credentials (guest access) 
+//! null-terminated strings. A share with no credentials (guest access)
 //! leaves user/password empty.
 struct SmbShareInfo
 {
@@ -45,6 +45,14 @@ class SmbDriver
 		virtual void init() = 0;
 		virtual void shutdown() = 0;
 
+		//! True if the network is already up, i.e. connect() won't first have to
+		//! bring it up. Cheap and non-blocking - safe to poll.
+		virtual bool isNetworkUp() const = 0;
+
+		//! Brings the network up if it isn't already.
+		//! \return false (with getLastError() set) if it couldn't be brought up.
+		virtual bool ensureNetworkUp() = 0;
+
 		//! Attempts to connect and mount in one call. No-ops (returns Success)
 		//! if already connected to the same host+share; reconnects if info
 		//! describes a different target.
@@ -64,7 +72,7 @@ class SmbDriver
 		//! Never returns nullptr.
 		virtual const char * connectResultMessage(SmbConnectResult result) const = 0;
 
-		//! Raw, implementation-specific detail behind the *last* failure
+		//! Raw, implementation-specific detail behind the *last* failure.
 		//! Not something callers should rely on being non-empty.
 		virtual const char * getLastError() const { return ""; }
 };

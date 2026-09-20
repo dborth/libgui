@@ -21,28 +21,33 @@
 #include <smb2/smb2.h>
 #include <smb2/libsmb2.h>
 #include <cstdio>
-#include <network.h>
 #include "OgcSmbDriver.h"
 #include "../Logger.h"
+
+#ifdef HW_DOL
+#include "gamecube/GameCubeNetwork.h"
+#else
+#include "wii/WiiNetwork.h"
+#endif
 
 smb2_context * OgcSmbDriver::ctx = nullptr;
 
 // Fixed device name (smb:/)
-static const char * const kSmbDeviceName = "smb";
+static const char * const smbDeviceName = "smb";
 
 // Last failure's detail, in libsmb2's own words where we have a context to
 // ask - a real protocol/auth error ("NT_STATUS_ACCESS_DENIED", "Failed to
 // resolve hostname") tells you far more than the generic POSIX errno
-static char g_lastError[256] = "";
+static char lastError[256] = "";
 
 static void CaptureSmb2Error(const char * context)
 {
 	const char * detail = OgcSmbDriver::getContext() ? smb2_get_error(OgcSmbDriver::getContext()) : nullptr;
 
 	if(detail && detail[0])
-		snprintf(g_lastError, sizeof(g_lastError), "%s: %s", context, detail);
+		snprintf(lastError, sizeof(lastError), "%s: %s", context, detail);
 	else
-		snprintf(g_lastError, sizeof(g_lastError), "%s", context);
+		snprintf(lastError, sizeof(lastError), "%s", context);
 }
 
 /****************************************************************************
@@ -277,7 +282,7 @@ static devoptab_t BuildSmbDevoptab()
 {
 	devoptab_t dotab = {};
 
-	dotab.name         = kSmbDeviceName;
+	dotab.name         = smbDeviceName;
 	dotab.structSize   = sizeof(SmbFileState);
 	dotab.open_r       = smb_open_r;
 	dotab.close_r      = smb_close_r;
@@ -303,44 +308,43 @@ static devoptab_t BuildSmbDevoptab()
  ***************************************************************************/
 void OgcSmbDriver::init()
 {
-	// Bring-up happens lazily in ensureNetworkUp() on the first connect().
-	networkUp = false;
+	// Bring-up happens lazily in ensureNetworkUp() on the first connect()
 }
 
 void OgcSmbDriver::shutdown()
 {
 	disconnect();
 
-#ifdef HW_RVL
-	// net_deinit() is Wii/IOS-only - GameCube's BBA network stack has no
-	// equivalent and doesn't export the symbol, so calling it there is a
-	// link error, not just a no-op.
-	if(networkUp)
-		net_deinit();
+#ifdef HW_DOL
+	GameCubeNetwork::shutdown();
+#else
+	WiiNetwork::shutdown();
 #endif
-	networkUp = false;
+}
+
+bool OgcSmbDriver::isNetworkUp() const
+{
+#ifdef HW_DOL
+	return GameCubeNetwork::isUp();
+#else
+	return WiiNetwork::isUp();
+#endif
 }
 
 bool OgcSmbDriver::ensureNetworkUp()
 {
-	if(networkUp && net_gethostip() != 0)
-		return true;
-
-	networkUp = false;
-	s32 result = net_init();
-	if(result < 0)
-	{
-		snprintf(g_lastError, sizeof(g_lastError), "net_init() failed (%d)", (int)result);
-		return false;
-	}
-
-	networkUp = true;
-	return true;
+#ifdef HW_DOL
+	if(GameCubeNetwork::ensureUp()) return true;
+#else
+	if(WiiNetwork::ensureUp()) return true;
+#endif
+	snprintf(lastError, sizeof(lastError), "Network unavailable");
+	return false;
 }
 
 SmbConnectResult OgcSmbDriver::connect(const SmbShareInfo & info)
 {
-	g_lastError[0] = '\0';
+	lastError[0] = '\0';
 
 	if(info.host[0] == '\0' || info.share[0] == '\0')
 		return SmbConnectResult::InvalidSettings;
@@ -355,7 +359,7 @@ SmbConnectResult OgcSmbDriver::connect(const SmbShareInfo & info)
 	ctx = smb2_init_context();
 	if(!ctx)
 	{
-		snprintf(g_lastError, sizeof(g_lastError), "smb2_init_context() failed");
+		snprintf(lastError, sizeof(lastError), "Connection failed");
 		return SmbConnectResult::ConnectFailed;
 	}
 
@@ -387,7 +391,7 @@ SmbConnectResult OgcSmbDriver::connect(const SmbShareInfo & info)
 	if(devnum < 0)
 	{
 		// A real connection succeeded but the devoptab itself couldn't be registered
-		snprintf(g_lastError, sizeof(g_lastError), "AddDevice(\"%s\") failed", smbDevoptab.name);
+		snprintf(lastError, sizeof(lastError), "Add device failed");
 		smb2_disconnect_share(ctx);
 		smb2_destroy_context(ctx);
 		ctx = nullptr;
@@ -431,5 +435,5 @@ const char * OgcSmbDriver::connectResultMessage(SmbConnectResult result) const
 
 const char * OgcSmbDriver::getLastError() const
 {
-	return g_lastError;
+	return lastError;
 }
