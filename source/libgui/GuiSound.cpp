@@ -8,9 +8,10 @@
 
 #include "Gui.h"
 
-int GuiSound::defaultPCMVolume = 100;
-int GuiSound::defaultOGGVolume = 100;
+int GuiSound::defaultMusicVolume = 100;
+int GuiSound::defaultSfxVolume = 100;
 GuiSound* GuiSound::playingOGG = nullptr;
+GuiSound* GuiSound::activeMusic = nullptr;
 
 GuiSound::GuiSound(const uint8_t * s, int32_t l, SOUND t)
 {
@@ -25,16 +26,20 @@ GuiSound::GuiSound(const uint8_t * s, int32_t l, SOUND t)
 GuiSound::~GuiSound()
 {
 	if(type == SOUND::OGG) {
-		platform->getAudio()->stopStream();
+		// Only stop the shared hardware stream if this instance is the one actually occupying it
 		if (playingOGG == this) {
+			platform->getAudio()->stopStream();
 			playingOGG = nullptr;
+		}
+		if (activeMusic == this) {
+			activeMusic = nullptr;
 		}
 	}
 }
 
 void GuiSound::play()
 {
-	int typeVol = (type == SOUND::PCM) ? defaultPCMVolume : defaultOGGVolume;
+	int typeVol = loop ? defaultMusicVolume : defaultSfxVolume;
 	int vol = 255 * (volume / 100.0) * (typeVol / 100.0);
 
 	switch(type)
@@ -45,6 +50,9 @@ void GuiSound::play()
 
 		case SOUND::OGG:
 			playingOGG = this;
+			if (loop) {
+				activeMusic = this;
+			}
 			voice = 0;
 			platform->getAudio()->playStream(sound, length, loop, vol);
 			break;
@@ -66,6 +74,9 @@ void GuiSound::stop()
 			platform->getAudio()->stopStream();
 			if (playingOGG == this) {
 				playingOGG = nullptr;
+			}
+			if (activeMusic == this) {
+				activeMusic = nullptr;
 			}
 			break;
 	}
@@ -129,7 +140,7 @@ void GuiSound::setVolume(int vol)
 	if(voice < 0)
 		return;
 
-	int typeVol = (type == SOUND::PCM) ? defaultPCMVolume : defaultOGGVolume;
+	int typeVol = loop ? defaultMusicVolume : defaultSfxVolume;
 	int newvol = 255 * (volume / 100.0) * (typeVol / 100.0);
 
 	switch(type)
@@ -149,15 +160,21 @@ void GuiSound::setLoop(bool l)
 	loop = l;
 }
 
-void GuiSound::setDefaultVolume(SOUND t, int v)
+void GuiSound::setDefaultVolume(VOLUME_TYPE t, int v)
 {
-	if (t == SOUND::PCM) {
-		defaultPCMVolume = v;
-	} else if (t == SOUND::OGG) {
-		defaultOGGVolume = v;
+	if (t == VOLUME_TYPE::SFX) {
+		defaultSfxVolume = v;
+	} else if (t == VOLUME_TYPE::MUSIC) {
+		defaultMusicVolume = v;
 
-		if (playingOGG && playingOGG->isPlaying()) {
-			playingOGG->setVolume(playingOGG->volume);
+		if (activeMusic) {
+			if (playingOGG == activeMusic && activeMusic->isPlaying()) {
+				// Still the active stream - just push the new volume live
+				activeMusic->setVolume(activeMusic->volume);
+			} else {
+				// The music track was displaced - restart it
+				activeMusic->play();
+			}
 		}
 	}
 }
