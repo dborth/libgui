@@ -19,7 +19,6 @@ be afraid to change the way it works or expand it to suit your GUI's
 purposes! If you do, and you think your changes might benefit others,
 please share them so they might be added to the project!
 
-
 ### Features
 
 * **Three platforms, one codebase.** GameCube, Wii, and Wii U builds all
