@@ -624,7 +624,7 @@ GamePad.
 
 See [CHANGELOG.md](CHANGELOG.md) for the full, version-by-version history.
 
-**[2.0 - Unreleased]** adds full Wii U support (GX2 video, AX audio, VPAD/
+**[2.00 - September 23, 2026]** adds full Wii U support (GX2 video, AX audio, VPAD/
 KPAD input, FSA-based SD storage, USB storage with libdvm), a GameCube build,
 network shares, multi-drive USB with full hot-plug, and a logging framework -
 all made possible by refactoring the library behind a proper hardware

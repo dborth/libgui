@@ -4,7 +4,7 @@ All notable changes to libgui are documented here. Versions follow
 `MAJOR.MINOR`; dates are approximate, taken from the commit history.
 
 
-## [2.0] - Unreleased
+## [2.00] - September 23, 2026
 
 The headline of this release is **Wii U support**, added alongside a
 **GameCube build** - both made possible by refactoring the library
