@@ -13,6 +13,7 @@
 //!AudioDriver that owns an instance is responsible for pulling ready
 //!buffers and feeding them to hardware - this class does no audio output
 //!itself.
+//!\ingroup grp_core
 class GuiSoundOggPlayer {
 	public:
 		GuiSoundOggPlayer();

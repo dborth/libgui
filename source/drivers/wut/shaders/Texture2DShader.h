@@ -12,6 +12,7 @@
 
 //!Textured quad shader (images, glyphs), used by WutImageRenderer and
 //!WutGlyphRenderer. Singleton, accessed through instance().
+//!\ingroup grp_wut
 class Texture2DShader : public Shader
 {
 	private:

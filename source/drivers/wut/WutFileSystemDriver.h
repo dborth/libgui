@@ -13,6 +13,7 @@
 //! DISC_INTERFACE handed to libdvm (vfat/exfat/ntfs) via dvm_wut.c - see
 //! tryMountStorageSlot(). These are attach-order slots, not fixed physical
 //! ports/port-groups.
+//!\ingroup grp_wut
 struct WutStorageSlot
 {
 	const DISC_INTERFACE * iface;	//!< &Mocha_usb1_disc_interface .. &Mocha_usb3_disc_interface
@@ -22,6 +23,7 @@ struct WutStorageSlot
 };
 
 //! State tracker for a single storage device slot.
+//!\ingroup grp_wut
 struct WutDeviceState
 {
 	int  id;
@@ -60,6 +62,7 @@ struct WutDeviceState
 //! Volume labels (USB only): looked up once via libdvm
 //! (dvmWutGetVolumeLabel()) right after a successful mount, never
 //! repeated until the next unmount/remount cycle - see getVolumeLabel().
+//!\ingroup grp_wut
 class WutFileSystemDriver : public FileSystemDriver
 {
 	public:

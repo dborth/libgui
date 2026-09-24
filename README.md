@@ -50,23 +50,23 @@ others, please share them so they might be added to the project!
   `FileSystemDriver`, with full hot-plug detection: up to three
   simultaneous USB drives on Wii and Wii U, SD Gecko cards on GameCube,
   and FAT, exFAT, and NTFS volumes on Wii U USB. See
-  [Storage](#storage).
+  [Storage](doc/storage.md).
 * **Network shares (SMB)** through libsmb2 on all three consoles,
   mounted as an ordinary `smb:/` device so the rest of the app reads and
-  writes it with plain POSIX calls. See [Network shares](#network-shares-smb).
+  writes it with plain POSIX calls. See [Network shares](doc/network-shares.md).
 * **Threading primitives** (`Thread`, `Mutex`, `Cond`) with a
   cooperative stop protocol and an app-exit safety net, so app and
   library code can run background work without touching a platform's raw
-  threading API. See [Threading](#threading).
+  threading API. See [Threading](doc/threading.md).
 * **A multi-backend logging framework** with severity levels, runtime
   reconfiguration, and output to the console debug channel, UDP, a USB
   Gecko / USB serial adapter, or a log file - compiled out entirely when
-  disabled. See [Logging](#logging).
+  disabled. See [Logging](doc/logging.md).
 * **Consistent input across every controller** - GameCube pad, Wiimote
   (IR pointer, Nunchuk, Classic Controller), Wii U Pro Controller, and
   the Wii U GamePad (sticks, buttons, and touch) all arrive as the same
   per-channel input snapshot, with adaptive IR pointer smoothing and
-  menu rumble feedback. See [Input](#input).
+  menu rumble feedback. See [Input](doc/input.md).
 * **A proper application lifecycle** - a single `Platform` object
   reports running/paused/exiting state and hardware events (power and
   reset buttons, the Wii U HOME menu and close requests) the same way on
@@ -139,7 +139,7 @@ on - talks only to the interfaces below.
 | `FileSystemDriver` | Storage device enumeration, mount/poll, hot-plug detection, and the network-share driver (`StorageDevice`, `MountResult`, `SmbDriver`) | `WiiFileSystemDriver` / `GameCubeFileSystemDriver`, with `OgcSmbDriver` | `WutFileSystemDriver`, with `WutSmbDriver` |
 | `ThreadDriver` | Raw thread/mutex/condition-variable primitives | `OgcThreadDriver` - libogc's LWP | `WutThreadDriver` - coreinit's `OSThread`/`OSMutex`/`OSCondition` |
 
-The `Logger` (see [Logging](#logging)) is owned by `Platform` alongside
+The `Logger` (see [Logging](doc/logging.md)) is owned by `Platform` alongside
 these drivers and fans each log line out to a set of `LoggingDriver`
 backends.
 
@@ -173,7 +173,7 @@ pause, or reset, regardless of console:
   exit, and otherwise exits normally; GameCube exits. It does not return.
 
 Background threads must be stopped before `requestExit()` - see
-`Thread::JoinAll()` under [Threading](#threading). The demo's `main()`
+`Thread::JoinAll()` under [Threading](doc/threading.md). The demo's `main()`
 shows the intended order:
 
 ```cpp
@@ -188,6 +188,7 @@ platform->requestExit();
 ```text
 libgui/
 ├── Makefile[.wii|.gc|.wiiu]   # per-platform build, dispatched by the top-level Makefile
+├── doc/                       # topic guides (also included in the doxygen docs)
 ├── data/                      # images/fonts/sounds/lang - one shared asset set, bin2o'd for all 3 platforms
 ├── meta/                      # Wii U .wuhb icon/splash assets
 └── source/
@@ -228,325 +229,17 @@ library and are explicitly *not* part of the library itself - they're a
 recommended pattern to build from, not a hard dependency.
 
 
-### Storage
+### Guides
 
-Every storage device is described by a `StorageDevice` (id, display name,
-mount prefix such as `sd:/`, volume label, whether it is removable, whether
-it is mounted automatically at startup, whether it is always shown in a
-device list, and optional capacity/free-space/block-size/read-only
-telemetry). The app enumerates devices, mounts them, and then builds paths
-with `getMountPath()` / `getPath()`; after that, all file access is ordinary
-POSIX I/O. `getValidLoadDevices()` and `getValidSaveDevices()` list which
-devices make sense as a load or save location on the current platform, and
-`FindFirstMountedPath()` picks the first mounted device out of a priority
-list.
+Topic guides, each readable here on GitHub and included in the
+[API documentation](https://dborth.github.io/libgui/):
 
-Each device type has exactly one mount. A mount attempt returns
-`MountResult::Success`, `DeviceNotFound`, or `MountFailed` (something is
-present but can't be mounted, for example an unsupported format), and
-`mountResultMessage()` supplies a short string suitable for showing to the
-user.
-
-| Device | GameCube | Wii | Wii U |
-|---|---|---|---|
-| SD card | SD Gecko in slot A or B, SD2SP2 in serial port 2 (FAT) | SD slot (FAT) | SD slot, mounted natively by Cafe OS |
-| USB storage | - | Up to 3 simultaneous drives (FAT), via IOS | Up to 3 simultaneous drives (FAT, exFAT, NTFS), via libmocha + libdvm |
-| GC Loader | Mounted as a FAT device | - | - |
-| DVD | Data DVD (ISO9660) | Data DVD (ISO9660) | - |
-| Network share | SMB | SMB | SMB |
-
-**Multiple USB drives.** Wii and Wii U each expose three USB storage slots
-(`DEVICE_USB`, `DEVICE_USB2`, `DEVICE_USB3`). A newly attached drive takes
-the first free slot in attach order; slots are not tied to a physical port.
-On Wii this is handled by `WiiUsbMulti`, which opens each attached mass
-storage device through IOS independently and presents each one as its own
-disc interface. On Wii U, each slot is opened through libmocha's raw disc
-interface and mounted through libdvm, which recognizes FAT, exFAT, and NTFS.
-USB on Wii U requires the Mocha CFW component (available under Aroma);
-without it the USB slots are simply absent while the SD card and network
-share continue to work.
-
-**Hot-plug.** Devices can be inserted and removed while the app runs.
-`pollStorageDevices()` is meant to be called about once a second from a
-background thread (the demo's device-checking thread does exactly this at
-low priority), and reports which mounted devices disappeared and whether the
-device list changed shape so the UI can refresh.
-
-* *Wii* - SD, all three USB slots, and the DVD drive are checked each cycle.
-* *GameCube* - SD Gecko slots A and B and SD2SP2 are checked each cycle with
-  an EXI presence probe. The GC Loader and the DVD drive are only touched
-  when the user mounts them.
-* *Wii U* - USB attach/detach is detected by scanning the USB stack; 
-  a mounted USB volume is verified each cycle with a real, uncached sector
-  read, so a drive that was pulled is noticed even if the filesystem cache
-  could still answer from memory. A slot holding a device that won't mount
-  gets a few quick retries and is then probed on a slow backoff schedule,
-  which resets immediately when the USB stack reports a hardware change.
-
-`isDevicePresent()` is a cheap, cached check that never mounts anything, so
-a UI can list only devices that are actually there (devices flagged
-`alwaysListed`, such as the network share, are shown regardless). On a mount
-failure or a read/write error, `invalidateStorageDevice()` marks a device to
-be re-mounted fresh on its next use.
-
-
-### Network shares (SMB)
-
-`FileSystemDriver::getSmb()` returns the platform's `SmbDriver`, which
-mounts a single SMB share as the `DEVICE_SMB` device at `smb:/`. GameCube and
-Wii use `OgcSmbDriver`; Wii U uses `WutSmbDriver`. Both are built on libsmb2
-and register an `smb:/` devoptab, so once connected the share behaves like
-any other mounted device.
-
-```cpp
-SmbShareInfo share = {};                 // host, share, user, password (empty user = guest)
-snprintf(share.host, sizeof(share.host), "192.168.0.100");
-snprintf(share.share, sizeof(share.share), "Files");
-
-SmbDriver * smb = platform->getFileSystem()->getSmb();
-SmbConnectResult result = smb->connect(share);   // brings the network up first if needed
-
-if(result != SmbConnectResult::Success)
-    showError(smb->connectResultMessage(result), smb->getLastError());
-else
-    FILE * f = fopen("smb:/roms/game.sfc", "rb");
-```
-
-`connect()` brings the console's network connection up if it isn't already
-(GameCube/Wii via libogc's network stack; Wii U via the system's network
-account service), and is a no-op if already connected to the same share.
-Results are `Success`, `InvalidSettings` (no host or share), `NetworkUnavailable`,
-or `ConnectFailed` (the network is up but the server, share, or credentials
-were rejected); `getLastError()` adds libsmb2's own detail, such as an
-access-denied or host-resolution message. `disconnect()` unmounts the share.
-The demo's Network Share screen shows the whole flow.
-
-
-### Input
-
-Every driver's `update()` builds one platform-independent `InputPadData` per
-channel per frame: a unified button bitmask (pressed / held / released) that
-is a superset of every supported controller, plus per-hardware-profile copies
-(GameCube pad, Wiimote, Nunchuk, Classic Controller, Wii U Pro Controller,
-Wii U GamePad) so a controller made of several parts - for example a Wiimote
-with a Nunchuk - reports each part separately before they are merged. It also
-carries the pointer position and angle, whether the pointer is valid, and
-whether it came from touch. A persistent `InputController` per channel turns
-that into what widgets consume: analog deadzone, directional repeat and scroll
-delay timing, and Wiimote orientation, so none of that logic is duplicated per
-platform.
-
-* **Pointer smoothing.** The Wii U driver filters the Wiimote IR pointer with
-  a One Euro Filter (`OneEuroFilter.h`), which smooths heavily while the
-  pointer is nearly still and backs off as it moves faster - a steady cursor
-  at rest without lag on fast sweeps.
-* **GamePad touch.** Touch positions are scaled onto the design canvas and
-  delivered as pointer input; touch-down, hold, and release act as A-button
-  press, hold, and release, so touch-driven widgets behave like a pointer
-  click.
-* **HOME button.** On Wii U the HOME button is delivered to the app as an
-  ordinary `INPUT_BTN_HOME` press, and the system HOME menu overlay doesn't
-  open on its own, so the app decides what HOME does.
-  `WutInputDriver::openHomeButtonOverlay()` opens the overlay on demand (the
-  demo's "Wii U Overlay" button).
-* **Wiimote orientation.** `InputDriver::setWiimoteOrientation()` selects
-  `WIIMOTE_ORIENTATION_VERTICAL` or `WIIMOTE_ORIENTATION_HORIZONTAL`; the
-  semantic Accept/Cancel triggers resolve to A/B (vertical) or 2/1
-  (horizontal) accordingly.
-* **Rumble.** `setRumbleEnabled()` turns rumble on or off globally. Menu
-  hover feedback is a short (about 33 ms) tick followed by an enforced quiet
-  gap (about 100 ms), so quickly moving across buttons doesn't produce a
-  continuous buzz. On the Wii U GamePad the tick uses a reduced-amplitude
-  pattern.
-* **Wii U GamePad on Wii.** The vendored `libwiidrc` lets a Wii app read a Wii
-  U GamePad as an additional controller.
-
-
-### Audio
-
-`AudioDriver` provides fixed one-shot PCM voices and exactly one streamed OGG
-track at a time. `GuiSound` wraps both: a looping sound is treated as music
-and takes the single stream, and a non-looping sound is a sound effect on a
-voice. `GuiSound::setDefaultVolume(VOLUME_TYPE::MUSIC, ...)` and
-`VOLUME_TYPE::SFX` set independent global volumes (0-100) for the two
-categories; changing the music volume takes effect immediately on the track
-that is playing. OGG decoding is done by the platform-independent
-`GuiSoundOggPlayer` (Tremor) on a background thread, on every platform. On
-Wii U, sound is mixed to both the TV and the GamePad.
-
-
-### Threading
-
-Application and library code never calls a platform's threading API; it uses
-`Thread`, `Mutex`, and `Cond` from `source/drivers/`, which forward to the
-platform's `ThreadDriver` (`LWP` on GameCube/Wii, coreinit on Wii U).
-
-**`Thread`** owns at most one backend thread. `start(entry, arg, stackSize,
-priority, wake)` runs `entry(arg)` on a new thread and returns `false` if a
-thread is already running or the backend couldn't create one; the destructor
-joins a thread that's still running. Priorities are portable
-(`ThreadPriority::Idle`, `Low`, `Normal`, `High`, `TimeCritical`) and are
-mapped onto each platform's own priority range. `join()`, `suspend()`,
-`resume()`, and `isSuspended()` do what they say. `cancel()` is a best-effort
-last resort: not every platform can terminate a running thread, so prefer
-letting the thread exit on its own.
-
-**Cooperative stop.** A thread's entry function polls `stopRequested()` in its
-loop condition. `requestStop()` sets that flag (safe to call from any thread)
-and invokes the optional `wake` callback given to `start()`, which is how a
-thread parked on a condition variable or a long wait gets knocked loose.
-
-```cpp
-static Thread worker;
-static ThreadSync sync;                       // a mutex plus two condition variables
-
-static void wakeWorker() { MutexLock g(sync.mutex); sync.workCond.signal(); }
-
-static void * workerMain(void *)
-{
-    while(!worker.stopRequested())
-    {
-        MutexLock g(sync.mutex);
-        while(!haveWork && !worker.stopRequested())
-            sync.workCond.wait(sync.mutex);   // unlocks while waiting, relocks on return
-        // ... do the work ...
-    }
-    return nullptr;
-}
-
-worker.start(workerMain, nullptr, 16384, ThreadPriority::Low, wakeWorker);
-```
-
-**`Thread::JoinAll()`** is the app-exit safety net. Every thread that starts
-successfully is registered in a process-wide list; `JoinAll()` requests every
-outstanding thread to stop (using each thread's own wake callback) and joins
-them all, so once it returns nothing can still be touching driver state.
-Call it once, late in shutdown, right before `platform->requestExit()`.
-
-**`Mutex` / `MutexLock`.** `Mutex` is a plain mutual-exclusion lock - treat it
-as non-recursive. `MutexLock` is the RAII guard that locks on construction and
-unlocks on destruction, so an early return can't leave a mutex held.
-
-**`Cond`.** `wait(mutex)` atomically unlocks the mutex and blocks until
-signalled, then relocks it before returning. `signal()` wakes *every* waiter
-on every backend (there is no single-waiter wake), so always re-check your
-condition in a loop.
-
-**`ThreadSync`** bundles a `Mutex` with two `Cond`s (`workCond`, `idleCond`)
-for the common handshake between a background worker and its caller: one side
-sets a flag under the mutex and signals `workCond` to wake the other; the
-other clears the flag and signals `idleCond` when idle. The demo's storage
-device-checking thread uses it: the thread runs while the menus are up, and
-`HaltDeviceCheckingThread()` parks it (blocking until it confirms it is idle)
-when the menus are left, before it is resumed or joined.
-
-**`ThreadId::current()`** returns a comparable identifier for the calling
-thread - including the app's original main thread, which was never started
-through `Thread` - for code that only needs to ask "am I on the GUI thread?".
-
-**`SystemTime`** (`Time.h`) is a monotonic clock that hides `gettime()` and
-`OSGetSystemTime()`: `SystemTime::now()` returns an opaque `Ticks` value, and
-`diffSecs()`, `diffMillisecs()`, and `diffMicrosecs()` convert the interval
-between two samples.
-
-
-### Logging
-
-`LOG_DEBUG`, `LOG_INFO`, `LOG_WARN`, and `LOG_ERROR` (and `LOG`, an alias for
-`LOG_INFO`) are printf-style macros usable from anywhere in the app, C++ or
-C, with no platform-specific code:
-
-```cpp
-LOG_INFO("mounted %d devices", count);
-LOG_ERROR("smb connect failed: %s", smb->getLastError());
-```
-
-**Zero cost when disabled.** Logging is off unless you build with
-`-DLOGGING_ENABLED=1` (for example `CFLAGS += -DLOGGING_ENABLED=1`). In a
-default build every `LOG_*()` call expands to nothing: no format string is
-placed in the binary, no arguments are evaluated (so don't rely on side
-effects inside a log call), and the `Logger` isn't created or initialized at
-all - `platform->getLogger()` returns `nullptr`.
-
-**Backends.** A `Logger` fans each formatted line out to registered
-`LoggingDriver` backends. Each platform registers the ones it supports:
-
-| Backend | `LogMode` / mask bit | GameCube | Wii | Wii U |
-|---|---|---|---|---|
-| Console debug output | `OSReport` / `LOGGER_OSREPORT` | `SYS_Report` | `SYS_Report` | `OSReport` |
-| UDP | `UDP` / `LOGGER_UDP` | - | Yes | Yes |
-| Serial | `SerialGecko` / `LOGGER_SERIAL` | USB Gecko (EXI) | USB Gecko (EXI) | USB serial adapter, if the optional `usbserial` module's header is available at build time |
-| File | `File` / `LOGGER_FILE` | Yes | Yes | Yes |
-
-* **Console debug output** needs no hardware, and is what Dolphin and Cemu
-  capture, so logging works in an emulator with no configuration.
-  `mirrorToOSReport` (on by default) copies every line here in addition to the
-  selected backend(s).
-* **UDP** sends each line as a non-blocking datagram to a configurable
-  address and port. It is best-effort by design - a slow or offline listener
-  never stalls the app - and `includeSequenceNumber` makes dropped packets easy
-  to spot.
-* **USB Gecko** detects the adapter on the configured EXI channel at startup.
-  If none is attached, or it is unplugged mid-run, the backend goes quiet
-  instead of failing or stalling logging.
-* **File** appends to a log file through ordinary stdio (never truncating an
-  earlier run's log), and works the same on every platform because it goes
-  through the mounted storage. By default the platform points it at
-  `debug.log` at the root of the first mounted storage device (SD, then USB on
-  Wii; SD on Wii U; the SD2SP2 card on GameCube). `LogFlushPolicy` picks the
-  trade-off: `Immediate` flushes every line (safest against a crash or power
-  loss), `EveryNWrites` flushes every N lines, and `Never` leaves it to the C
-  library and shutdown (fastest).
-
-**Configuration.** Everything is set through a `LogConfig`; nothing is
-hardcoded in a backend.
-
-| Field | Default | Meaning |
-|---|---|---|
-| `mode` | `File` | `OSReport`, `UDP`, `SerialGecko`, `File`, or `Multi` |
-| `multiBackendMask` | `LOGGER_OSREPORT` | With `Multi`, the OR of `LOGGER_*` backends to use, e.g. `LOGGER_UDP \| LOGGER_FILE` |
-| `level` | `Info` | Minimum severity: `Debug`, `Info`, `Warning`, `Error`, or `None` (log nothing) |
-| `mirrorToOSReport` | `true` | Always also write to the console debug output |
-| `targetIp` / `targetPort` | `192.168.1.100` / `4405` | UDP destination |
-| `geckoChannel` | `1` | EXI channel for a USB Gecko (0 = memory card slot A, 1 = slot B) |
-| `serialBaudRate` | `115200` | Baud rate requested from a Wii U USB serial adapter |
-| `filePath` | `sd:/debug.log` | Log file path |
-| `flushPolicy` / `flushEveryNWrites` | `Immediate` / `16` | File flushing behavior |
-| `includeLevelTag` | `true` | Prefix lines with `[DEBUG]`, `[INFO]`, `[WARN]`, `[ERROR]` |
-| `includeSequenceNumber` | `false` | Prefix lines with a running call counter |
-
-```cpp
-#if LOGGING_ENABLED
-LogConfig config;
-config.mode = LogMode::Multi;
-config.multiBackendMask = LOGGER_UDP | LOGGER_FILE;
-snprintf(config.filePath, sizeof(config.filePath), "sd:/myapp.log");
-config.targetIp = "192.168.1.50";
-config.level = LogLevel::Debug;
-platform->getLogger()->init(config);
-#endif
-```
-
-**Runtime behavior.**
-
-* `Logger::init()` can be called again at any time - for example from a
-  settings menu - and reconciles against what's already running: backends no
-  longer selected are shut down, newly selected ones are started, and ones
-  that stay selected are reopened against the new configuration.
-  `setLevel()` changes just the minimum severity without touching any backend.
-* A backend that can't start (no SD card mounted for the file log, a bad UDP
-  address, no network) is skipped rather than treated as fatal, and the
-  failure is reported through the console debug output.
-* A line is formatted into a fixed 512-byte stack buffer - logging never
-  allocates - and long lines are truncated. The severity check happens before
-  any locking, so filtered-out calls are nearly free.
-* Logging is thread-safe: all dispatch is serialized under one mutex, so any
-  thread may log, and calls made before the logger exists or after it shuts
-  down are harmless no-ops.
-* At shutdown the logger is closed before the other drivers, with the file
-  backend closed first so its buffered output is written out.
-* `Logger::registerBackend()` accepts your own `LoggingDriver` under a unique
-  single-bit `LogBackendId`; a `Logger` holds up to 8 backends.
+* [Storage](doc/storage.md) - SD, USB, DVD and network devices, hot-plug and mounting
+* [Network shares (SMB)](doc/network-shares.md) - Connecting to an SMB share as an ordinary `smb:/` device
+* [Input](doc/input.md) - Controllers, the input snapshot, rumble and pointer smoothing
+* [Audio](doc/audio.md) - One-shot voices, the OGG stream and volume categories
+* [Threading](doc/threading.md) - Thread, Mutex, Cond and the cooperative stop protocol
+* [Logging](doc/logging.md) - The multi-backend logger and its configuration
 
 
 ### Building
@@ -581,7 +274,7 @@ Each Makefile builds the same `source`, `source/drivers`, and
 GameCube, and `drivers/wut` plus `drivers/wut/shaders` for Wii U.
 
 To enable logging, add `-DLOGGING_ENABLED=1` to the build's compiler flags
-(see [Logging](#logging)).
+(see [Logging](doc/logging.md)).
 
 The GitHub Actions workflow builds all three platforms on every push, deploys
 the doxygen documentation to GitHub Pages, and keeps a rolling pre-release

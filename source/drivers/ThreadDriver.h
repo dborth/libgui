@@ -22,6 +22,7 @@ typedef void* (*ThreadEntry)(void* arg);
 //!Raw platform threading primitives. Application/core code should not
 //!implement against this directly - use the Thread/Mutex/Cond RAII
 //!wrappers instead, which forward here via platform->getThread().
+//!\ingroup grp_pal
 class ThreadDriver
 {
 	public:

@@ -8,6 +8,7 @@
 #define FILE_PAGESIZE 			8
 
 //!Display a list of files
+//!\ingroup grp_core
 class GuiFileBrowser : public GuiElement
 {
 	public:

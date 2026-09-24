@@ -12,6 +12,8 @@
 
 struct smb2_context;
 
+//!Wii U SmbDriver built on libsmb2, registering its own smb:/ newlib devoptab.
+//!\ingroup grp_wut
 class WutSmbDriver : public SmbDriver
 {
 	public:

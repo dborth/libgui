@@ -11,6 +11,7 @@
 
 //!GC/Wii AudioDriver: AESND-based fixed voices for one-shots, wraps a
 //!GuiSoundOggPlayer for the background stream.
+//!\ingroup grp_ogc
 class OgcAudioDriver : public AudioDriver
 {
 	public:

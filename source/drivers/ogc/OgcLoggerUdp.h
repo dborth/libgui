@@ -16,6 +16,8 @@
 #include <network.h>
 #endif
 
+//!Non-blocking UDP log backend. Wii only - on GameCube init() reports failure and write() does nothing.
+//!\ingroup grp_logging
 class OgcLoggerUdp : public LoggingDriver
 {
 	public:

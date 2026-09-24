@@ -12,6 +12,7 @@
 //!Owns the GX2 fetch shader program that binds vertex attribute streams
 //!to a vertex shader. Built once from a fixed GX2AttribStream list and
 //!bound via setShader() before each draw.
+//!\ingroup grp_wut
 class FetchShader : public Shader
 {
 	public:

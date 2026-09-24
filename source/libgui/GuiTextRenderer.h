@@ -35,6 +35,7 @@
 const PixelColor black = {0, 0, 0, 255};
 
 //!Per-pixel-size font metrics used for text-block alignment/positioning.
+//!\ingroup grp_core
 struct FontOffset {
 	int16_t ascender;
 	int16_t descender;
@@ -43,6 +44,7 @@ struct FontOffset {
 };
 
 //!Cached per-glyph metrics and rasterized texture, keyed by (pixel size, char code) in GuiTextRenderer::fontData.
+//!\ingroup grp_core
 struct GlyphData {
 	int16_t renderOffsetX;
 	uint16_t glyphAdvanceX;
@@ -71,6 +73,7 @@ struct GlyphData {
 //!pixel size, then delegates only the final rasterized-quad draw to a
 //!GlyphRenderer - GuiText calls through this rather than touching
 //!FreeType or a platform texture directly.
+//!\ingroup grp_core
 class GuiTextRenderer {
 private:
 	FT_Library ftLibrary;

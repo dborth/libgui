@@ -18,6 +18,7 @@
 //!GameCube (HW_DOL) Platform: same driver set as WiiPlatform except for
 //!file system, which uses GameCubeFileSystemDriver (memory card/GC
 //!Loader/DVD) instead of SD/USB/DVD.
+//!\ingroup grp_ogc
 class GameCubePlatform : public Platform
 {
 	public:

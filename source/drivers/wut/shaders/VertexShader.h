@@ -13,6 +13,7 @@
 //!Owns a GX2VertexShader's compiled program and uniform/attribute
 //!metadata. setProgram() uploads the compiled bytecode; addUniformVar()/
 //!addAttribVar() register the reflection info GX2 needs to bind it.
+//!\ingroup grp_wut
 class VertexShader : public Shader
 {
 	public:

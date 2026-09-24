@@ -20,6 +20,8 @@
 #include <cstdio>
 #include "Logger.h"
 
+//!Log backend that appends to a file through the platform's devoptab path. Generic - identical on every platform.
+//!\ingroup grp_logging
 class LoggerFile : public LoggingDriver
 {
 	public:

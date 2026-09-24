@@ -42,6 +42,7 @@
 
 //!Severity of a single log call. `None` is only meaningful as a
 //!LogConfig::level value ("log nothing"), never passed to a LOG_*() call.
+//!\ingroup grp_logging
 enum class LogLevel : uint8_t
 {
 	Debug,
@@ -59,6 +60,7 @@ static_assert(static_cast<uint8_t>(LogLevel::Error)   == LOG_LEVEL_ERROR,   "LOG
 //!Which single backend is active when LogConfig::mode isn't Multi. Kept
 //!separate from LogBackendId below so the common case - "just point me at
 //!one backend" - doesn't require touching a bitmask.
+//!\ingroup grp_logging
 enum class LogMode : uint8_t
 {
 	OSReport, //!< OSReport (Wii U) / SYS_Report (GC+Wii) - always safe, no hardware required
@@ -72,6 +74,7 @@ enum class LogMode : uint8_t
 //!config code can OR them together; extend by appending a new bit, never
 //!by renumbering existing ones (multiBackendMask may be persisted/passed
 //!around by a caller).
+//!\ingroup grp_logging
 enum LogBackendId : uint32_t
 {
 	LOGGER_NONE     = 0,
@@ -82,6 +85,7 @@ enum LogBackendId : uint32_t
 };
 
 //!How LoggerFile flushes writes to storage.
+//!\ingroup grp_logging
 enum class LogFlushPolicy : uint8_t
 {
 	Immediate,    //!< fflush() after every write - safest against a crash/power loss, slowest
@@ -93,6 +97,7 @@ enum class LogFlushPolicy : uint8_t
 //!ever hardcoded in a backend implementation - it all comes from here,
 //!supplied by app code (or left at these defaults, which are deliberately
 //!safe/inert: OSReport only, nothing that touches hardware or network).
+//!\ingroup grp_logging
 struct LogConfig
 {
 	LogMode mode = LogMode::File;
@@ -138,6 +143,7 @@ struct LogConfig
 //!Logger already serializes all calls to a given Logger instance under
 //!its own mutex, so a backend does not need its own locking for write(),
 //!but must still not do something like an unbounded blocking socket send.
+//!\ingroup grp_logging
 class LoggingDriver
 {
 public:
@@ -175,6 +181,7 @@ public:
 //!
 //!Usage from anywhere else in the app, no platform-specific code needed:
 //!  LOG_INFO("mounted %d devices", count);
+//!\ingroup grp_logging
 class Logger
 {
 public:

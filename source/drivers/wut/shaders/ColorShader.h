@@ -15,6 +15,7 @@
 
 //!Flat-color quad shader (rectangles, keyboard/dialog chrome), used via
 //!WutGlyphRenderer's drawFeature(). Singleton, accessed through instance().
+//!\ingroup grp_wut
 class ColorShader : public Shader
 {
 	private:

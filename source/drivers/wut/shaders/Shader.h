@@ -61,6 +61,7 @@ static inline void GX2InitTexture(GX2Texture *texture, uint32_t width, uint32_t 
 
 //!Common base for the GX2 shader wrappers below - just the vertex
 //!attribute size constants and the shared GX2DrawEx() call.
+//!\ingroup grp_wut
 class Shader
 {
 	protected:

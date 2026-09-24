@@ -26,6 +26,7 @@ class GlyphRenderer;
 //!screen size, refresh rate, delta time) and handing out an ImageRenderer
 //!and a GlyphRenderer. GuiImage/GuiText never touch a platform texture
 //!type directly, only these two renderers.
+//!\ingroup grp_pal
 class VideoDriver
 {
 	public:
@@ -61,6 +62,7 @@ class VideoDriver
 //!Exactly one driver implements this and assigns the single
 //!global instance below. GuiImageData/GuiImage never touch any platform
 //!texture type directly, only imageSystem.
+//!\ingroup grp_pal
 class ImageRenderer
 {
 	public:
@@ -76,6 +78,8 @@ class ImageRenderer
 		virtual void drawRectangle(float x, float y, float width, float height, PixelColor color) = 0;
 };
 
+//!Draws glyph textures and solid rectangles on behalf of GuiTextRenderer. Implemented per platform.
+//!\ingroup grp_pal
 class GlyphRenderer {
 	public:
 		virtual ~GlyphRenderer() = default;

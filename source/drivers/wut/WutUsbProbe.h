@@ -12,6 +12,7 @@
 //! ScanUsbHardwareSignature() call. Not a per-port identity (see above) -
 //! ifHandle is only meaningful within one boot session and only for
 //! detecting that *something* changed, not attributing it to a slot.
+//!\ingroup grp_wut
 struct UsbHardwareInterfaceInfo
 {
 	uint32_t ifHandle;
@@ -22,6 +23,7 @@ struct UsbHardwareInterfaceInfo
 //! The set of USBCLASS_STORAGE interfaces nsysuhs currently reports
 //! across every controller_num probed. Deliberately small/fixed-size -
 //! this is compared every poll cycle, not stored long-term.
+//!\ingroup grp_wut
 struct UsbHardwareSignature
 {
 	static const int kMaxInterfaces = 8;

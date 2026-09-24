@@ -6,6 +6,7 @@
 #pragma once
 
 //!Allows GuiElements to be grouped together into a "window"
+//!\ingroup grp_core
 class GuiWindow : public GuiElement
 {
 	public:

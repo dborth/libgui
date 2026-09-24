@@ -5,12 +5,15 @@
  ***************************************************************************/
 #pragma once
 
+//!Whether a GuiImage draws a texture or a flat color.
+//!\ingroup grp_core
 enum class IMAGE {
 	TEXTURE,
 	COLOR
 };
 
 //!Display, manage, and manipulate images in the GUI
+//!\ingroup grp_core
 class GuiImage : public GuiElement
 {
 	public:

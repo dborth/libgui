@@ -23,18 +23,24 @@
 #include "../drivers/InputData.h"
 #include "../drivers/InputController.h"
 
+//!Vertical alignment of a GuiElement relative to its parent.
+//!\ingroup grp_core
 enum class ALIGN_V {
 	TOP,
 	BOTTOM,
 	MIDDLE
 };
 
+//!Horizontal alignment of a GuiElement relative to its parent.
+//!\ingroup grp_core
 enum class ALIGN_H {
 	LEFT,
 	RIGHT,
 	CENTRE
 };
 
+//!Interaction state of a GuiElement (default, selected, clicked, held, disabled).
+//!\ingroup grp_core
 enum class STATE {
 	DEFAULT,
 	SELECTED,
@@ -43,6 +49,8 @@ enum class STATE {
 	DISABLED
 };
 
+//!Scrolling mode of a GuiText (none or horizontal).
+//!\ingroup grp_core
 enum class SCROLL {
 	NONE,
 	HORIZONTAL

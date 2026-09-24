@@ -11,6 +11,8 @@
 
 #include "InputData.h"
 
+//!Logical controller for one input channel. Translates an InputPadData snapshot (sideways Wiimote mapping, deadzone) and drives repeat-delay timing for UI navigation.
+//!\ingroup grp_input
 class InputController {
 public:
 	InputController(int channel);

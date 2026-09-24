@@ -64,3 +64,60 @@
  * storage device-checking thread, runs the menus, then joins background
  * threads and exits. Start your own app from this file.
  */
+
+/*!
+ * \defgroup grp_core Core UI
+ * \brief Platform-agnostic widgets and helpers: GuiElement, GuiWindow,
+ * GuiButton, GuiImage, GuiText, GuiSound, GuiTrigger, the file/option
+ * browsers and the on-screen keyboard.
+ */
+
+/*!
+ * \defgroup grp_pal Platform abstraction
+ * \brief The Platform composition root and the video, audio and thread
+ * driver interfaces the core library is written against.
+ */
+
+/*!
+ * \defgroup grp_input Input
+ * \brief Per-frame input snapshots (InputPadData), the per-channel
+ * InputController, the InputDriver interface and pointer smoothing.
+ */
+
+/*!
+ * \defgroup grp_storage Storage and network shares
+ * \brief FileSystemDriver device enumeration/mount/hot-plug and the SMB
+ * network-share driver.
+ */
+
+/*!
+ * \defgroup grp_threads Threading and timing
+ * \brief Thread, Mutex, Cond and SystemTime - the wrappers app and library
+ * code use instead of a platform's raw threading API.
+ */
+
+/*!
+ * \defgroup grp_logging Logging
+ * \brief The multi-backend Logger, its LOG_*() macros and every logging
+ * backend (console, UDP, USB Gecko/serial, file).
+ */
+
+/*!
+ * \defgroup grp_impl Platform implementations
+ * \brief Concrete drivers behind the abstract interfaces. An app never uses
+ * these directly, apart from picking one Platform at startup.
+ */
+
+/*!
+ * \defgroup grp_ogc GameCube and Wii
+ * \ingroup grp_impl
+ * \brief GX video, AESND audio, PAD/WPAD input, LWP threads, FAT/DVD storage
+ * and libsmb2 - shared by both consoles (libogc2).
+ */
+
+/*!
+ * \defgroup grp_wut Wii U
+ * \ingroup grp_impl
+ * \brief GX2 video (with its custom shaders), AX audio, VPAD/KPAD input,
+ * coreinit threads, FSA/libmocha/libdvm storage and libsmb2 (wut).
+ */

@@ -12,6 +12,8 @@
 #include "Mutex.h"
 #include "Cond.h"
 
+//!Abstract thread priority, mapped to each platform's native priority scheme.
+//!\ingroup grp_threads
 enum class ThreadPriority
 {
 	Idle,
@@ -33,6 +35,7 @@ enum class ThreadPriority
 //!a subsystem's own halt/resume pausing during normal operation - it's
 //!the final guarantee that nothing is left running (and touching platform/
 //!driver state) once shutdown begins in earnest.
+//!\ingroup grp_threads
 class Thread
 {
 	public:
@@ -105,6 +108,7 @@ class Thread
 //!so has no Thread object of its own to name it. Use this when code just
 //!needs to answer "is this the same thread that did X earlier?" (eg. "is
 //!this the main/GUI thread?"), not to own or join a thread.
+//!\ingroup grp_threads
 class ThreadId
 {
 	public:
@@ -129,6 +133,7 @@ class ThreadId
 //!flag(s) the caller defines. Not every user needs both directions - eg.
 //!a request that's only ever polled, never woken, can leave workCond
 //!unused.
+//!\ingroup grp_threads
 struct ThreadSync
 {
 	Mutex mutex;

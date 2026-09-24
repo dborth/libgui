@@ -9,6 +9,7 @@
 //!GC/Wii InputDriver: PAD (GameCube) / WPAD (Wiimote, Nunchuk, Classic,
 //!Wii U Pro Controller) plus a WiiDRC channel that lets a Wii app read a
 //!Wii U GamePad.
+//!\ingroup grp_ogc
 class OgcInputDriver : public InputDriver
 {
 public:

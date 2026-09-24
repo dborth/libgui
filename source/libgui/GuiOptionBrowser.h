@@ -18,6 +18,7 @@ typedef struct _optionlist {
 } OptionList;
 
 //!Display a list of menu options
+//!\ingroup grp_core
 class GuiOptionBrowser : public GuiElement
 {
 	public:

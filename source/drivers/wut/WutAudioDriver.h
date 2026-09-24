@@ -14,6 +14,7 @@
 //!Wii U AudioDriver: AX (sndcore2), 16 fixed AXVoice slots for one-shots
 //!plus a dedicated stereo streaming path (two AXVoices, ring-buffered)
 //!fed by a GuiSoundOggPlayer for the background stream.
+//!\ingroup grp_wut
 class WutAudioDriver : public AudioDriver
 {
 	public:

@@ -10,6 +10,8 @@
 
 #include <cstdint>
 
+//!How a GuiTrigger matches input: simple, held, button-only, or button-only-in-focus.
+//!\ingroup grp_core
 enum class TRIGGER_TYPE {
 	SIMPLE,
 	HELD,
@@ -17,6 +19,8 @@ enum class TRIGGER_TYPE {
 	BUTTON_ONLY_IN_FOCUS
 };
 
+//!Whether a GuiTrigger uses an explicit button mask or a semantic primary (Accept) / secondary (Cancel) action.
+//!\ingroup grp_core
 enum class TRIGGER_ACTION {
 	NONE,      // Explicit button mask provided
 	PRIMARY,   // Semantic Accept: A (Vertical) or 2 (Sideways)
@@ -26,6 +30,7 @@ enum class TRIGGER_ACTION {
 //!Input-condition matcher attached to a GuiElement (via setSimpleTrigger()
 //!etc.) and evaluated against an InputController - the isClicked()/
 //!isHeld()/isReleased() methods GuiElement::update() calls each frame.
+//!\ingroup grp_core
 class GuiTrigger {
 public:
 	GuiTrigger();

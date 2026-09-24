@@ -17,6 +17,8 @@
 #include "WutLoggerUsbSerial.h"
 #include "../LoggerFile.h"
 
+//!Wii U Platform: ProcUI application lifecycle plus the wut driver set.
+//!\ingroup grp_wut
 class WutPlatform : public Platform
 {
 	public:

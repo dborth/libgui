@@ -17,6 +17,7 @@ typedef struct _keytype {
 } Key;
 
 //!On-screen keyboard
+//!\ingroup grp_core
 class GuiKeyboard : public GuiWindow
 {
 	public:

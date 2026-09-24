@@ -14,6 +14,7 @@
 //!Pro Controllers. GamePad touch is mapped onto the unified cursor/button
 //!fields; IR pointer position is smoothed to counter KPADReadEx sampling
 //!faster/noisier than the UI update rate.
+//!\ingroup grp_wut
 class WutInputDriver : public InputDriver {
 	public:
 		WutInputDriver();

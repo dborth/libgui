@@ -6,6 +6,7 @@
 #pragma once
 
 //!Display, manage, and manipulate text in the GUI
+//!\ingroup grp_core
 class GuiText : public GuiElement
 {
 	public:

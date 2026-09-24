@@ -20,6 +20,7 @@
 
 //! One hot-pluggable FAT-formatted slot, shared shape between GameCube
 //! (SD Gecko A/B/port2, GC Loader) and Wii (SD, USB1-3).
+//!\ingroup grp_ogc
 struct OgcFatSlotDescriptor
 {
 	int    deviceId;
@@ -33,6 +34,8 @@ struct OgcFatSlotDescriptor
 	bool   pollable;                 //!< true: probed every pollStorageDevices() cycle
 };
 
+//!Shared GameCube/Wii FileSystemDriver base: FAT slot enumeration, mounting and polling. DVD is deliberately never probed while polling.
+//!\ingroup grp_ogc
 class OgcFileSystemDriver : public FileSystemDriver
 {
 	public:

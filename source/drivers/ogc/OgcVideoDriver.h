@@ -9,6 +9,7 @@
 #include "../VideoDriver.h"
 
 //!GC/Wii VideoDriver: raw GX, double-buffered XFB.
+//!\ingroup grp_ogc
 class OgcVideoDriver : public VideoDriver
 {
 	public:
@@ -44,6 +45,7 @@ class OgcVideoDriver : public VideoDriver
 };
 
 //!GX-backed ImageRenderer for GuiImage/GuiImageData textures.
+//!\ingroup grp_ogc
 class OgcImageRenderer : public ImageRenderer
 {
 	public:
@@ -56,6 +58,7 @@ class OgcImageRenderer : public ImageRenderer
 
 //!GX-backed GlyphRenderer for GuiTextRenderer. Tracks its own GX vertex
 //!format index (see setVertexFormat()) so it can be reused across draws.
+//!\ingroup grp_ogc
 class OgcGlyphRenderer : public GlyphRenderer {
 	private:
 		uint8_t vertexIndex;

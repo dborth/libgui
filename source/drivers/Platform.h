@@ -22,6 +22,7 @@ class ThreadDriver;
 class Logger;
 
 //! Platform execution state.
+//!\ingroup grp_pal
 enum class Status
 {
 	Running,
@@ -31,6 +32,7 @@ enum class Status
 
 //!A hardware/OS-level system event a Platform can report. These are
 //!mutually exclusive by construction.
+//!\ingroup grp_pal
 enum class SystemEvent
 {
 	None,
@@ -45,6 +47,7 @@ enum class SystemEvent
 //!Composition root for a platform. Owns the five concrete drivers below
 //!and is the only place app code needs an `#ifdef` to pick a platform -
 //!everything else goes through the abstract driver interfaces.
+//!\ingroup grp_pal
 class Platform
 {
 	public:

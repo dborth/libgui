@@ -9,6 +9,8 @@
 
 typedef void (*UpdateCallback)(void * e);
 
+//!Bitmask of transition effects (slide, fade, scale, color) applied to a GuiElement.
+//!\ingroup grp_core
 enum EFFECT {
 	SLIDE_TOP = (1u << 0),
 	SLIDE_BOTTOM = (1u << 1),
@@ -22,6 +24,7 @@ enum EFFECT {
 };
 
 //!Primary GUI class. Most other classes inherit from this class.
+//!\ingroup grp_core
 class GuiElement
 {
 	public:

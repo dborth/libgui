@@ -12,6 +12,7 @@
 //!Wii U VideoDriver: GX2 + libwhb's WHBGfx* helpers. Every draw pass runs
 //!twice per frame - once for the TV, once for the GamePad - so the same
 //!UI always reaches both screens; there's no separate dual-display mode.
+//!\ingroup grp_wut
 class WutVideoDriver : public VideoDriver
 {
 	public:
@@ -63,6 +64,7 @@ class WutVideoDriver : public VideoDriver
 };
 
 //!GX2-backed ImageRenderer for GuiImage/GuiImageData, using Texture2DShader.
+//!\ingroup grp_wut
 class WutImageRenderer : public ImageRenderer
 {
 	public:
@@ -81,6 +83,7 @@ class WutImageRenderer : public ImageRenderer
 
 //!GX2-backed GlyphRenderer for GuiTextRenderer, using Texture2DShader for
 //!glyph quads and ColorShader for solid "feature" rectangles.
+//!\ingroup grp_wut
 class WutGlyphRenderer : public GlyphRenderer
 {
 	public:

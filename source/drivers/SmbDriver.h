@@ -15,6 +15,7 @@
 //! Credentials/target for a single SMB share. All fields are plain
 //! null-terminated strings. A share with no credentials (guest access)
 //! leaves user/password empty.
+//!\ingroup grp_storage
 struct SmbShareInfo
 {
 	char host[64];      //!< server IP or hostname
@@ -27,6 +28,7 @@ struct SmbShareInfo
 //! shape (see FileSystemDriver.h) but SMB gets its own enum since the
 //! failure modes are different (network down vs. auth/share rejected) and
 //! callers may want to tell those apart in the UI.
+//!\ingroup grp_storage
 enum class SmbConnectResult
 {
 	Success,
@@ -35,6 +37,8 @@ enum class SmbConnectResult
 	ConnectFailed        //!< network's up but the server/share/credentials didn't work
 };
 
+//!Network-share driver. One instance is owned by each platform's FileSystemDriver and returned from FileSystemDriver::getSmb().
+//!\ingroup grp_storage
 class SmbDriver
 {
 	public:

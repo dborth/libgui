@@ -23,6 +23,7 @@ void NotifyWiiShutdownRequested();
 //!Wii Platform, built on the shared GC/Wii driver set (OgcVideoDriver,
 //!OgcAudioDriver, OgcInputDriver, OgcThreadDriver) plus WiiFileSystemDriver
 //!for hot-pluggable SD/USB/DVD.
+//!\ingroup grp_ogc
 class WiiPlatform : public Platform
 {
 	public:

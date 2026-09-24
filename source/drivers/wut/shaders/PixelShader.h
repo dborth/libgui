@@ -12,6 +12,7 @@
 
 //!Owns a GX2PixelShader's compiled program and uniform/sampler metadata,
 //!mirroring VertexShader's role on the pixel-shader side.
+//!\ingroup grp_wut
 class PixelShader : public Shader
 {
 	public:

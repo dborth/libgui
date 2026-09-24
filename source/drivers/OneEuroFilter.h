@@ -30,6 +30,8 @@
 
 #include <cmath>
 
+//!Exponential low-pass filter used as the building block of OneEuroFilter.
+//!\ingroup grp_input
 class LowPassFilter {
 public:
 	LowPassFilter() : initialized(false), storedValue(0.0f) {}
@@ -52,6 +54,8 @@ private:
 	float storedValue;
 };
 
+//!Adaptive speed-based low-pass filter (the 1-euro filter) for smoothing noisy pointer signals such as the Wii U IR pointer.
+//!\ingroup grp_input
 class OneEuroFilter {
 public:
 	OneEuroFilter(float minCutoff = 1.0f, float beta = 0.0f, float dCutoff = 1.0f)

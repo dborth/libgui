@@ -14,6 +14,7 @@
 
 //!Storage device kind, shared by every platform's FileSystemDriver
 //!All platforms are limited to exactly one mount per device type
+//!\ingroup grp_storage
 enum Device
 {
 	DEVICE_AUTO = 0,
@@ -30,6 +31,8 @@ enum Device
 	DEVICE_LENGTH
 };
 
+//!Description of one storage device: id, display name, mount prefix, volume label and flags such as removable or always-listed.
+//!\ingroup grp_storage
 struct StorageDevice
 {
 	int  id;
@@ -42,6 +45,7 @@ struct StorageDevice
 };
 
 //! Result of a single mount attempt. Deliberately has no retry/backoff behavior baked in
+//!\ingroup grp_storage
 enum class MountResult
 {
 	Success,
@@ -52,6 +56,7 @@ enum class MountResult
 //!Storage device enumeration/mount/poll backend for the SD/USB/DVD file
 //!browser. Exactly one driver implements this and assigns the single
 //!global Platform instance.
+//!\ingroup grp_storage
 class FileSystemDriver
 {
 	public:

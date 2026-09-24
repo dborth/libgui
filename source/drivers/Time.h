@@ -19,6 +19,8 @@
 //!wall-clock time, has no defined epoch.
 typedef uint64_t Ticks;
 
+//!Platform-agnostic monotonic clock.
+//!\ingroup grp_threads
 class SystemTime
 {
 	public:

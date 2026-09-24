@@ -9,6 +9,7 @@
 
 //!Decodes compressed image data (PNG) into a platform-native texture created
 //!from it. Currently designed for use only with PNG files.
+//!\ingroup grp_core
 class GuiImageData
 {
 	public:

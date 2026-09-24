@@ -11,6 +11,8 @@
  ***************************************************************************/
 #pragma once
 
+//!Wii network bring-up (asynchronous net_init_async on a background thread).
+//!\ingroup grp_ogc
 class WiiNetwork
 {
 	public:

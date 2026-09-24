@@ -9,6 +9,7 @@
 
 //!A simple mutual-exclusion lock. Delegates to ThreadDriver for the actual
 //!platform primitive.
+//!\ingroup grp_threads
 class Mutex
 {
 	public:
@@ -29,6 +30,7 @@ class Mutex
 //!RAII lock guard - locks on construction, unlocks on destruction. Use this
 //!instead of calling Mutex::lock()/unlock() directly wherever possible, so
 //!an early return or exception can't leave the mutex held.
+//!\ingroup grp_threads
 class MutexLock
 {
 	public:

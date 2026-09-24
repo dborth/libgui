@@ -18,6 +18,7 @@ struct smb2_context;
 
 //!Wraps libsmb2 behind a "smb:/" devoptab. Both GameCube (via BBA) and Wii
 //! bring the network up, then share the identical libsmb2 connect/devoptab
+//!\ingroup grp_ogc
 class OgcSmbDriver : public SmbDriver
 {
 	public:

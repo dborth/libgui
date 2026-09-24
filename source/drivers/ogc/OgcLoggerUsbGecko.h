@@ -18,6 +18,8 @@
 
 #include "../Logger.h"
 
+//!Log backend for a USB Gecko adapter over EXI.
+//!\ingroup grp_logging
 class OgcLoggerUsbGecko : public LoggingDriver
 {
 	public:

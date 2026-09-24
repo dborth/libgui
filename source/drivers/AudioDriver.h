@@ -13,6 +13,7 @@
 //!Platform audio backend GuiSound delegates to: fixed one-shot PCM voices
 //!plus one background OGG stream. Exactly one driver implements this and
 //!assigns the single global Platform instance.
+//!\ingroup grp_pal
 class AudioDriver
 {
 	public:
