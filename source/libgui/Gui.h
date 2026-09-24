@@ -1,29 +1,13 @@
-/*!\mainpage libgui Documentation
+/*!
+ * \file Gui.h
+ * \brief Umbrella header for the platform-agnostic libgui core.
  *
- * \section Introduction
- * libgui is a GUI library originally created for the Wii/GameCube, created to 
- * help structure the design of a complicated GUI interface, and to enable an 
- * author to create a sophisticated, feature-rich GUI. It was originally conceived 
- * and written after I started to design a GUI for Snes9x GX, and found libwiisprite 
- * and GRRLIB inadequate for the purpose. It was designed to be flexible and is easy
- * to modify - don't be afraid to change the way it works or expand it to suit your
- * GUI's purposes! If you do, and you think your changes might benefit others, please
- * share them so they might be added to the project!
- *
- * \section Quickstart
- * Start from the supplied template example. For more advanced uses, see the
- * source code for Snes9x GX, FCE Ultra GX, and Visual Boy Advance GX.
-
- * \section Contact
- * If you have any suggestions for the library or documentation, or want to
- * contribute, please visit the libgui website:
- * http://code.google.com/p/libgui/
-
- * \section Credits
- * This library was wholly designed and written by Tantric. Thanks to the authors of
- * GRRLIB and libwiisprite for laying the foundations.
- *
-*/
+ * Include this one header to get every core UI class (GuiElement, GuiWindow,
+ * GuiButton, GuiImage, GuiText, GuiSound, GuiFileBrowser, GuiKeyboard,
+ * GuiOptionBrowser, ...), the alignment/state/scroll enums, and the
+ * platform driver interfaces they are built on. Nothing reachable from here
+ * includes a platform SDK header.
+ */
 
 #pragma once
 

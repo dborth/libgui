@@ -86,20 +86,30 @@ jobs:
     - name: Checkout libgui repo
       uses: actions/checkout@v4
 
-    - name: Update documentation
-      uses: mattnotmitt/doxygen-action@v1.9.5
-      with:
-        working-directory: '.'
-        doxyfile-path: './Doxyfile'
+    - name: Install Doxygen and Graphviz
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y graphviz
+        curl -sSL https://github.com/doxygen/doxygen/releases/download/Release_1_13_2/doxygen-1.13.2.linux.bin.tar.gz | tar xz -C "$RUNNER_TEMP"
+        echo "$RUNNER_TEMP/doxygen-1.13.2/bin" >> "$GITHUB_PATH"
 
-    - name: Setup Pages
-      uses: actions/configure-pages@v5
+    - name: Build documentation
+      run: doxygen Doxyfile
 
     - name: Upload documentation artifacts
       uses: actions/upload-pages-artifact@v3
       with:
         path: docs
-        
+
+  deploy-docs:
+    name: Deploy documentation
+    needs: [docs]
+    if: github.ref == 'refs/heads/master'
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
     - name: Deploy to GitHub Pages
       id: deployment
       uses: actions/deploy-pages@v4

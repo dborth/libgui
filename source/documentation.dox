@@ -1,0 +1,66 @@
+/*!
+ * \dir source
+ * \brief Template application (demo.cpp, menu.cpp, filebrowser.cpp) plus the
+ * library and driver trees below.
+ *
+ * The template files are the recommended pattern to build an app from, not
+ * part of the library itself.
+ */
+
+/*!
+ * \dir source/libgui
+ * \brief Platform-agnostic core UI library: GuiElement, GuiWindow, GuiButton,
+ * GuiImage, GuiText, GuiSound, the file/option browsers and the keyboard.
+ *
+ * Never includes a platform SDK header; all platform access goes through the
+ * driver interfaces in source/drivers.
+ */
+
+/*!
+ * \dir source/drivers
+ * \brief Platform Abstraction Layer: the abstract driver interfaces
+ * (Platform, VideoDriver, AudioDriver, InputDriver, FileSystemDriver,
+ * ThreadDriver, SmbDriver), the Logger, and the Thread/Mutex/Cond wrappers.
+ *
+ * The concrete implementations live in the ogc and wut subdirectories.
+ */
+
+/*!
+ * \dir source/drivers/ogc
+ * \brief GameCube and Wii implementation (libogc2): GX video, AESND audio,
+ * PAD/WPAD input, LWP threads, libsmb2 network shares and the SysReport, UDP
+ * and USB Gecko logging backends.
+ */
+
+/*!
+ * \dir source/drivers/ogc/wii
+ * \brief Wii-only pieces: WiiPlatform, WiiFileSystemDriver (SD, up to three
+ * USB drives, DVD) and WiiUsbMulti.
+ */
+
+/*!
+ * \dir source/drivers/ogc/gamecube
+ * \brief GameCube-only pieces: GameCubePlatform and GameCubeFileSystemDriver
+ * (SD Gecko, SD2SP2, GC Loader, DVD).
+ */
+
+/*!
+ * \dir source/drivers/wut
+ * \brief Wii U implementation (wut): GX2 video, AX audio, VPAD/KPAD input,
+ * coreinit threads, FSA/libmocha/libdvm storage, libsmb2 network shares and
+ * the OSReport, UDP and USB serial logging backends.
+ */
+
+/*!
+ * \dir source/drivers/wut/shaders
+ * \brief GX2 shader plumbing used by WutVideoDriver: Texture2DShader for
+ * images and glyphs, ColorShader for flat rectangles.
+ */
+
+/*!
+ * \example demo.cpp
+ * Reference application wiring: creates the Platform, sizes the image decode
+ * scratch buffer, sets up the font and string table, starts audio and the
+ * storage device-checking thread, runs the menus, then joins background
+ * threads and exits. Start your own app from this file.
+ */

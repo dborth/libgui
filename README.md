@@ -1,6 +1,10 @@
 ## libgui
 https://github.com/dborth/libgui (Under GPL License)
 
+[API documentation](https://dborth.github.io/libgui/) ·
+[Changelog](CHANGELOG.md) ·
+[Latest build](https://github.com/dborth/libgui/releases/tag/Pre-release)
+
 libgui is a GUI library for the **GameCube, Wii, and Wii U** created to
 help structure the design of a complicated GUI interface, and to enable
 an author to create a sophisticated, feature-rich GUI. It was originally
@@ -604,7 +608,8 @@ https://github.com/dborth/libgui
 
 ### Documentation
 
-See the included doxygen documentation - http://dborth.github.io/libgui/
+The API reference is generated with doxygen from the source and this README,
+and published at https://dborth.github.io/libgui/
 
 This covers both the core GUI classes (`source/libgui`) and the platform
 driver layer (`source/drivers`), including the GameCube/Wii (`ogc`) and
