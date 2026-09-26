@@ -5,10 +5,8 @@
 *
 * Multi-backend debug logging. Platform-agnostic - this header never
 * includes a platform SDK header. Each platform's Platform::init() wires
-* up whichever LoggingDriver implementations it supports (see the various
-* LogBackend headers under drivers/ogc/ and drivers/wut/) and hands them
-* to a single Logger instance, exactly the same way OgcVideoDriver/
-* WutVideoDriver are wired up behind VideoDriver.
+* up whichever LoggingDriver implementations it supports and hands them
+* to a single Logger instance.
 *
 * Zero-overhead when disabled: build with -DLOGGING_ENABLED=0 (or define
 * it before this header is first included) and every LOG_*() call site
@@ -136,6 +134,7 @@ struct LogConfig
 	// ---- Formatting ----
 	bool includeLevelTag = true;         //!< prefix each line with "[DEBUG] "/"[INFO] "/etc.
 	bool includeSequenceNumber = false;  //!< prefix each line with a monotonic call counter, useful for spotting dropped UDP packets
+	bool includeTimestamp = true;
 };
 
 //!Abstract backend a Logger fans a formatted line out to. Every method
@@ -198,6 +197,10 @@ public:
 	//!whatever was previously active rather than assuming this is
 	//!the first call.
 	void init(const LogConfig & config);
+
+	//!Called by a backend that deferred its own activation on some
+	//!background precondition (eg. OgcLoggerUdp)
+	void activateDeferred(LogBackendId id);
 
 	//!Shuts down every registered backend and forgets the config.
 	//!Backends themselves remain registered (and owned) until this

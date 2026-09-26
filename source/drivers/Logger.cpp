@@ -9,9 +9,12 @@
  ***************************************************************************/
 #include "Logger.h"
 #include "Platform.h"
+#include "Time.h"
 
 #include <cstdio>
 #include <cstring>
+
+static const Ticks processStartTicks = SystemTime::now();
 
 Logger::Logger()
 {
@@ -141,6 +144,29 @@ void Logger::init(const LogConfig & newConfig)
 	initialized = true;
 }
 
+void Logger::activateDeferred(LogBackendId id)
+{
+	MutexLock guard(lock);
+
+	if (!initialized)
+		return; // logging isn't running - never activate behind its back
+
+	uint32_t activeMask = resolveActiveMask();
+	if ((id & activeMask) == 0)
+		return; // not wanted right now - mode off, or on but not this backend
+
+	for (int i = 0; i < slotCount; i++)
+	{
+		if (slots[i].id != id)
+			continue;
+
+		if (!slots[i].active)
+			slots[i].active = true; // backend already finished its own setup - just make it visible to log()
+
+		break;
+	}
+}
+
 void Logger::shutdown()
 {
 	MutexLock guard(lock);
@@ -212,6 +238,14 @@ void Logger::log(LogLevel level, const char * fmt, va_list args)
 	if (config.includeSequenceNumber)
 	{
 		int n = snprintf(line + offset, sizeof(line) - offset, "%06u ", (unsigned)(++sequence));
+		if (n > 0)
+			offset += (size_t)n < (sizeof(line) - offset) ? (size_t)n : (sizeof(line) - offset - 1);
+	}
+
+	if (config.includeTimestamp)
+	{
+		uint32_t ms = SystemTime::diffMillisecs(processStartTicks, SystemTime::now());
+		int n = snprintf(line + offset, sizeof(line) - offset, "[%5u.%03u] ", (unsigned)(ms / 1000), (unsigned)(ms % 1000));
 		if (n > 0)
 			offset += (size_t)n < (sizeof(line) - offset) ? (size_t)n : (sizeof(line) - offset - 1);
 	}
