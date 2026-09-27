@@ -2,11 +2,25 @@
  * \file Gui.h
  * \brief Umbrella header for the platform-agnostic libgui core.
  *
+ * libgui - a GUI library for GameCube, Wii, and Wii U homebrew.
+ * https://github.com/dborth/libgui
+ *
  * Include this one header to get every core UI class (GuiElement, GuiWindow,
  * GuiButton, GuiImage, GuiText, GuiSound, GuiFileBrowser, GuiKeyboard,
- * GuiOptionBrowser, ...), the alignment/state/scroll enums, and the
- * platform driver interfaces they are built on. Nothing reachable from here
- * includes a platform SDK header.
+ * GuiOptionBrowser, GuiSaveBrowser, ...), the alignment/state/scroll enums,
+ * and the platform driver interfaces they are built on.
+ *
+ * Everything reachable from this header is platform-agnostic: nothing in
+ * source/libgui/ includes a platform SDK header (<gccore.h>, <gx2/*.h>,
+ * <wpad/wpad.h>, etc). All hardware access goes through the abstract driver
+ * interfaces in source/drivers/ (Platform, VideoDriver, AudioDriver,
+ * InputDriver, FileSystemDriver, ThreadDriver), which are implemented once
+ * for GameCube/Wii (source/drivers/ogc/) and once for Wii U
+ * (source/drivers/wut/). Application code should only ever need to include
+ * this header plus whichever concrete Platform header it instantiates.
+ *
+ * See README.md, CHANGELOG.md, and the API documentation in the repository
+ * for more information.
  */
 
 #pragma once
