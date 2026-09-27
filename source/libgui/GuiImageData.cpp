@@ -253,10 +253,21 @@ bool GuiImageData::decodeImage(const uint8_t * pngData, int * outWidth, int * ou
 		capHeight = h;
 	}
 
-	width = w;
-	height = h;
-	if(outWidth) *outWidth = w;
-	if(outHeight) *outHeight = h;
+	int designW = static_cast<int>(w);
+	int designH = static_cast<int>(h);
+	if(maxw == 0 && maxh == 0)
+	{
+		const PlatformConfig& config = platform->getConfig();
+		designW = static_cast<int>(w / config.assetScaleX + 0.5f);
+		designH = static_cast<int>(h / config.assetScaleY + 0.5f);
+		if(designW < 1) designW = 1;
+		if(designH < 1) designH = 1;
+	}
+
+	width = designW;
+	height = designH;
+	if(outWidth) *outWidth = designW;
+	if(outHeight) *outHeight = designH;
 
 	png_destroy_read_struct(&png_ptr, &info_ptr, nullptr);
 	return true;

@@ -23,6 +23,7 @@
 #include "filebrowser.h"
 
 static GuiImageData * pointer[4];
+static GuiImage cursorImg[4];
 static GuiImage * bgImg = nullptr;
 static GuiSound * bgMusic = nullptr;
 static GuiWindow * mainWindow = nullptr;
@@ -51,8 +52,11 @@ bool UpdateGui()
 	for(i = 3; i >= 0; i--)
 	{
 		if(controller[i]->getPadData().validPointer)
-			platform->getVideo()->getImageRenderer()->drawTexture(pointer[i]->getTexture(), controller[i]->getPadData().cursor_x-48, controller[i]->getPadData().cursor_y-48,
-				96, 96, controller[i]->getPadData().cursor_angle, 1, 1, 255);
+		{
+			cursorImg[i].setPosition(controller[i]->getPadData().cursor_x - cursorImg[i].getWidth()/2, controller[i]->getPadData().cursor_y - cursorImg[i].getHeight()/2);
+			cursorImg[i].setAngle(controller[i]->getPadData().cursor_angle);
+			cursorImg[i].draw();
+		}
 	}
 
 	platform->getVideo()->render();
@@ -856,6 +860,9 @@ void MainMenu(int menu)
 	pointer[1] = new GuiImageData(player2_point_png);
 	pointer[2] = new GuiImageData(player3_point_png);
 	pointer[3] = new GuiImageData(player4_point_png);
+
+	for(int i = 0; i < 4; i++)
+		cursorImg[i].setImage(pointer[i]);
 
 	mainWindow = new GuiWindow(platform->getVideo()->getScreenWidth(), platform->getVideo()->getScreenHeight());
 
