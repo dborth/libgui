@@ -24,7 +24,7 @@ class GameCubePlatform : public Platform
 	public:
 		GameCubePlatform() {}
 
-		void init(int width, int height) override;
+		void init(const PlatformConfig& config) override;
 		void requestExit() override;
 
 		SystemEvent getSystemEvent() override { return SystemEvent::None; }

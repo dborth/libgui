@@ -34,7 +34,11 @@ static WiiPlatform platformInstance;
 #endif
 Platform* platform = &platformInstance;
 
+#if defined(HW_RVL) || defined(HW_DOL)
 #define IMAGE_DECODE_SCRATCH_SIZE ((640 * 480 * 4) + (480 * sizeof(void*)))
+#else
+#define IMAGE_DECODE_SCRATCH_SIZE ((1920 * 1080 * 4) + (1080 * sizeof(void*)))
+#endif
 
 void DefaultSettings()
 {
@@ -54,7 +58,15 @@ void DefaultSettings()
 
 int main(int, char **)
 {
-	platform->init(640, 480);
+	PlatformConfig platformConfig;
+	platformConfig.canvasWidth = 640;
+	platformConfig.canvasHeight = 480;
+#ifdef __WIIU__
+	platformConfig.assetScaleX = 3.0f;
+	platformConfig.assetScaleY = 2.25f;
+#endif
+	platform->init(platformConfig);
+
 	GuiImageData::setDecodeScratch(malloc(IMAGE_DECODE_SCRATCH_SIZE), IMAGE_DECODE_SCRATCH_SIZE);
 
 	fontSystem = new GuiTextRenderer(font_ttf, font_ttf_size, platform->getVideo()->getGlyphRenderer(), platform->getVideo()->getUIScale());

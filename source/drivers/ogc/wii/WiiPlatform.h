@@ -29,7 +29,7 @@ class WiiPlatform : public Platform
 	public:
 		WiiPlatform() {}
 
-		void init(int width, int height) override;
+		void init(const PlatformConfig& config) override;
 		void requestExit() override;
 
 		SystemEvent getSystemEvent() override;

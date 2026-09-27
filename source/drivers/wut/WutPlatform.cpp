@@ -11,15 +11,17 @@
 #include <proc_ui/procui.h>
 #include <unistd.h>
 
-void WutPlatform::init(int width, int height)
+void WutPlatform::init(const PlatformConfig& config)
 {
+	this->config = config;
+
 	WHBProcInit();
 
 	this->threadDriver = new WutThreadDriver();
 	this->threadDriver->init();
 
 	this->videoDriver = new WutVideoDriver();
-	this->videoDriver->init(width, height);
+	this->videoDriver->init(config.canvasWidth, config.canvasHeight);
 
 	this->audioDriver = new WutAudioDriver();
 	this->audioDriver->init();
@@ -37,17 +39,16 @@ void WutPlatform::init(int width, int height)
 	this->logger->registerBackend(LOGGER_SERIAL,	new WutLoggerUsbSerial());
 	this->logger->registerBackend(LOGGER_FILE,		new LoggerFile());
 
-	LogConfig config;
+	LogConfig logConfig;
 	static const int deviceCandidates[] = { DEVICE_SD };
 
 	const char * mountPath = FindFirstMountedPath(this->fileSystemDriver, deviceCandidates, 1);
 
 	if(mountPath[0] != '\0') {
 		// mountPath already ends in "/" (eg. "/vol/external01/") - no separator needed.
-		snprintf(config.filePath, sizeof(config.filePath), "%sdebug.log", mountPath);
+		snprintf(logConfig.filePath, sizeof(logConfig.filePath), "%sdebug.log", mountPath);
 	}
-	
-	this->logger->init(config);
+	this->logger->init(logConfig);
 #endif
 }
 

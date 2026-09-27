@@ -21,7 +21,7 @@ TARGET		:=	libgui-wiiu-demo
 BUILD		:=	build_wiiu
 SOURCES		:=	source source/drivers source/drivers/wut source/drivers/wut/shaders source/libgui
 INCLUDES	:=	source
-DATA		:=	data/images data/fonts data/sounds data/lang
+DATA		:=	data/images_hd data/fonts data/sounds data/lang
 
 #---------------------------------------------------------------------------------
 # options for code generation

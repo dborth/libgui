@@ -68,7 +68,7 @@ hardcoded in a backend.
 LogConfig config;
 config.mode = LogMode::Multi;
 config.multiBackendMask = LOGGER_UDP | LOGGER_FILE;
-snprintf(config.filePath, sizeof(config.filePath), "sd:/myapp.log");
+snprintf(logConfig.filePath, sizeof(logConfig.filePath), "sd:/myapp.log");
 config.targetIp = "192.168.1.50";
 config.level = LogLevel::Debug;
 platform->getLogger()->init(config);
