@@ -81,6 +81,9 @@ others, please share them so they might be added to the project!
 | Wii | devkitPPC + libogc2 | GX | AESND | WPAD (Wiimote/Nunchuk/Classic/Pro), plus Wii U GamePad support | SD, up to 3 USB, DVD, SMB |
 | Wii U | devkitPPC + wut + libwhb | GX2 | AX (sndcore2) | VPAD (GamePad), KPAD/WPAD (Wiimote/Nunchuk/Classic/Pro) | SD, up to 3 USB (FAT/exFAT/NTFS), SMB |
 
+Wii U renders a separate, higher-resolution asset set (`data/images_hd`, selected in `Makefile.wiiu`) 
+`libgui/` layout code still works in the one shared configurable coordinate space (eg:  640x480).
+
 
 ### Architecture
 
@@ -92,8 +95,9 @@ composed by a single `Platform` object:
 ```cpp
 class Platform {
 public:
-    virtual void init(int width, int height) = 0;   // constructs + initializes every driver
-    virtual void requestExit() = 0;                 // shut down and leave the app; does not return
+    virtual void init(const PlatformConfig& config) = 0; // constructs + initializes every driver
+    const PlatformConfig& getConfig() const;         // the config this platform was init()'d with
+    virtual void requestExit() = 0;                  // shut down and leave the app; does not return
 
     virtual AudioDriver* getAudio() = 0;
     virtual VideoDriver* getVideo() = 0;
@@ -108,6 +112,19 @@ public:
     bool shouldExit();                              // Exiting, or a shutdown event was reported
 };
 extern Platform* platform; // single global instance, assigned by the app
+```
+
+`PlatformConfig` carries the design canvas size and, on platforms with a
+higher-resolution asset set, the scale factor between that asset set and
+the design canvas:
+
+```cpp
+struct PlatformConfig {
+    int canvasWidth;
+    int canvasHeight;
+    float assetScaleX = 1.0f;
+    float assetScaleY = 1.0f;
+};
 ```
 
 There are three concrete `Platform` implementations - `GameCubePlatform`
@@ -133,7 +150,7 @@ on - talks only to the interfaces below.
 
 | Interface | Responsibility | GameCube/Wii (`drivers/ogc`) | Wii U (`drivers/wut`) |
 |---|---|---|---|
-| `VideoDriver` | Frame lifecycle, screen size/refresh rate/delta time; hands out an `ImageRenderer` (textured quads) and `GlyphRenderer` (glyph quads + solid rectangles) | `OgcVideoDriver` - raw GX, double-buffered XFB | `WutVideoDriver` - GX2 + libwhb's `WHBGfx*` helpers, submitting the same UI to both the TV and GamePad every frame, backed by two small custom GX2 shaders (`Texture2DShader`, `ColorShader`) |
+| `VideoDriver` | Frame lifecycle, screen size/refresh rate/delta time; hands out an `ImageRenderer` (textured quads) and `GlyphRenderer` (glyph quads + solid rectangles) | `OgcVideoDriver` - raw GX, double-buffered XFB | `WutVideoDriver` - GX2 + libwhb's `WHBGfx*` helpers, backed by two small custom GX2 shaders (`Texture2DShader`, `ColorShader`). UI draws are recorded into a list and replayed once for the TV and once for the GamePad, instead of switching render targets on every individual draw |
 | `AudioDriver` | Fixed one-shot PCM voices plus one background OGG stream | `OgcAudioDriver` - AESND | `WutAudioDriver` - AX (sndcore2), 16 voice slots plus a ring-buffered stereo stream path, mixed to both the TV and the GamePad |
 | `InputDriver` | Polls hardware and produces a per-channel `InputPadData` snapshot each frame, consumed by a persistent `InputController` per channel; controls rumble and Wiimote orientation | `OgcInputDriver` - PAD (GameCube) / WPAD (Wiimote, Nunchuk, Classic, Wii U Pro Controller), plus Wii U GamePad via the vendored `libwiidrc` | `WutInputDriver` - VPAD (GamePad stick/buttons/touch) and KPAD/WPAD for up to 4 Wiimotes/Nunchuks/Classic/Pro Controllers |
 | `FileSystemDriver` | Storage device enumeration, mount/poll, hot-plug detection, and the network-share driver (`StorageDevice`, `MountResult`, `SmbDriver`) | `WiiFileSystemDriver` / `GameCubeFileSystemDriver`, with `OgcSmbDriver` | `WutFileSystemDriver`, with `WutSmbDriver` |
@@ -177,7 +194,14 @@ Background threads must be stopped before `requestExit()` - see
 shows the intended order:
 
 ```cpp
-platform->init(640, 480);
+PlatformConfig config;
+config.canvasWidth = 640;
+config.canvasHeight = 480;
+#ifdef __WIIU__
+config.assetScaleX = 3.0f; // data/images_hd in the demo is authored at 3x/2.25x the 640x480 canvas (ie: 1920x1080)
+config.assetScaleY = 2.25f;
+#endif
+platform->init(config);
 // ... set up fonts, audio, the device-checking thread, run the menus ...
 Thread::JoinAll();
 platform->requestExit();
@@ -321,6 +345,14 @@ GamePad.
 ### Update History
 
 See [CHANGELOG.md](CHANGELOG.md) for the full, version-by-version history.
+
+**[2.01 - Unreleased]** batches Wii U UI drawing into one TV pass and one
+GamePad pass per frame instead of switching render targets on every draw
+(menu frame rate on Wii U roughly doubled in testing), adds a higher-
+resolution Wii U asset set with `PlatformConfig::assetScaleX/Y`, fixes text
+scrolling and Wiimote/GamePad pointer angle math, and improves UDP and USB
+Gecko logging reliability. `Platform::init()` now takes a `PlatformConfig`
+instead of separate width/height parameters - see [Architecture](#architecture) above.
 
 **[2.00 - September 23, 2026]** adds full Wii U support (GX2 video, AX audio, VPAD/
 KPAD input, FSA-based SD storage, USB storage with libdvm), a GameCube build,

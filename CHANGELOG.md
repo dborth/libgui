@@ -4,6 +4,71 @@ All notable changes to libgui are documented here. Versions follow
 `MAJOR.MINOR`; dates are approximate, taken from the commit history.
 
 
+## [2.01] - Unreleased
+
+### Added
+
+**Wii U high-resolution assets**
+* A second, higher-resolution asset set for Wii U (`data/images_hd`,
+  selected by `Makefile.wiiu`), replacing the shared 480p
+  `data/images` set used by GameCube/Wii on that platform.
+* `PlatformConfig`, passed to the now-parameterized `Platform::init()`
+  (previously `init(int width, int height)`): carries the design canvas
+  size plus `assetScaleX`/`assetScaleY`, the ratio between a
+  higher-resolution asset set and the design canvas. `GuiImageData`
+  divides a decoded image's pixel dimensions by these factors so layout
+  code keeps working in the one shared 640x480 coordinate space.
+  `Platform::getConfig()` returns the config a platform was initialized
+  with.
+* Log lines can be prefixed with a `[seconds.milliseconds]` timestamp
+  since process start (`LogConfig::includeTimestamp`, on by default).
+
+### Changed
+
+**Wii U rendering performance**
+* `WutVideoDriver` now records every UI draw into a list, and
+  replays it once against the TV context and once against the GamePad
+  context per frame, instead of switching GX2 contexts on every single
+  draw. Consecutive draws that share a shader, quad attributes, texture,
+  or sampler skip re-binding them on replay.
+* `ImageRenderer::destroyTexture()`/`GlyphRenderer::destroyTexture()` on
+  Wii U now flush the pending draw queue first, so a texture is never
+  freed while a still-unreplayed draw references it.
+
+**Text scrolling**
+* `GuiText`'s horizontal scroll now advances by comparing the video
+  driver's frame timer to the tick of its last step
+  (`GuiText::scrollStepDue()`), rather than checking
+  `frameTimer % textScrollDelay == 0`.
+
+**Wii U input**
+* Wiimote pitch/roll/yaw (`hw_pitch`/`hw_roll`/`hw_yaw` for
+  `INPUT_HW_DRC`) are now reported in degrees rather than raw
+  `vpadStatus.angle` units.
+* The Wiimote IR pointer's `cursor_angle` is now computed from
+  `atan2(angle.y, angle.x)` instead of being set directly from
+  `kpadStatus.angle.y`, fixing incorrect on-screen cursor rotation.
+* Sideways-Wiimote detection with no extension connected now follows
+  `setWiimoteOrientation()`/`getWiimoteOrientation()` instead of
+  guessing from raw accelerometer axis magnitude.
+
+**Logging**
+* Wii's UDP log backend (`OgcLoggerUdp`) now waits for the network to
+  actually be up (`WiiNetwork::notifyWhenUp()`) instead of calling
+  `net_init()` synchronously from `init()`, and fixes the
+  `sockaddr_in`/`net_sendto()` length (`sin_len`) libogc2's `net_*` BSD
+  socket shim expects but doesn't enforce.
+* GameCube/Wii's USB Gecko log backend (`OgcLoggerUsbGecko`) now uses
+  libogc's `<ogc/usbgecko.h>` instead of a hand-rolled EXI identify/send
+  protocol.
+* The Wii network bring-up thread's stack was reduced from 32KB to 8KB.
+
+### Fixed
+
+* Wii U (`WutFileSystemDriver`): browsing into a mounted SMB share used
+  its non-stable `prefix` for path construction instead of
+  `stablePrefix`, breaking directory listing under some mount orders.
+
 ## [2.00] - September 23, 2026
 
 The headline of this release is **Wii U support**, added alongside a
