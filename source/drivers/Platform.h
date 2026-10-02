@@ -44,11 +44,17 @@ enum class SystemEvent
 	ResetRequested,
 };
 
+//!Settings passed to Platform::init().
+//!\ingroup grp_pal
 struct PlatformConfig
 {
-	int canvasWidth;
-	int canvasHeight;
+	int canvasWidth;  //!< Design canvas width in pixels (eg. 640)
+	int canvasHeight; //!< Design canvas height in pixels (eg. 480)
+	//!Horizontal ratio of source art pixels to design-canvas pixels.
+	//!GuiImageData divides a decoded PNG's width by this to get its design size.
+	//!1.0 means the art is authored at canvas resolution.
 	float assetScaleX = 1.0f;
+	//!Vertical counterpart of assetScaleX.
 	float assetScaleY = 1.0f;
 };
 
@@ -73,10 +79,15 @@ class Platform
 		//!reached. It does not return.
 		virtual void requestExit() = 0;
 
+		//!\return the audio driver, valid once init() has run
 		virtual AudioDriver* getAudio() = 0;
+		//!\return the video driver, valid once init() has run
 		virtual VideoDriver* getVideo() = 0;
+		//!\return the input driver, valid once init() has run
 		virtual InputDriver* getInput() = 0;
+		//!\return the storage driver, valid once init() has run
 		virtual FileSystemDriver* getFileSystem() = 0;
+		//!\return the thread driver, valid once init() has run
 		virtual ThreadDriver* getThread() = 0;
 		//!May return nullptr on a Platform that hasn't finished init()
 		//!yet - LogPrintf()/LOG_*() already guard against this, but code

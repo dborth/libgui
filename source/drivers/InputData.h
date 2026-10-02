@@ -55,34 +55,49 @@ enum GuiHardwareProfile : uint32_t {
  * \ingroup grp_input
  */
 struct InputPadData {
-	// Unified State
-	uint32_t buttons_d; // Pressed this frame (down)
-	uint32_t buttons_h; // Held this frame
-	uint32_t buttons_r; // Released this frame
-	float stickX, stickY; // Left analog stick
-	float substickX, substickY; // Right analog stick (C-Stick)
-	float gforceX, gforceY, gforceZ;
-	float pitch, roll, yaw;
-	uint32_t battery_level;
-	float cursor_x, cursor_y, cursor_angle; // Wiimote / DRC
-	bool validPointer;  // True if the IR pointer or touch is active on screen
-	bool isTouch;       // True if input is direct touch (VPad) vs IR pointer
+	//!\name Unified state
+	//!The merged view across every connected profile; for each value the profile with the largest magnitude wins.
+	//!@{
+	uint32_t buttons_d; //!< Pressed this frame (down)
+	uint32_t buttons_h; //!< Held this frame
+	uint32_t buttons_r; //!< Released this frame
+	float stickX;      //!< Left analog stick X, -1.0 to 1.0
+	float stickY;      //!< Left analog stick Y, -1.0 to 1.0
+	float substickX;   //!< Right analog stick (C-Stick) X, -1.0 to 1.0
+	float substickY;   //!< Right analog stick (C-Stick) Y, -1.0 to 1.0
+	float gforceX;     //!< Accelerometer X (Wiimote/Nunchuk/GamePad)
+	float gforceY;     //!< Accelerometer Y
+	float gforceZ;     //!< Accelerometer Z
+	float pitch;       //!< Controller orientation pitch (Wiimote/Nunchuk)
+	float roll;        //!< Controller orientation roll
+	float yaw;         //!< Controller orientation yaw
+	uint32_t battery_level; //!< Controller battery level as reported by the backend
+	float cursor_x;     //!< Pointer X on the design canvas (Wiimote IR / GamePad touch)
+	float cursor_y;     //!< Pointer Y on the design canvas
+	float cursor_angle; //!< Pointer rotation (Wiimote roll)
+	bool validPointer;  //!< True if the IR pointer or touch is active on screen
+	bool isTouch;       //!< True if input is direct touch (VPad) vs IR pointer
+	//!@}
 
-	bool     hw_connected[INPUT_HW_MAX];
-	uint32_t hw_buttons_d[INPUT_HW_MAX];
-	uint32_t hw_buttons_h[INPUT_HW_MAX];
-	uint32_t hw_buttons_r[INPUT_HW_MAX];
-	float    hw_stickX[INPUT_HW_MAX];
-	float    hw_stickY[INPUT_HW_MAX];
-	float    hw_substickX[INPUT_HW_MAX];
-	float    hw_substickY[INPUT_HW_MAX];
+	//!\name Per-hardware-profile state
+	//!The same fields as above, indexed by GuiHardwareProfile, so a driver can report e.g. Wiimote buttons and a Nunchuk stick as separate contributors before they are merged.
+	//!@{
+	bool     hw_connected[INPUT_HW_MAX];   //!< Profile is connected and contributing
+	uint32_t hw_buttons_d[INPUT_HW_MAX];   //!< Buttons pressed this frame, per profile
+	uint32_t hw_buttons_h[INPUT_HW_MAX];   //!< Buttons held this frame, per profile
+	uint32_t hw_buttons_r[INPUT_HW_MAX];   //!< Buttons released this frame, per profile
+	float    hw_stickX[INPUT_HW_MAX];      //!< Left stick X, per profile
+	float    hw_stickY[INPUT_HW_MAX];      //!< Left stick Y, per profile
+	float    hw_substickX[INPUT_HW_MAX];   //!< Right stick X, per profile
+	float    hw_substickY[INPUT_HW_MAX];   //!< Right stick Y, per profile
 
-	float    hw_gforceX[INPUT_HW_MAX];
-	float    hw_gforceY[INPUT_HW_MAX];
-	float    hw_gforceZ[INPUT_HW_MAX];
-	float    hw_pitch[INPUT_HW_MAX];
-	float    hw_roll[INPUT_HW_MAX];
-	float    hw_yaw[INPUT_HW_MAX];
+	float    hw_gforceX[INPUT_HW_MAX];     //!< Accelerometer X, per profile
+	float    hw_gforceY[INPUT_HW_MAX];     //!< Accelerometer Y, per profile
+	float    hw_gforceZ[INPUT_HW_MAX];     //!< Accelerometer Z, per profile
+	float    hw_pitch[INPUT_HW_MAX];       //!< Orientation pitch, per profile
+	float    hw_roll[INPUT_HW_MAX];        //!< Orientation roll, per profile
+	float    hw_yaw[INPUT_HW_MAX];         //!< Orientation yaw, per profile
+	//!@}
 
 	InputPadData() {
 		buttons_d = buttons_h = buttons_r = 0;

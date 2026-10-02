@@ -91,10 +91,11 @@ static void FillStatFromSmb2(struct stat * st, const smb2_stat_64 & src)
  * connection with pread/pwrite (explicit offsets) rather than depending on
  * an internal libsmb2 seek position.
  ***************************************************************************/
+//!Per-open-file state for the smb: devoptab file callbacks.
 struct SmbFileState
 {
-	smb2fh * fh;
-	uint64_t offset;
+	smb2fh * fh;     //!< libsmb2 handle of the open file
+	uint64_t offset; //!< Current read/write position, passed explicitly to smb2_pread/smb2_pwrite
 };
 
 static int smb_open_r(struct _reent *, void * fileStruct, const char * path, int flags, int)
@@ -225,9 +226,10 @@ static int smb_rmdir_r(struct _reent *, const char * path)
 /****************************************************************************
  * Directory iteration
  ***************************************************************************/
+//!Per-open-directory state for the smb: devoptab directory callbacks.
 struct SmbDirState
 {
-	smb2dir * dir;
+	smb2dir * dir; //!< libsmb2 handle of the directory being iterated
 };
 
 static DIR_ITER * smb_diropen_r(struct _reent *, DIR_ITER * dirState, const char * path)

@@ -16,19 +16,20 @@
 //!\ingroup grp_wut
 struct WutDrawCmd
 {
+	//!Which shader a queued draw goes through
 	enum class Kind : uint8_t
 	{
 		Texture, //!<textured quad through Texture2DShader
 		Color    //!<flat-color quad through ColorShader
 	};
 
-	Kind kind;
+	Kind kind; //!< Which shader this draw uses
 	const GX2Texture * texture;   //!<Texture only
 	const GX2Sampler * sampler;   //!<Texture only
 	float angle;                  //!<Texture only, radians
 	float offset[3];              //!<NDC position of the quad's center
 	float scale[3];               //!<NDC half-extents of the quad
-	float colorIntensity[4];
+	float colorIntensity[4]; //!< RGBA tint (Texture) or fill color (Color)
 };
 
 //!Wii U VideoDriver: GX2 + libwhb's WHBGfx* helpers. Every frame's draws
@@ -108,6 +109,7 @@ class WutVideoDriver : public VideoDriver
 class WutImageRenderer : public ImageRenderer
 {
 	public:
+		//!\param driver The video driver draws are queued on
 		WutImageRenderer(WutVideoDriver * driver);
 
 		void * createTexture(int width, int height) override;
@@ -127,6 +129,7 @@ class WutImageRenderer : public ImageRenderer
 class WutGlyphRenderer : public GlyphRenderer
 {
 	public:
+		//!\param driver The video driver draws are queued on
 		WutGlyphRenderer(WutVideoDriver * driver);
 
 		void* createTexture(uint16_t width, uint16_t height) override;

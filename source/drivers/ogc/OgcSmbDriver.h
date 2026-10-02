@@ -39,7 +39,7 @@ class OgcSmbDriver : public SmbDriver
 
 		bool isNetworkUp() const override;
 
-		//! Ensures the network is up via WiiNetwork/GameCubeNetwork::ensureUp().
+		//! Ensures the network is up via the platform's network helper (WiiNetwork or GameCubeNetwork).
 		//! Blocking. Returns false (with getLastError() set) if it couldn't be
 		//! brought up.
 		bool ensureNetworkUp() override;

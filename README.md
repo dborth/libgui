@@ -346,7 +346,7 @@ GamePad.
 
 See [CHANGELOG.md](CHANGELOG.md) for the full, version-by-version history.
 
-**[2.01 - Unreleased]** batches Wii U UI drawing into one TV pass and one
+**[2.01 - October 1, 2026]** batches Wii U UI drawing into one TV pass and one
 GamePad pass per frame instead of switching render targets on every draw
 (menu frame rate on Wii U roughly doubled in testing), adds a higher-
 resolution Wii U asset set with `PlatformConfig::assetScaleX/Y`, fixes text

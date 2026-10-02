@@ -16,6 +16,11 @@
 class FetchShader : public Shader
 {
 	public:
+		//!Builds a fetch shader for the given vertex attribute streams.
+		//!\param attributes Attribute stream descriptions, in vertex shader input order
+		//!\param attrCount Number of entries in attributes
+		//!\param type GX2 fetch shader type
+		//!\param tess GX2 tessellation mode
 		FetchShader(GX2AttribStream * attributes, uint32_t attrCount,
 			GX2FetchShaderType type = GX2_FETCH_SHADER_TESSELLATION_NONE,
 			GX2TessellationMode tess = GX2_TESSELLATION_MODE_DISCRETE)
@@ -39,14 +44,15 @@ class FetchShader : public Shader
 				delete fetchShader;
 		}
 
+		//!Binds this fetch shader for subsequent draws.
 		void setShader() const
 		{
 			GX2SetFetchShader(fetchShader);
 		}
 
 	protected:
-		GX2FetchShader * fetchShader;
-		void * fetchShaderProgram;
+		GX2FetchShader * fetchShader; //!< The GX2 fetch shader object (nullptr if allocation failed)
+		void * fetchShaderProgram; //!< Aligned program memory the fetch shader executes from
 };
 
 #endif // WUT_FETCH_SHADER_H_

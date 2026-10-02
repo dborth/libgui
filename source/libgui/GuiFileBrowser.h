@@ -23,8 +23,11 @@ class GuiFileBrowser : public GuiElement
 		//!data, eg. after the directory listing changed externally.
 		void triggerUpdate();
 		void update(InputController * c);
+		//!One button per visible row of the current page. Public so
+		//!the app can read each row's state (eg. STATE::CLICKED) and focus a row.
 		GuiButton * fileList[FILE_PAGESIZE];
 	protected:
+		//!\cond INTERNAL
 		GuiText * fileListText[FILE_PAGESIZE];
 		GuiImage * fileListBg[FILE_PAGESIZE];
 		GuiImage * fileListFolder[FILE_PAGESIZE];
@@ -61,4 +64,5 @@ class GuiFileBrowser : public GuiElement
 		int selectedItem;
 		int numEntries;
 		bool listChanged;
+		//!\endcond
 };

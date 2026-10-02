@@ -15,9 +15,9 @@
 //!\ingroup grp_wut
 struct UsbHardwareInterfaceInfo
 {
-	uint32_t ifHandle;
-	uint16_t vid;
-	uint16_t pid;
+	uint32_t ifHandle; //!< nsysuhs interface handle; only meaningful within one boot session
+	uint16_t vid; //!< USB vendor id
+	uint16_t pid; //!< USB product id
 };
 
 //! The set of USBCLASS_STORAGE interfaces nsysuhs currently reports
@@ -26,9 +26,9 @@ struct UsbHardwareInterfaceInfo
 //!\ingroup grp_wut
 struct UsbHardwareSignature
 {
-	static const int kMaxInterfaces = 8;
-	UsbHardwareInterfaceInfo interfaces[kMaxInterfaces];
-	int count = 0;
+	static const int kMaxInterfaces = 8; //!< Capacity of interfaces[]
+	UsbHardwareInterfaceInfo interfaces[kMaxInterfaces]; //!< Attached USBCLASS_STORAGE interfaces; only the first count entries are valid
+	int count = 0; //!< Number of valid entries in interfaces[]
 };
 
 //! Cheap, read-only nsysuhs scan across all controllers, filtered

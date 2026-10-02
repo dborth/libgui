@@ -94,12 +94,13 @@ enum class LogFlushPolicy : uint8_t
 //!Full runtime configuration for the Logger. Nothing backend-specific is
 //!ever hardcoded in a backend implementation - it all comes from here,
 //!supplied by app code (or left at these defaults, which are deliberately
-//!safe/inert: OSReport only, nothing that touches hardware or network).
+//!safe: log to a file on the first mounted device, mirrored to the console
+//!debug output; nothing that touches the network or external hardware).
 //!\ingroup grp_logging
 struct LogConfig
 {
-	LogMode mode = LogMode::File;
-	LogLevel level = LogLevel::Info;
+	LogMode mode = LogMode::File; //!< Which backend(s) receive log lines; see LogMode
+	LogLevel level = LogLevel::Info; //!< Minimum severity that is logged
 
 	//! Only consulted when mode == LogMode::Multi. OR LOGGER_* flags
 	//! together, e.g. LOGGER_UDP | LOGGER_FILE.
@@ -112,7 +113,9 @@ struct LogConfig
 	bool mirrorToOSReport = true;
 
 	// ---- UDP ----
+	//!Destination IPv4 address for the UDP backend
 	const char * targetIp = "192.168.1.100";
+	//!Destination UDP port for the UDP backend
 	uint16_t targetPort = 4405;
 	bool nonBlocking = true; //!< socket is always created non-blocking; kept for clarity/future use
 
@@ -127,14 +130,17 @@ struct LogConfig
 	uint32_t serialBaudRate = 115200;
 
 	// ---- SD / file ----
+	//!Path of the log file for the file backend. Each platform's init() points this at debug.log on the first mounted device.
 	char filePath[1024] = "sd:/debug.log";
+	//!How often the file backend flushes to storage
 	LogFlushPolicy flushPolicy = LogFlushPolicy::Immediate;
+	//!Flush interval in writes; only used when flushPolicy is LogFlushPolicy::EveryNWrites
 	uint32_t flushEveryNWrites = 16;
 
 	// ---- Formatting ----
 	bool includeLevelTag = true;         //!< prefix each line with "[DEBUG] "/"[INFO] "/etc.
 	bool includeSequenceNumber = false;  //!< prefix each line with a monotonic call counter, useful for spotting dropped UDP packets
-	bool includeTimestamp = true;
+	bool includeTimestamp = true;        //!< prefix each line with the time since process start as "[secs.millis]"
 };
 
 //!Abstract backend a Logger fans a formatted line out to. Every method
@@ -221,6 +227,7 @@ public:
 	//!Runtime-adjusts the minimum severity without touching any
 	//!other config field or re-touching backend init/shutdown.
 	void setLevel(LogLevel level);
+	//!\return the current minimum severity
 	LogLevel getLevel() const { return logConfig.level; }
 
 	//!Formats fmt/args into a fixed stack buffer and fans it out to
@@ -230,6 +237,7 @@ public:
 	//!application code should not normally call this directly.
 	void log(LogLevel level, const char * fmt, va_list args);
 
+	//!Maximum number of backends that can be registered at once
 	static const int MAX_BACKENDS = 8;
 
 private:

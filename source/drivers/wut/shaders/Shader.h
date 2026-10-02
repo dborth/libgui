@@ -68,10 +68,16 @@ class Shader
 		Shader() {}
 		virtual ~Shader() {}
 	public:
+		//!Size in bytes of one position vertex (3 floats)
 		static const uint16_t cuVertexAttrSize = sizeof(float) * 3;
+		//!Size in bytes of one texture coordinate (2 floats)
 		static const uint16_t cuTexCoordAttrSize = sizeof(float) * 2;
+		//!Size in bytes of one vertex color (4 bytes, RGBA)
 		static const uint16_t cuColorAttrSize = sizeof(uint8_t) * 4;
 
+		//!Issues the draw call for the currently bound shaders and attribute buffers.
+		//!\param primitive A GX2PrimitiveMode value; a quad by default
+		//!\param vtxCount Number of vertices to draw
 		static void draw(int32_t primitive = GX2_PRIMITIVE_MODE_QUADS, uint32_t vtxCount = 4)
 		{
 			GX2DrawEx(static_cast<GX2PrimitiveMode>(primitive), vtxCount, 0, 1);

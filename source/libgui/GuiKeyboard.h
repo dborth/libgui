@@ -13,7 +13,8 @@ constexpr int KB_COLUMNS = 11;
 
 //!Unshifted/shifted character pair for a single keyboard key.
 typedef struct _keytype {
-	char ch, chShift;
+	char ch;      //!< Unshifted character
+	char chShift; //!< Character produced while shift/caps is active
 } Key;
 
 //!On-screen keyboard
@@ -28,6 +29,7 @@ class GuiKeyboard : public GuiWindow
 		void update(InputController * c);
 		char kbtextstr[256]; //!< Current entered text - read this after the keyboard closes
 	protected:
+		//!\cond INTERNAL
 		uint32_t kbtextmaxlen;
 		int shift;
 		int caps;
@@ -62,5 +64,6 @@ class GuiKeyboard : public GuiWindow
 		GuiSound * keySoundOver;
 		GuiSound * keySoundClick;
 		GuiTrigger * trigA;
-		Key keys[KB_ROWS][KB_COLUMNS]; // two chars = less space than one pointer
+		Key keys[KB_ROWS][KB_COLUMNS]; //!< two chars = less space than one pointer
+		//!\endcond
 };

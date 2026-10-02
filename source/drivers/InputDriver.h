@@ -23,7 +23,9 @@ class InputDriver
 	public:
 		virtual ~InputDriver() = default;
 		
+		//!Initializes the controller subsystem.
 		virtual void init() = 0;
+		//!Shuts the controller subsystem down.
 		virtual void shutdown() = 0;
 		
 		//! Polls the hardware and dispatches InputPadData payloads to the UI
@@ -32,12 +34,16 @@ class InputDriver
 		//! Requests a rumble event on the specified controller channel
 		virtual void setRumble(int channel, bool rumble) = 0;
 		
+		//!Globally enables or disables rumble requested through setRumble().
 		void setRumbleEnabled(bool enabled) { rumbleEnabled = enabled; }
+		//!\return true if rumble is enabled
 		bool isRumbleEnabled() const { return rumbleEnabled; }
+		//!\param orientation WIIMOTE_ORIENTATION_VERTICAL or WIIMOTE_ORIENTATION_HORIZONTAL
 		void setWiimoteOrientation(int orientation) { wiimoteOrientation = orientation; }
+		//!\return the current Wiimote orientation (a WIIMOTE_ORIENTATION_* value)
 		int getWiimoteOrientation() const { return wiimoteOrientation; }
 	
 	protected:
-		bool rumbleEnabled = true;
-		int wiimoteOrientation = WIIMOTE_ORIENTATION_VERTICAL;
+		bool rumbleEnabled = true; //!< see setRumbleEnabled()
+		int wiimoteOrientation = WIIMOTE_ORIENTATION_VERTICAL; //!< see setWiimoteOrientation()
 };

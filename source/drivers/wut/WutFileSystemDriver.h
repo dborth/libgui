@@ -26,14 +26,14 @@ struct WutStorageSlot
 //!\ingroup grp_wut
 struct WutDeviceState
 {
-	int  id;
+	int  id; //!< Device enum value (DEVICE_SD, DEVICE_USB, ...)
 	char name[16];			//!< human-readable base name, eg. "SD Card"
 	char volumeLabel[16];	//!< volume label, best-effort - empty if none could be read
 	char prefix[32];		//!< devoptab mount prefix, eg. "usb1:/", or the runtime FSA path for SD - "" whenever isMounted is false
 	char stablePrefix[32];	//!< same string as prefix, but set once in init() and never cleared on unmount - this device's identity for path->device resolution (FindDevice()), independent of current mount state
 	bool isPresent;			//!< found on the last poll
-	bool isMounted;
-	bool unmountRequired;
+	bool isMounted; //!< A filesystem is currently mounted on this slot
+	bool unmountRequired; //!< The slot was removed or invalidated and must be unmounted before the next mount attempt
 	bool labelFetched;		//!< volume label already looked up since the last mount/removal - see getVolumeLabel()
 };
 

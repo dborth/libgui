@@ -35,10 +35,10 @@ enum Device
 //!\ingroup grp_storage
 struct StorageDevice
 {
-	int  id;
-	char prefix[32];
-	char name[20];
-	char volumeLabel[16];
+	int  id;               //!< Device enum value (DEVICE_SD, DEVICE_USB, ...)
+	char prefix[32];       //!< devoptab mount prefix, eg. "sd:/"
+	char name[20];         //!< Short display name for device lists
+	char volumeLabel[16];  //!< Volume label of the mounted filesystem, or empty if unknown
 	bool removable;          //!< can this device disappear at runtime? (polled by the device-checking thread)
 	bool autoMountAtStartup; //!< silently attempted at boot
 	bool alwaysListed; //!< show in a device listing unconditionally, regardless of isDevicePresent()
@@ -62,7 +62,9 @@ class FileSystemDriver
 	public:
 		virtual ~FileSystemDriver() = default;
 
+		//!Initializes the driver and auto-mounts devices flagged autoMountAtStartup.
 		virtual void init() = 0;
+		//!Unmounts every device and releases the driver's resources.
 		virtual void shutdown() = 0;
 
 		//! Fills outDevices (size MAX_STORAGE_DEVICES) and returns the device count.
@@ -131,14 +133,23 @@ class FileSystemDriver
 		    snprintf(out, outSize, "%s%s", mp ? mp : "", suffix ? suffix : "");
 		}
 
+		//! Joins folder and file with '/' after the mount path, as in the template above.
 		void getPath(char * out, size_t outSize, int device, const char * folder, const char * file) const
 		{
 			snprintf(out, outSize, "%s%s/%s", getMountPath(device), folder ? folder : "", file ? file : "");
 		}
 
+		//! Devices (Device enum values, in priority order) that are offered when choosing where to load from on this platform.
+		//! \param outCount receives the number of entries in the returned array
+		//! \return a static array owned by the driver
 		virtual const int * getValidLoadDevices(int & outCount) const = 0;
+		//! Devices (Device enum values, in priority order) that are offered when choosing where to save to on this platform.
+		//! Differs from the load list in that read-only devices such as DVD are left out.
+		//! \param outCount receives the number of entries in the returned array
+		//! \return a static array owned by the driver
 		virtual const int * getValidSaveDevices(int & outCount) const = 0;
 
+		//! \return this platform's network-share driver (see SmbDriver)
 		virtual SmbDriver * getSmb() = 0;
 };
 

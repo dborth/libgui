@@ -19,7 +19,9 @@ class Mutex
 		Mutex(const Mutex &) = delete;
 		Mutex & operator=(const Mutex &) = delete;
 
+		//!Blocks until the mutex is acquired. Not recursive: locking twice from one thread deadlocks.
 		void lock();
+		//!Releases the mutex. Must be called by the thread that locked it.
 		void unlock();
 
 	protected:
@@ -34,6 +36,7 @@ class Mutex
 class MutexLock
 {
 	public:
+		//!Locks m until this guard goes out of scope.
 		explicit MutexLock(Mutex & m) : mutex(m) { mutex.lock(); }
 		~MutexLock() { mutex.unlock(); }
 
@@ -41,5 +44,5 @@ class MutexLock
 		MutexLock & operator=(const MutexLock &) = delete;
 
 	protected:
-		Mutex & mutex;
+		Mutex & mutex; //!< The mutex held by this guard
 };

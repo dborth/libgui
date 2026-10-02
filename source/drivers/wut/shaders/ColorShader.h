@@ -50,8 +50,10 @@ class ColorShader : public Shader
 		uint32_t positionLocation;
 
 	public:
+		//!Size in bytes of the four per-vertex colors of one quad
 		static const uint32_t cuColorVtxsSize = 4 * cuColorAttrSize;
 
+		//!\return the shared ColorShader, created on first use
 		static ColorShader * instance()
 		{
 			if(!shaderInstance)
@@ -59,12 +61,14 @@ class ColorShader : public Shader
 			return shaderInstance;
 		}
 
+		//!Destroys the shared instance; the next instance() call creates a new one.
 		static void destroyInstance()
 		{
 			delete shaderInstance;
 			shaderInstance = nullptr;
 		}
 
+		//!Binds the fetch, vertex and pixel shaders for subsequent draws.
 		void setShaders() const
 		{
 			fetchShader->setShader();
@@ -116,18 +120,22 @@ class ColorShader : public Shader
 			}
 		}
 
+		//!Sets the quad rotation in radians.
 		void setAngle(float angleRadians)
 		{
 			VertexShader::setUniformReg(angleLocation, 4, &angleRadians);
 		}
+		//!Sets the NDC position of the quad's center.
 		void setOffset(const float offset[3])
 		{
 			VertexShader::setUniformReg(offsetLocation, 4, offset);
 		}
+		//!Sets the NDC half-extents of the quad.
 		void setScale(const float scale[3])
 		{
 			VertexShader::setUniformReg(scaleLocation, 4, scale);
 		}
+		//!Sets the RGBA color the quad is filled with.
 		void setColorIntensity(const float colorIntensity[4])
 		{
 			PixelShader::setUniformReg(colorIntensityLocation, 4, colorIntensity);

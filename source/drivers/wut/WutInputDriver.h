@@ -25,6 +25,8 @@ class WutInputDriver : public InputDriver {
 		void update() override;
 		void setRumble(int channel, bool rumble) override;
 
+		//!Opens the Wii U system HOME-button overlay on demand. HOME itself is reported
+		//!to the app as INPUT_BTN_HOME and is not handled by the OS.
 		void openHomeButtonOverlay();
 
 	private:

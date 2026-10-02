@@ -4,7 +4,7 @@ All notable changes to libgui are documented here. Versions follow
 `MAJOR.MINOR`; dates are approximate, taken from the commit history.
 
 
-## [2.01] - Unreleased
+## [2.01] - October 1, 2026
 
 ### Added
 
@@ -20,8 +20,6 @@ All notable changes to libgui are documented here. Versions follow
   code keeps working in the one shared 640x480 coordinate space.
   `Platform::getConfig()` returns the config a platform was initialized
   with.
-* Log lines can be prefixed with a `[seconds.milliseconds]` timestamp
-  since process start (`LogConfig::includeTimestamp`, on by default).
 
 ### Changed
 
@@ -42,6 +40,7 @@ All notable changes to libgui are documented here. Versions follow
   `frameTimer % textScrollDelay == 0`.
 
 **Wii U input**
+* Wii U Pro controllers and Bloopair both now work
 * Wiimote pitch/roll/yaw (`hw_pitch`/`hw_roll`/`hw_yaw` for
   `INPUT_HW_DRC`) are now reported in degrees rather than raw
   `vpadStatus.angle` units.
@@ -61,7 +60,8 @@ All notable changes to libgui are documented here. Versions follow
 * GameCube/Wii's USB Gecko log backend (`OgcLoggerUsbGecko`) now uses
   libogc's `<ogc/usbgecko.h>` instead of a hand-rolled EXI identify/send
   protocol.
-* The Wii network bring-up thread's stack was reduced from 32KB to 8KB.
+* Log lines can be prefixed with a `[seconds.milliseconds]` timestamp
+  since process start (`LogConfig::includeTimestamp`, on by default).
 
 ### Fixed
 

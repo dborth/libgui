@@ -15,6 +15,7 @@
 //!\ingroup grp_input
 class InputController {
 public:
+	//!\param channel Controller channel (0-3) this controller reports for
 	InputController(int channel);
 	~InputController() = default;
 
@@ -25,9 +26,11 @@ public:
 	 */
 	void update(const InputPadData& data, float deltaTime);
 
-	//! Configuration
+	//!Sets whether the Wiimote is held sideways; if so the d-pad and primary/secondary buttons are remapped (A/B become 2/1).
 	void setSideways(bool s) { sideways = s; }
+	//!\return true if the Wiimote is held sideways
 	bool isSideways() const { return sideways; }
+	//!\return the channel this controller reports for (see setChannel())
 	int getChannel() const { return channel; }
 
 	//! Temporarily overrides the channel this controller reports via getChannel().
@@ -38,18 +41,29 @@ public:
 	//! element update() call this wraps.
 	void setChannel(int c) { channel = c; }
 
-	//! State Accessors
+	//!\return the latest input snapshot passed to update()
 	const InputPadData& getPadData() const { return currentData; }
 
+	//!\return true if any button in the mask was pressed this frame (INPUT_BTN_* / INPUT_TRIGGER_*)
 	bool isPressed(uint32_t logicalButtonMask) const;
+	//!\return true if any button in the mask is held this frame
 	bool isHeld(uint32_t logicalButtonMask) const;
+	//!\return true if the primary ("accept") button was pressed this frame: A, or 2 when sideways
 	bool isPrimaryPressed() const;
+	//!\return true if the secondary ("cancel") button was pressed this frame: B, or 1 when sideways
 	bool isSecondaryPressed() const;
 
-	//! Navigation Helpers (Accounts for orientation and scroll delays)
+	// Navigation helpers: each returns true on the initial press and then
+	// repeats while the d-pad or stick is held, using the scroll delays below.
+	// They account for sideways orientation.
+
+	//!\return true when a step up is due (initial press, then auto-repeat while held)
 	bool up() const;
+	//!\return true when a step down is due (initial press, then auto-repeat while held)
 	bool down() const;
+	//!\return true when a step left is due (initial press, then auto-repeat while held)
 	bool left() const;
+	//!\return true when a step right is due (initial press, then auto-repeat while held)
 	bool right() const;
 
 private:

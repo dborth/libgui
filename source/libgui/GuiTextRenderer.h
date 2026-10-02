@@ -37,36 +37,36 @@ const PixelColor black = {0, 0, 0, 255};
 //!Per-pixel-size font metrics used for text-block alignment/positioning.
 //!\ingroup grp_core
 struct FontOffset {
-	int16_t ascender;
-	int16_t descender;
-	int16_t max;
-	int16_t min;
+	int16_t ascender; //!< Font ascender for the current size (distance above the baseline), in design pixels
+	int16_t descender; //!< Font descender for the current size (negative: distance below the baseline), in design pixels
+	int16_t max; //!< Height above the baseline of the tallest glyph in the measured string (see GuiTextRenderer::getOffset())
+	int16_t min; //!< Depth below the baseline of the lowest glyph in the measured string (see GuiTextRenderer::getOffset())
 };
 
 //!Cached per-glyph metrics and rasterized texture, keyed by (pixel size, char code) in GuiTextRenderer::fontData.
 //!\ingroup grp_core
 struct GlyphData {
-	int16_t renderOffsetX;
-	uint16_t glyphAdvanceX;
-	uint16_t glyphAdvanceY;
-	uint32_t glyphIndex;
+	int16_t renderOffsetX; //!< Horizontal offset from the pen position to the bitmap's left edge
+	uint16_t glyphAdvanceX; //!< Horizontal pen advance after this glyph
+	uint16_t glyphAdvanceY; //!< Vertical pen advance after this glyph
+	uint32_t glyphIndex; //!< FreeType glyph index
 
-	// Pixel dims of the rasterized bitmap/texture, at uiScale - always
-	// >= drawWidth/drawHeight, and equal to them when uiScale is 1.0.
+	//!Pixel dims of the rasterized bitmap/texture, at uiScale - always
+	//!>= drawWidth/drawHeight, and equal to them when uiScale is 1.0.
 	uint16_t textureWidth;
-	uint16_t textureHeight;
+	uint16_t textureHeight; //!< Height counterpart of textureWidth
 
-	// Design-pixel dims to actually draw the quad at (textureWidth/Height
-	// divided back down by uiScale) - keeps text laid out and sized
-	// identically to uiScale 1.0 while the texture itself is crisper.
+	//!Design-pixel dims to actually draw the quad at (textureWidth/Height
+	//!divided back down by uiScale) - keeps text laid out and sized
+	//!identically to uiScale 1.0 while the texture itself is crisper.
 	uint16_t drawWidth;
-	uint16_t drawHeight;
+	uint16_t drawHeight; //!< Height counterpart of drawWidth
 
-	int16_t renderOffsetY;
-	int16_t renderOffsetMax;
-	int16_t renderOffsetMin;
+	int16_t renderOffsetY; //!< Height of the bitmap's top edge above the baseline
+	int16_t renderOffsetMax; //!< Height of the glyph bitmap above the baseline (feeds FontOffset::max)
+	int16_t renderOffsetMin; //!< Depth of the glyph bitmap below the baseline (feeds FontOffset::min)
 
-	void* texture; // Abstracted texture pointer
+	void* texture; //!< Abstracted texture pointer
 };
 
 //!FreeType2-based glyph shaping/caching. Shapes and caches glyphs per

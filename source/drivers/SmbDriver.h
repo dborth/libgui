@@ -21,7 +21,7 @@ struct SmbShareInfo
 	char host[64];      //!< server IP or hostname
 	char share[64];     //!< share name, eg. "games" (no leading/trailing slashes)
 	char user[32];      //!< "" for guest/anonymous
-	char password[32];
+	char password[32];  //!< "" for guest/anonymous
 };
 
 //! Result of a single connect() attempt. Deliberately mirrors MountResult's
@@ -47,6 +47,7 @@ class SmbDriver
 		//! One-time setup. Does not connect - just prepares whatever the
 		//! platform needs before a connect() can succeed.
 		virtual void init() = 0;
+		//! Disconnects if connected and releases whatever init() set up.
 		virtual void shutdown() = 0;
 
 		//! True if the network is already up, i.e. connect() won't first have to
@@ -66,6 +67,7 @@ class SmbDriver
 		//! currently connected.
 		virtual void disconnect() = 0;
 
+		//! \return true while a share is connected and mounted
 		virtual bool isConnected() const = 0;
 
 		//! devoptab-style mount path (eg. "smb:/"), or "" if not currently

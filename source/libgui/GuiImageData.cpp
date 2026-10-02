@@ -90,10 +90,11 @@ GuiImageData::~GuiImageData()
 	texture = nullptr;
 }
 
+//!Read cursor over an in-memory PNG, used as the libpng read callback's I/O pointer.
 struct PngMemoryData
 {
-	const uint8_t * data;
-	size_t offset;
+	const uint8_t * data; //!< Start of the PNG file in memory
+	size_t offset;        //!< Bytes consumed so far
 };
 
 static void ReadPngDataCb(png_structp png_ptr, png_bytep data, png_size_t length)
