@@ -258,6 +258,7 @@ recommended pattern to build from, not a hard dependency.
 Topic guides, each readable here on GitHub and included in the
 [API documentation](https://dborth.github.io/libgui/):
 
+* [Building](doc/building.md) - Toolchain, dependencies (`libsmb2`, `libmocha`, `libdvm`) and build steps for all three consoles
 * [Storage](doc/storage.md) - SD, USB, DVD and network devices, hot-plug and mounting
 * [Network shares (SMB)](doc/network-shares.md) - Connecting to an SMB share as an ordinary `smb:/` device
 * [Input](doc/input.md) - Controllers, the input snapshot, rumble and pointer smoothing
@@ -268,26 +269,17 @@ Topic guides, each readable here on GitHub and included in the
 
 ### Building
 
-You'll need [devkitPro](https://devkitpro.org/) with `devkitPPC`
-installed, plus the platform-specific pieces below (available via
-`dkp-pacman`/the devkitPro pacman repos unless noted):
+libgui, Snes9x GX, FCE Ultra GX and Visual Boy Advance GX share one toolchain
+and one set of dependencies, so there is a single build guide for all of them:
+**[Building](doc/building.md)**. It covers installing devkitPro and `libogc2`
+(GameCube/Wii) or `wut` (Wii U), and building `libsmb2` (all platforms),
+`libmocha` and `libdvm` (Wii U) from the `dborth` forks.
 
-* **All platforms**: the `ppc` portlibs for `freetype`, `libpng`, `zlib`, and
-  `libvorbisidec`/`libogg` (Tremor), and `libsmb2` (see below).
-* **GameCube / Wii**: `libogc2`, which provides the FAT, ISO9660, DVD, network,
-  and controller libraries the Makefiles link against.
-* **Wii U**: `wut` and `libwhb`, plus `libmocha` and `libdvm`.
-* **Libraries built from source**: `libsmb2`, `libmocha`, and `libdvm` come from
-  the forks at `github.com/dborth/`. `libsmb2` is built once per platform
-  (`make -f Makefile.platform wii_install`, `gc_install`, or `wiiu_install`)
-  and needs the Ninja build tool; `libdvm` is cloned with its submodules.
-  The workflow in `.github/workflows/build.yml` is a working reference.
-
-Then, from the repository root:
+Once the dependencies are installed, from the repository root:
 
 ```sh
-make -f Makefile.wii    # Wii  -> .dol
-make -f Makefile.gc     # GameCube -> .dol
+make -f Makefile.wii    # Wii  -> libgui-wii-demo.dol
+make -f Makefile.gc     # GameCube -> libgui-gc-demo.dol
 make -f Makefile.wiiu   # Wii U -> .rpx / .wuhb
 make                    # builds all three
 ```
@@ -302,7 +294,8 @@ To enable logging, add `-DLOGGING_ENABLED=1` to the build's compiler flags
 
 The GitHub Actions workflow builds all three platforms on every push, deploys
 the doxygen documentation to GitHub Pages, and keeps a rolling pre-release
-with the latest `.dol`, `.rpx`, and `.wuhb` builds.
+with the latest `.dol`, `.rpx`, and `.wuhb` builds. It is also the most
+up-to-date reference for the build steps.
 
 
 ### Quickstart
