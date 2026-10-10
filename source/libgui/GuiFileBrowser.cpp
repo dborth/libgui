@@ -92,9 +92,8 @@ GuiFileBrowser::GuiFileBrowser(int w, int h)
 
 	for(int i=0; i<FILE_PAGESIZE; ++i)
 	{
-		fileListText[i] = new GuiText(nullptr, 20, (PixelColor){0, 0, 0, 0xff});
+		fileListText[i] = new GuiText(nullptr, 18, (PixelColor){0, 0, 0, 0xff});
 		fileListText[i]->setAlignment(ALIGN_H::LEFT, ALIGN_V::MIDDLE);
-		fileListText[i]->setPosition(5,0);
 		fileListText[i]->setMaxWidth(512);
 
 		fileListBg[i] = new GuiImage(bgFileSelectionEntry);
@@ -350,12 +349,12 @@ void GuiFileBrowser::update(InputController * controller)
 				if(browserList[browser.pageIndex+i].isdir) // directory
 				{
 					fileList[i]->setIcon(fileListFolder[i]);
-					fileListText[i]->setPosition(30,0);
+					fileListText[i]->setPosition(30,4);
 				}
 				else
 				{
 					fileList[i]->setIcon(nullptr);
-					fileListText[i]->setPosition(10,0);
+					fileListText[i]->setPosition(10,4);
 				}
 			}
 			else

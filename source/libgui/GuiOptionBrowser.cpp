@@ -68,14 +68,14 @@ GuiOptionBrowser::GuiOptionBrowser(int w, int h, OptionList * l)
 
 	for(int i=0; i<OPTION_PAGESIZE; i++)
 	{
-		optionTxt[i] = new GuiText(nullptr, 20, (PixelColor){0, 0, 0, 0xff});
+		optionTxt[i] = new GuiText(nullptr, 18, (PixelColor){0, 0, 0, 0xff});
 		optionTxt[i]->setAlignment(ALIGN_H::LEFT, ALIGN_V::MIDDLE);
-		optionTxt[i]->setPosition(8,0);
+		optionTxt[i]->setPosition(8,4);
 		optionTxt[i]->setMaxWidth(235);
 
-		optionVal[i] = new GuiText(nullptr, 20, (PixelColor){0, 0, 0, 0xff});
+		optionVal[i] = new GuiText(nullptr, 18, (PixelColor){0, 0, 0, 0xff});
 		optionVal[i]->setAlignment(ALIGN_H::LEFT, ALIGN_V::MIDDLE);
-		optionVal[i]->setPosition(250,0);
+		optionVal[i]->setPosition(250,4);
 		optionVal[i]->setMaxWidth(324);
 
 		optionBg[i] = new GuiImage(bgOptionsEntry);
@@ -133,7 +133,7 @@ void GuiOptionBrowser::setCol1Position(int x)
 void GuiOptionBrowser::setCol2Position(int x)
 {
 	for(int i=0; i<OPTION_PAGESIZE; i++)
-		optionVal[i]->setPosition(x,0);
+		optionVal[i]->setPosition(x,4);
 }
 
 void GuiOptionBrowser::setFocus(int f)
