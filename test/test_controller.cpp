@@ -141,9 +141,9 @@ int main()
 		for(size_t i = 0; i < sizeof(kinds) / sizeof(kinds[0]); i++)
 		{
 			float w, h;
-			GuiGlyphSize(kinds[i], w, h);
+			GuiGlyph::size(kinds[i], w, h);
 			GuiMesh m(1.0f);
-			GuiBuildGlyph(m, kinds[i], w, h);
+			GuiGlyph::build(m, kinds[i], w, h);
 			CHECK(w > 0 && h > 0 && m.size() > 0 && m.size() % 3 == 0, "glyph %zu: %gx%g, %zu vertices", i, w, h, m.size());
 			bool inside = true;
 			for(size_t k = 0; k < m.size(); k++)
