@@ -8,7 +8,7 @@ all: out geometry_test paint_test layout_test controller_test
 	./layout_test
 	./controller_test
 
-controller_test: test_controller.cpp Raster.h ../source/libgui/GuiControllerDraw.cpp ../source/libgui/GuiControllerLayout.cpp ../source/libgui/GuiGeometry.cpp ../source/libgui/GuiPaint.cpp ../source/libgui/GuiTheme.cpp
+controller_test: test_controller.cpp Raster.h ../source/libgui/GuiControllerDraw.cpp ../source/libgui/GuiControllerLayout.cpp ../source/libgui/GuiGeometry.cpp ../source/libgui/GuiPaint.cpp ../source/libgui/GuiTheme.cpp ../source/libgui/GuiGlyph.h
 	$(CXX) $(CXXFLAGS) -o $@ test_controller.cpp ../source/libgui/GuiControllerDraw.cpp ../source/libgui/GuiControllerLayout.cpp ../source/libgui/GuiGeometry.cpp ../source/libgui/GuiPaint.cpp ../source/libgui/GuiTheme.cpp
 
 # Also runs the real container and window classes (needs FreeType headers; see below)

@@ -5,9 +5,41 @@
  ***************************************************************************/
 #pragma once
 
+#include <vector>
+#include <cstdint>
+
 #define MAX_TRIGGERS 5
 
 typedef void (*UpdateCallback)(void * e);
+
+class GuiTrigger;
+class InputController;
+
+//!Vertical alignment of a GuiElement relative to its parent.
+//!\ingroup grp_core
+enum class ALIGN_V {
+	TOP,
+	BOTTOM,
+	MIDDLE
+};
+
+//!Horizontal alignment of a GuiElement relative to its parent.
+//!\ingroup grp_core
+enum class ALIGN_H {
+	LEFT,
+	RIGHT,
+	CENTRE
+};
+
+//!Interaction state of a GuiElement (default, selected, clicked, held, disabled).
+//!\ingroup grp_core
+enum class STATE {
+	DEFAULT,
+	SELECTED,
+	CLICKED,
+	HELD,
+	DISABLED
+};
 
 //!Bitmask of transition effects (slide, fade, scale, color) applied to a GuiElement.
 //!\ingroup grp_core
