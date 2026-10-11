@@ -56,6 +56,32 @@ All notable changes to libgui are documented here. Versions follow
 * Demo: the Shapes page gains two image-free buttons, one live and one
   disabled, with centred labels.
 
+**Layout containers**
+* `GuiRow`, `GuiColumn`, `GuiGrid` and `GuiOverlay` are `GuiWindow`s that
+  place and size their children from rules: padding, spacing, justify
+  (start, centre, end, space-between), alignment across the main axis
+  (including stretch), and growth weights. `GuiItem` carries per-child
+  options: `row.add(&label, GuiItem().grow(1))`. `addSpace()` and `addGap()`
+  add flexible and fixed empty space. A container width or height of 0 fits
+  the content. `GuiOverlay` stacks children in one box; a `background()` child
+  fills it, which is how a shape goes behind content.
+* Layout runs by itself: when a child's size or visibility changes, or the
+  container's rules change, it reflows (a label with new text pushes its
+  neighbours), and nested containers settle in one pass. The math lives in
+  the platform-agnostic `GuiLayoutSolver` and is tested on the host.
+* `GuiElement` gains a small layout protocol (`getNaturalSize`,
+  `setLayoutPosition`, `setLayoutSize`, `layout`, `collectNavigable`) with
+  defaults that suit any sized element. `GuiText` overrides it: it reports its
+  rendered size and is placed by its top-left corner whatever its
+  justification.
+* `GuiWindow` moves the D-pad selection through nested layout containers by
+  on-screen position (`GuiNavigate`): the nearest selectable item in the
+  direction, rows of mixed heights count as one row, and moving sideways past
+  the end of a row continues on the next. Disabled buttons are skipped. A window
+  without layout containers keeps the existing selection behaviour.
+* Demo: a **Layout** page (Shapes > Layout) builds the Controllers screen from
+  the design mockups with the containers; its buttons are reached with the D-pad.
+
 ## [2.01] - October 1, 2026
 
 ### Added

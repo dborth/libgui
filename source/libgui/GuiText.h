@@ -45,6 +45,12 @@ class GuiText : public GuiElement
 		void setMaxWidth(int w);
 		//!Gets the width of the text when rendered
 		int getTextWidth();
+		//!Gets the text's size for layout: its rendered width and height on one line
+		//!(at most the maximum width, if one is set)
+		void getNaturalSize(int& w, int& h) override;
+		//!Places the text so its top-left corner is at (x, y), whatever its justification
+		//!and vertical alignment (those decide where the text hangs from its anchor point)
+		void setLayoutPosition(int x, int y) override;
 		//!Enables/disables text scrolling
 		//!\param s Scrolling on/off
 		void setScroll(SCROLL s);

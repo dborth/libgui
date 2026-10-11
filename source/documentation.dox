@@ -80,6 +80,14 @@
  */
 
 /*!
+ * \defgroup grp_layout Layout
+ * \brief Containers that position and size their children from rules instead of
+ * pixel offsets: GuiRow, GuiColumn, GuiGrid and GuiOverlay (options per child in
+ * GuiItem), plus the platform-agnostic solver behind them and selection
+ * navigation across nested containers.
+ */
+
+/*!
  * \defgroup grp_pal Platform abstraction
  * \brief The Platform composition root and the video, audio and thread
  * driver interfaces the core library is written against.

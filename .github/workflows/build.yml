@@ -160,5 +160,8 @@ jobs:
     - name: Checkout libgui repo
       uses: actions/checkout@v4
 
+    - name: Install FreeType headers
+      run: sudo apt-get update && sudo apt-get install -y libfreetype-dev
+
     - name: Build and run tests
-      run: make -C test
+      run: make -C test all elements

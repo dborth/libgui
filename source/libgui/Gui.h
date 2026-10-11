@@ -67,6 +67,7 @@ enum class SCROLL {
 	HORIZONTAL
 };
 
+#include "GuiLayoutSolver.h"
 #include "GuiTrigger.h"
 #include "GuiElement.h"
 #include "GuiWindow.h"
@@ -80,6 +81,7 @@ enum class SCROLL {
 #include "GuiPaint.h"
 #include "GuiTheme.h"
 #include "GuiShape.h"
+#include "GuiLayout.h"
 #include "GuiButton.h"
 #include "GuiFileBrowser.h"
 #include "GuiKeyboard.h"

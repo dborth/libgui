@@ -19,6 +19,7 @@
 
 #include "menu.h"
 #include "shapesdemo.h"
+#include "layoutdemo.h"
 #include "demo.h"
 #include "filelist.h"
 #include "filebrowser.h"
@@ -621,6 +622,19 @@ static int MenuShapes()
 	offBtn.setLabel(&offTxt);
 	offBtn.setState(STATE::DISABLED);
 
+	GuiText layoutBtnTxt("Layout", 22, (PixelColor){0, 0, 0, 255});
+	GuiImage layoutBtnImg(&btnOutline);
+	GuiImage layoutBtnImgOver(&btnOutlineOver);
+	GuiButton layoutBtn(btnOutline.getWidth(), btnOutline.getHeight());
+	layoutBtn.setAlignment(ALIGN_H::RIGHT, ALIGN_V::BOTTOM);
+	layoutBtn.setPosition(-30, -35);
+	layoutBtn.setLabel(&layoutBtnTxt);
+	layoutBtn.setImage(&layoutBtnImg);
+	layoutBtn.setImageOver(&layoutBtnImgOver);
+	layoutBtn.setSoundOver(&btnSoundOver);
+	layoutBtn.setTrigger(&trigA);
+	layoutBtn.setEffectGrow();
+
 	GuiText backBtnTxt("Go Back", 22, (PixelColor){0, 0, 0, 255});
 	GuiImage backBtnImg(&btnOutline);
 	GuiImage backBtnImgOver(&btnOutlineOver);
@@ -638,6 +652,7 @@ static int MenuShapes()
 	w.append(&shapes);
 	w.append(&liveBtn);
 	w.append(&offBtn);
+	w.append(&layoutBtn);
 	w.append(&backBtn);
 
 	mainWindow->appendWithAutoRemove(&w);
@@ -649,8 +664,41 @@ static int MenuShapes()
 		if(liveBtn.getState() == STATE::CLICKED)
 			liveBtn.resetState(); // lets the shape fade back from its pressed look
 
+		if(layoutBtn.getState() == STATE::CLICKED)
+			menu = MENU_LAYOUT;
+
 		if(backBtn.getState() == STATE::CLICKED)
 			menu = MENU_SETTINGS;
+	}
+
+	return menu;
+}
+
+/****************************************************************************
+ * MenuLayout
+ ***************************************************************************/
+static int MenuLayout()
+{
+	int menu = MENU_NONE;
+
+	GuiSound btnSoundOver(button_over_pcm, button_over_pcm_size, SOUND::PCM);
+
+	GuiTrigger trigA;
+	trigA.setPrimaryTrigger();
+
+	GuiLayoutDemo demo(&trigA, &btnSoundOver);
+
+	GuiWindow w(platform->getVideo()->getScreenWidth(), platform->getVideo()->getScreenHeight());
+	w.append(&demo);
+
+	mainWindow->appendWithAutoRemove(&w);
+
+	while(menu == MENU_NONE)
+	{
+		if(!UpdateGui()) return MENU_EXIT;
+
+		if(demo.backButton().getState() == STATE::CLICKED)
+			menu = MENU_SHAPES;
 	}
 
 	return menu;
@@ -980,6 +1028,9 @@ void MainMenu(int menu)
 				break;
 			case MENU_SHAPES:
 				currentMenu = MenuShapes();
+				break;
+			case MENU_LAYOUT:
+				currentMenu = MenuLayout();
 				break;
 			default: // unrecognized menu
 				currentMenu = MenuSettings();

@@ -13,3 +13,6 @@ build/
 /test/out/
 /test/geometry_test
 /test/paint_test
+/test/layout_test
+/test/elements_test
+/test/stubs/
