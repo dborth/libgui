@@ -4,15 +4,6 @@
 #include <cstdio>
 #include <cmath>
 
-Platform * platform = nullptr; // never used by the code under test
-
-// GuiWindow::update() reads the controller; the tests drive selection directly instead
-bool InputController::up() const { return false; }
-bool InputController::down() const { return false; }
-bool InputController::left() const { return false; }
-bool InputController::right() const { return false; }
-bool InputController::isSecondaryPressed() const { return false; }
-
 static int failures = 0, checks = 0;
 #define CHECK(cond, ...) do { checks++; if(!(cond)) { failures++; printf("FAIL %s:%d  %s  ", __FILE__, __LINE__, #cond); printf(__VA_ARGS__); printf("\n"); } } while(0)
 

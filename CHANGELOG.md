@@ -83,6 +83,35 @@ All notable changes to libgui are documented here. Versions follow
   mockups with the containers: a title bar, two cards, a grid of facts and a grid of
   buttons that the D-pad moves between in every direction.
 
+**Builder layer (`GuiUi.h`)**
+* `UiScope` creates and owns a page's elements (`make<T>()`, or `row()`,
+  `column()`, `grid(n)`, `overlay()`, `label()`, `chip()`, `button()`, `card()`), so building a
+  screen needs no `new`, no `delete` and no helper structs holding the pieces. Teardown is safe in
+  any parent/child order (elements made by a scope unhook themselves). `own<T>()` keeps any
+  other object for the scope's lifetime. The scope also holds the defaults the widgets use: the
+  click trigger, the sounds and the theme.
+* Bindings: `label.bind([&]{ return GuiFormat("battery %d%%", pct); })` keeps text equal to a
+  function's result, `visibleWhen()` and `enabledWhen()` do the same for visibility and enabled
+  state, and `ui.bind(fn)` runs anything once per frame. They run when the scope is attached to
+  a window (`ui.attachTo(window)`); the text is only rebuilt when the string changes.
+* `GuiLabel`, `GuiChip` and `GuiTextButton` draw from `GuiTheme` with no image assets.
+  `GuiTextButton` is a capsule that lights up on focus, with a centred label, `onClick` and
+  `onFocus` callbacks, and a button with a callback stays selected after a click so the
+  D-pad keeps its place; without a callback `getState() == STATE::CLICKED` still works as before.
+* `GuiCard` is a container with a styled backdrop that the D-pad and pointer can select and
+  click: focus glow, `onFocus`, `onClick`, `disabled()` / `enabledWhen()` (it disables its
+  surface, never the window, which would dim the screen) and `selectable(false)` for a plain panel.
+* `GuiLayout` gains `add(GuiElement&)` and short setter names (`size`, `gap`, `pad`, `align`,
+  `justifyContent`) so a layout reads top to bottom. `GuiFormat()` is `printf` returning a
+  `std::string`.
+* The Layout demo is rewritten with the builders: the whole Controllers screen is one
+  constructor, with focusable cards, live battery figures, a status line driven by callbacks and
+  a button that enables itself once a card has been visited.
+* Host tests: a `host_stubs.cpp` stands in for the platform pieces so the real containers,
+  builders and window run on a host, and `test_ui` runs under AddressSanitizer and UBSan
+  (builder teardown order, bindings, callbacks, card selection and the whole demo screen's D-pad
+  traversal). `make -C test all elements` runs everything; CI does.
+
 ## [2.01] - October 1, 2026
 
 ### Added

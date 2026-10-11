@@ -58,6 +58,9 @@ class GuiLayout : public GuiWindow
 		//!\param e The element
 		//!\param item Options for this child
 		GuiLayout& add(GuiElement* e, const GuiItem& item = GuiItem());
+		//!Adds a child by reference, so a builder can pass it straight in:
+		//!`row.add(ui.label("Hi"))`
+		GuiLayout& add(GuiElement& e, const GuiItem& item = GuiItem()) { return add(&e, item); }
 		//!Adds a fixed gap along a row's width or a column's height
 		GuiLayout& addGap(float size);
 		//!Adds flexible empty space that takes a share of what is left over,
@@ -76,6 +79,16 @@ class GuiLayout : public GuiWindow
 		GuiLayout& setAlignItems(LAYOUT_ALIGN a);
 		//!Fixes the container's size (0 on an axis = fit the content)
 		GuiLayout& setFixedSize(int w, int h);
+		//!Short names for the setters above, for reading a layout top to bottom:
+		//!`ui.row().size(568, 0).gap(8).align(LAYOUT_ALIGN::CENTRE).add(...)`
+		GuiLayout& size(int w, int h) { return setFixedSize(w, h); }
+		GuiLayout& gap(float s) { return setSpacing(s); }
+		GuiLayout& gap(float x, float y) { return setSpacing(x, y); }
+		GuiLayout& pad(float all) { return setPadding(all); }
+		GuiLayout& pad(float horizontal, float vertical) { return setPadding(horizontal, vertical); }
+		GuiLayout& pad(float left, float top, float right, float bottom) { return setPadding(left, top, right, bottom); }
+		GuiLayout& align(LAYOUT_ALIGN a) { return setAlignItems(a); }
+		GuiLayout& justifyContent(LAYOUT_JUSTIFY j) { return setJustify(j); }
 		//!Forces layout to run again
 		void invalidate();
 		//!Removes every child

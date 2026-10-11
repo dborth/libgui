@@ -16,3 +16,4 @@ build/
 /test/layout_test
 /test/elements_test
 /test/stubs/
+/test/ui_test

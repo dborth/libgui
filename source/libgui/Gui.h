@@ -25,6 +25,8 @@
 #include <cstdlib>
 #include <cstring>
 #include <vector>
+#include <string>
+#include <functional>
 #include <exception>
 #include <cwchar>
 #include <cmath>
@@ -86,3 +88,4 @@ enum class SCROLL {
 #include "GuiFileBrowser.h"
 #include "GuiKeyboard.h"
 #include "GuiOptionBrowser.h"
+#include "GuiUi.h"

@@ -88,6 +88,13 @@
  */
 
 /*!
+ * \defgroup grp_builder Builders
+ * \brief Describe a screen instead of assembling it: UiScope creates and owns a page's
+ * elements and runs per-frame bindings, and GuiLabel, GuiChip, GuiTextButton and GuiCard are
+ * themed widgets with no image assets that report clicks and focus through callbacks.
+ */
+
+/*!
  * \defgroup grp_pal Platform abstraction
  * \brief The Platform composition root and the video, audio and thread
  * driver interfaces the core library is written against.

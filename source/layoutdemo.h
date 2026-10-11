@@ -2,58 +2,40 @@
  * libgui Template
  * Daryl Borth 2009-2026
  * layoutdemo.h
- * The Controllers screen from the design mockups, built with the layout
- * containers: no pixel coordinates except where the screen itself is placed.
- * Read the constructors top to bottom; each block is one piece of the screen.
+ * The Controllers screen from the design mockups, described with the builder
+ * layer (UiScope): no pixel coordinates, no new/delete, no per-widget helper
+ * structs. Read layoutdemo.cpp top to bottom; it is the screen.
  ***************************************************************************/
 #ifndef _LAYOUTDEMO_H_
 #define _LAYOUTDEMO_H_
 
 #include "libgui/Gui.h"
 
-//!A themed button with no image assets: a capsule GuiShape with a label centred on it.
-class DemoButton
-{
-	public:
-		DemoButton(const char * label, int w, int h, GuiTrigger * trigger, GuiSound * soundOver);
-		GuiButton button;
-	private:
-		GuiShape shape;
-		GuiText text;
-		GuiText textLit;
-};
-
-//!One player's card: backdrop, a header row (number, device, battery) and a role chip with the scheme.
-class DemoPlayerCard : public GuiOverlay
-{
-	public:
-		DemoPlayerCard(const char * number, const char * device, const char * battery, const char * role, const char * scheme);
-	private:
-		GuiShape backdrop;
-		GuiText numberTxt, deviceTxt, batteryTxt, roleTxt, schemeTxt;
-		GuiShape chipBackdrop;
-		GuiOverlay chip;
-		GuiRow header, details;
-		GuiColumn body;
-};
-
-//!The whole screen: title bar, two cards, a devices panel and a grid of buttons.
+//!The whole screen: title bar, two selectable player cards, a devices panel, a grid of buttons and a status line.
 class GuiLayoutDemo : public GuiColumn
 {
 	public:
+		//!\param trigger Trigger the buttons and cards click with (null for the default, A)
+		//!\param soundOver Sound played when a button or card gets the selection (may be null)
 		GuiLayoutDemo(GuiTrigger * trigger, GuiSound * soundOver);
-		GuiButton& backButton() { return backBtn.button; }
+		GuiButton& backButton() { return *backBtn; }
 	private:
-		GuiText titleTxt, schemeTxt;
-		GuiRow titleBar;
-		DemoPlayerCard card1, card2;
-		GuiColumn cards;
-		GuiShape stripBackdrop;
-		GuiText keyboardTxt, mouseTxt, irTxt, touchTxt;
-		GuiGrid stripGrid;
-		GuiOverlay strip;
-		DemoButton testBtn, mapBtn, resetBtn, identifyBtn, backBtn;
-		GuiGrid buttons;
+		struct Player {
+			const char * device;
+			const char * role;
+			const char * scheme;
+			int battery;
+		};
+
+		GuiCard& playerCard(int n);
+		int battery(int n) const;
+
+		UiScope ui;				// owns every element below; declared first so it is destroyed last
+		Player players[2];
+		int frame;				// counts frames, so the battery figures visibly change
+		int focused;			// the last card the selection visited (-1 = none yet)
+		std::string status;		// shown on the bottom line
+		GuiTextButton * backBtn;
 };
 
 #endif

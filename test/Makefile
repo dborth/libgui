@@ -8,8 +8,9 @@ all: out geometry_test paint_test layout_test
 	./layout_test
 
 # Also runs the real container and window classes (needs FreeType headers; see below)
-elements: stubs elements_test
+elements: stubs elements_test ui_test
 	./elements_test
+	./ui_test
 
 out:
 	mkdir -p out
@@ -23,21 +24,25 @@ paint_test: test_paint.cpp ../source/libgui/GuiPaint.cpp ../source/libgui/GuiThe
 layout_test: test_layout.cpp ../source/libgui/GuiLayoutSolver.cpp ../source/libgui/GuiLayoutSolver.h
 	$(CXX) $(CXXFLAGS) -o $@ test_layout.cpp ../source/libgui/GuiLayoutSolver.cpp ../source/libgui/GuiGeometry.cpp
 
-# Real GuiRow/GuiColumn/GuiWindow on the host. Needs FreeType headers (Gui.h includes the text
-# renderer) and stand-ins for the asset headers the build normally generates from data/.
+# The real container, builder and window classes on the host. Needs FreeType headers (Gui.h includes
+# the text renderer) and stand-ins for the asset headers the build normally generates from data/.
+# test_ui is built with AddressSanitizer so teardown-order mistakes fail loudly.
 FT_CFLAGS ?= $(shell pkg-config --cflags freetype2 2>/dev/null || echo -I/usr/include/freetype2)
-ELEMENTS_SRC = ../source/libgui/GuiLayout.cpp ../source/libgui/GuiWindow.cpp ../source/libgui/GuiElement.cpp \
-	../source/libgui/GuiLayoutSolver.cpp ../source/libgui/GuiGeometry.cpp
+HOST_SRC = host_stubs.cpp $(addprefix ../source/libgui/, GuiLayout.cpp GuiWindow.cpp GuiElement.cpp GuiLayoutSolver.cpp \
+	GuiGeometry.cpp GuiUi.cpp GuiButton.cpp GuiShape.cpp GuiPaint.cpp GuiTheme.cpp GuiText.cpp)
 
 stubs: ../source/filelist.h
 	mkdir -p stubs
 	for h in $$(sed -n 's/^\#include "\(.*\)\.h"/\1/p' ../source/filelist.h); do \
 		printf '#pragma once\nextern const unsigned char %s[];\nextern const unsigned int %s_size;\n' $$h $$h > stubs/$$h.h; done
 
-elements_test: test_layout_elements.cpp $(ELEMENTS_SRC)
-	$(CXX) $(CXXFLAGS) -I../source $(FT_CFLAGS) -Istubs -o $@ test_layout_elements.cpp $(ELEMENTS_SRC)
+elements_test: test_layout_elements.cpp $(HOST_SRC)
+	$(CXX) $(CXXFLAGS) -I../source $(FT_CFLAGS) -Istubs -o $@ test_layout_elements.cpp $(HOST_SRC)
+
+ui_test: test_ui.cpp ../source/layoutdemo.cpp ../source/layoutdemo.h $(HOST_SRC)
+	$(CXX) $(CXXFLAGS) -fsanitize=address,undefined -fno-omit-frame-pointer -I../source $(FT_CFLAGS) -Istubs -o $@ test_ui.cpp ../source/layoutdemo.cpp $(HOST_SRC)
 
 clean:
-	rm -rf geometry_test paint_test layout_test elements_test stubs out
+	rm -rf geometry_test paint_test layout_test elements_test ui_test stubs out
 
 .PHONY: all elements stubs clean
