@@ -18,6 +18,7 @@
 #endif
 
 #include "menu.h"
+#include "shapesdemo.h"
 #include "demo.h"
 #include "filelist.h"
 #include "filebrowser.h"
@@ -413,19 +414,19 @@ static int MenuSettings()
 	fileBtn.setTrigger(&trigA);
 	fileBtn.setEffectGrow();
 
-	GuiText videoBtnTxt("Video", 22, (PixelColor){0, 0, 0, 255});
-	videoBtnTxt.setWrap(true, btnLargeOutline.getWidth()-30);
-	GuiImage videoBtnImg(&btnLargeOutline);
-	GuiImage videoBtnImgOver(&btnLargeOutlineOver);
-	GuiButton videoBtn(btnLargeOutline.getWidth(), btnLargeOutline.getHeight());
-	videoBtn.setAlignment(ALIGN_H::CENTRE, ALIGN_V::TOP);
-	videoBtn.setPosition(0, 120);
-	videoBtn.setLabel(&videoBtnTxt);
-	videoBtn.setImage(&videoBtnImg);
-	videoBtn.setImageOver(&videoBtnImgOver);
-	videoBtn.setSoundOver(&btnSoundOver);
-	videoBtn.setTrigger(&trigA);
-	videoBtn.setEffectGrow();
+	GuiText shapesBtnTxt("Shapes", 22, (PixelColor){0, 0, 0, 255});
+	shapesBtnTxt.setWrap(true, btnLargeOutline.getWidth()-30);
+	GuiImage shapesBtnImg(&btnLargeOutline);
+	GuiImage shapesBtnImgOver(&btnLargeOutlineOver);
+	GuiButton shapesBtn(btnLargeOutline.getWidth(), btnLargeOutline.getHeight());
+	shapesBtn.setAlignment(ALIGN_H::CENTRE, ALIGN_V::TOP);
+	shapesBtn.setPosition(0, 120);
+	shapesBtn.setLabel(&shapesBtnTxt);
+	shapesBtn.setImage(&shapesBtnImg);
+	shapesBtn.setImageOver(&shapesBtnImgOver);
+	shapesBtn.setSoundOver(&btnSoundOver);
+	shapesBtn.setTrigger(&trigA);
+	shapesBtn.setEffectGrow();
 
 	GuiText savingBtnTxt1("Saving", 22, (PixelColor){0, 0, 0, 255});
 	GuiText savingBtnTxt2("&", 18, (PixelColor){0, 0, 0, 255});
@@ -509,7 +510,7 @@ static int MenuSettings()
 	GuiWindow w(platform->getVideo()->getScreenWidth(), platform->getVideo()->getScreenHeight());
 	w.append(&titleTxt);
 	w.append(&fileBtn);
-	w.append(&videoBtn);
+	w.append(&shapesBtn);
 	w.append(&savingBtn);
 	w.append(&menuBtn);
 	w.append(&networkBtn);
@@ -526,9 +527,9 @@ static int MenuSettings()
 		{
 			menu = MENU_BROWSE_DEVICES;
 		}
-		else if(videoBtn.getState() == STATE::CLICKED)
+		else if(shapesBtn.getState() == STATE::CLICKED)
 		{
-			menu = MENU_SETTINGS_FILE;
+			menu = MENU_SHAPES;
 		}
 		else if(savingBtn.getState() == STATE::CLICKED)
 		{
@@ -566,6 +567,52 @@ static int MenuSettings()
 				// reset settings
 			}
 		}
+	}
+
+	return menu;
+}
+
+/****************************************************************************
+ * MenuShapes
+ ***************************************************************************/
+static int MenuShapes()
+{
+	int menu = MENU_NONE;
+
+	GuiSound btnSoundOver(button_over_pcm, button_over_pcm_size, SOUND::PCM);
+	GuiImageData btnOutline(button_png);
+	GuiImageData btnOutlineOver(button_over_png);
+
+	GuiTrigger trigA;
+	trigA.setPrimaryTrigger();
+
+	GuiShapesDemo shapes;
+
+	GuiText backBtnTxt("Go Back", 22, (PixelColor){0, 0, 0, 255});
+	GuiImage backBtnImg(&btnOutline);
+	GuiImage backBtnImgOver(&btnOutlineOver);
+	GuiButton backBtn(btnOutline.getWidth(), btnOutline.getHeight());
+	backBtn.setAlignment(ALIGN_H::LEFT, ALIGN_V::BOTTOM);
+	backBtn.setPosition(30, -35);
+	backBtn.setLabel(&backBtnTxt);
+	backBtn.setImage(&backBtnImg);
+	backBtn.setImageOver(&backBtnImgOver);
+	backBtn.setSoundOver(&btnSoundOver);
+	backBtn.setTrigger(&trigA);
+	backBtn.setEffectGrow();
+
+	GuiWindow w(platform->getVideo()->getScreenWidth(), platform->getVideo()->getScreenHeight());
+	w.append(&shapes);
+	w.append(&backBtn);
+
+	mainWindow->appendWithAutoRemove(&w);
+
+	while(menu == MENU_NONE)
+	{
+		if(!UpdateGui()) return MENU_EXIT;
+
+		if(backBtn.getState() == STATE::CLICKED)
+			menu = MENU_SETTINGS;
 	}
 
 	return menu;
@@ -892,6 +939,9 @@ void MainMenu(int menu)
 				break;
 			case MENU_BROWSE_DEVICES:
 				currentMenu = MenuBrowseDevices();
+				break;
+			case MENU_SHAPES:
+				currentMenu = MenuShapes();
 				break;
 			default: // unrecognized menu
 				currentMenu = MenuSettings();

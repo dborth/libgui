@@ -20,7 +20,8 @@ struct WutDrawCmd
 	enum class Kind : uint8_t
 	{
 		Texture, //!<textured quad through Texture2DShader
-		Color    //!<flat-color quad through ColorShader
+		Color,   //!<flat-color quad through ColorShader
+		Mesh     //!<triangle list from the mesh arena through ColorShader (see WutVideoDriver::queueMesh())
 	};
 
 	Kind kind; //!< Which shader this draw uses
@@ -30,6 +31,8 @@ struct WutDrawCmd
 	float offset[3];              //!<NDC position of the quad's center
 	float scale[3];               //!<NDC half-extents of the quad
 	float colorIntensity[4]; //!< RGBA tint (Texture) or fill color (Color)
+	uint32_t first;          //!<Mesh only: index of the first vertex in the arena
+	uint32_t count;          //!<Mesh only: number of vertices
 };
 
 //!Wii U VideoDriver: GX2 + libwhb's WHBGfx* helpers. Every frame's draws
@@ -70,6 +73,13 @@ class WutVideoDriver : public VideoDriver
 		//!renderers below; must be called from the thread that draws.
 		void queueDraw(const WutDrawCmd& cmd);
 
+		//!Copies a triangle list into this frame's vertex arena (converting positions
+		//!to NDC) and records a Mesh draw. A mesh that does not fit in what is left of the
+		//!arena this frame is dropped. Same threading rule as queueDraw().
+		//!\param vertices Triangle list in design-canvas pixels
+		//!\param count Number of vertices
+		void queueMesh(const MeshVertex* vertices, size_t count);
+
 		//!Replays every recorded UI draw into the TV context, then the same
 		//!list into the GamePad context, and empties the list. Does nothing
 		//!when the list is empty. render() calls this; anything that frees a
@@ -81,6 +91,16 @@ class WutVideoDriver : public VideoDriver
 	private:
 		static const size_t cuMaxQueuedDraws = 4096;
 		std::vector<WutDrawCmd> drawQueue;
+
+		// Vertex arena for Mesh draws. Written when a mesh is queued, made visible to the
+		// GPU in flushDrawQueue(), read by both the TV and GamePad replays, and rewound
+		// once per frame in prepareFrame() - never mid-frame, because a draw submitted
+		// earlier in the frame may still be reading it (same rule as ColorShader's slots).
+		static const uint32_t cuMeshArenaVertices = 1u << 18;
+		float * meshPositions = nullptr;	// 3 floats (NDC x, y, 0) per vertex
+		uint8_t * meshColors = nullptr;		// RGBA8 per vertex
+		uint32_t meshUsed = 0;				// vertices written this frame
+		uint32_t meshFlushed = 0;			// vertices already invalidated for the GPU
 		void replayDrawQueue() const; // draws drawQueue into whichever context is currently bound
 
 		// Binds the TV context state and resets the per-frame render
@@ -117,6 +137,7 @@ class WutImageRenderer : public ImageRenderer
 		void destroyTexture(void * texture) override;
 		void drawTexture(void * texture, float xpos, float ypos, uint16_t width, uint16_t height, float degrees, float scaleX, float scaleY, uint8_t alpha) override;
 		void drawRectangle(float x, float y, float width, float height, PixelColor color) override;
+		void drawMesh(const MeshVertex* vertices, size_t count) override;
 
 	private:
 		WutVideoDriver * driver;

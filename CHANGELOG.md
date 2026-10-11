@@ -23,6 +23,19 @@ All notable changes to libgui are documented here. Versions follow
   gradient, feather and degenerate-input checks, plus a software-rendered
   PNG gallery. Run by CI.
 
+**Mesh drawing (`ImageRenderer::drawMesh`)**
+* New pure virtual `ImageRenderer::drawMesh(const MeshVertex*, size_t)`
+  draws a triangle list with per-vertex colors in design-canvas
+  coordinates, blended source-over, so gradients and feathered edges
+  cost one draw. GameCube/Wii: a `GX_TRIANGLES` loop (split at 65535
+  vertices) in the same GX state as `drawRectangle()`. Wii U: a new
+  `WutDrawCmd::Kind::Mesh` backed by a per-frame vertex arena
+  (`2^18` vertices), drawn through `ColorShader` with identity
+  uniforms; no new shader. A mesh that does not fit in what is left of
+  the arena in a frame is dropped.
+* Demo: a **Shapes** page (Settings > Shapes) draws the gallery from
+  `GuiMesh` with no image assets.
+
 ## [2.01] - October 1, 2026
 
 ### Added

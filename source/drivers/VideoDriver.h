@@ -9,6 +9,7 @@
 #pragma once
 
 #include <stdint.h>
+#include <stddef.h>
 #include <ft2build.h>
 #include FT_FREETYPE_H
 #include "Mesh.h"
@@ -82,6 +83,16 @@ class ImageRenderer
 		virtual void drawTexture(void * texture, float xpos, float ypos, uint16_t width, uint16_t height, float degrees, float scaleX, float scaleY, uint8_t alpha) = 0;
 		//!Draws a solid-color rectangle (alpha-blended using color.a).
 		virtual void drawRectangle(float x, float y, float width, float height, PixelColor color) = 0;
+		//!Draws a triangle list: three vertices per triangle, each with its own color.
+		//!Positions are in design-canvas pixels (the same space as drawRectangle()), colors are
+		//!straight (non-premultiplied) RGBA blended source-over, so per-vertex alpha gives
+		//!gradients and soft edges (see GuiMesh). Winding does not matter. A count that is not a
+		//!multiple of 3 is rounded down.
+		//!The vertices are copied (or consumed) before this returns, so the caller can free or
+		//!reuse the array immediately.
+		//!\param vertices Triangle list
+		//!\param count Number of vertices
+		virtual void drawMesh(const MeshVertex* vertices, size_t count) = 0;
 };
 
 //!Draws glyph textures and solid rectangles on behalf of GuiTextRenderer. Implemented per platform.
