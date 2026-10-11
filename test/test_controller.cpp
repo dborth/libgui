@@ -1,4 +1,5 @@
 // Host-side tests for the controller layout table and drawing. Run with `make -C test`. Writes out/controller.png.
+#include "../source/libgui/GuiGlyph.h"
 #include "../source/libgui/GuiControllerDraw.h"
 #include "Raster.h"
 #include <cstdio>
