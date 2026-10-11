@@ -459,8 +459,8 @@ static int MenuSettings()
 	GuiImage menuBtnImg(&btnLargeOutline);
 	GuiImage menuBtnImgOver(&btnLargeOutlineOver);
 	GuiButton menuBtn(btnLargeOutline.getWidth(), btnLargeOutline.getHeight());
-	menuBtn.setAlignment(ALIGN_H::CENTRE, ALIGN_V::TOP);
-	menuBtn.setPosition(-125, 250);
+	menuBtn.setAlignment(ALIGN_H::LEFT, ALIGN_V::TOP);
+	menuBtn.setPosition(50, 250);
 	menuBtn.setLabel(&menuBtnTxt);
 	menuBtn.setImage(&menuBtnImg);
 	menuBtn.setImageOver(&menuBtnImgOver);
@@ -468,13 +468,27 @@ static int MenuSettings()
 	menuBtn.setTrigger(&trigA);
 	menuBtn.setEffectGrow();
 
+	GuiText layoutBtnTxt("Layout", 22, (PixelColor){0, 0, 0, 255});
+	layoutBtnTxt.setWrap(true, btnLargeOutline.getWidth()-30);
+	GuiImage layoutBtnImg(&btnLargeOutline);
+	GuiImage layoutBtnImgOver(&btnLargeOutlineOver);
+	GuiButton layoutBtn(btnLargeOutline.getWidth(), btnLargeOutline.getHeight());
+	layoutBtn.setAlignment(ALIGN_H::CENTRE, ALIGN_V::TOP);
+	layoutBtn.setPosition(0, 250);
+	layoutBtn.setLabel(&layoutBtnTxt);
+	layoutBtn.setImage(&layoutBtnImg);
+	layoutBtn.setImageOver(&layoutBtnImgOver);
+	layoutBtn.setSoundOver(&btnSoundOver);
+	layoutBtn.setTrigger(&trigA);
+	layoutBtn.setEffectGrow();
+
 	GuiText networkBtnTxt("Network", 22, (PixelColor){0, 0, 0, 255});
 	networkBtnTxt.setWrap(true, btnLargeOutline.getWidth()-30);
 	GuiImage networkBtnImg(&btnLargeOutline);
 	GuiImage networkBtnImgOver(&btnLargeOutlineOver);
 	GuiButton networkBtn(btnLargeOutline.getWidth(), btnLargeOutline.getHeight());
-	networkBtn.setAlignment(ALIGN_H::CENTRE, ALIGN_V::TOP);
-	networkBtn.setPosition(125, 250);
+	networkBtn.setAlignment(ALIGN_H::RIGHT, ALIGN_V::TOP);
+	networkBtn.setPosition(-50, 250);
 	networkBtn.setLabel(&networkBtnTxt);
 	networkBtn.setImage(&networkBtnImg);
 	networkBtn.setImageOver(&networkBtnImgOver);
@@ -514,6 +528,7 @@ static int MenuSettings()
 	w.append(&shapesBtn);
 	w.append(&savingBtn);
 	w.append(&menuBtn);
+	w.append(&layoutBtn);
 	w.append(&networkBtn);
 	w.append(&exitBtn);
 	w.append(&resetBtn);
@@ -544,6 +559,10 @@ static int MenuSettings()
 			#else
 			menu = MENU_SETTINGS_FILE;
 			#endif
+		}
+		else if(layoutBtn.getState() == STATE::CLICKED)
+		{
+			menu = MENU_LAYOUT;
 		}
 		else if(networkBtn.getState() == STATE::CLICKED)
 		{
@@ -622,19 +641,6 @@ static int MenuShapes()
 	offBtn.setLabel(&offTxt);
 	offBtn.setState(STATE::DISABLED);
 
-	GuiText layoutBtnTxt("Layout", 22, (PixelColor){0, 0, 0, 255});
-	GuiImage layoutBtnImg(&btnOutline);
-	GuiImage layoutBtnImgOver(&btnOutlineOver);
-	GuiButton layoutBtn(btnOutline.getWidth(), btnOutline.getHeight());
-	layoutBtn.setAlignment(ALIGN_H::RIGHT, ALIGN_V::BOTTOM);
-	layoutBtn.setPosition(-30, -35);
-	layoutBtn.setLabel(&layoutBtnTxt);
-	layoutBtn.setImage(&layoutBtnImg);
-	layoutBtn.setImageOver(&layoutBtnImgOver);
-	layoutBtn.setSoundOver(&btnSoundOver);
-	layoutBtn.setTrigger(&trigA);
-	layoutBtn.setEffectGrow();
-
 	GuiText backBtnTxt("Go Back", 22, (PixelColor){0, 0, 0, 255});
 	GuiImage backBtnImg(&btnOutline);
 	GuiImage backBtnImgOver(&btnOutlineOver);
@@ -652,7 +658,6 @@ static int MenuShapes()
 	w.append(&shapes);
 	w.append(&liveBtn);
 	w.append(&offBtn);
-	w.append(&layoutBtn);
 	w.append(&backBtn);
 
 	mainWindow->appendWithAutoRemove(&w);
@@ -663,9 +668,6 @@ static int MenuShapes()
 
 		if(liveBtn.getState() == STATE::CLICKED)
 			liveBtn.resetState(); // lets the shape fade back from its pressed look
-
-		if(layoutBtn.getState() == STATE::CLICKED)
-			menu = MENU_LAYOUT;
 
 		if(backBtn.getState() == STATE::CLICKED)
 			menu = MENU_SETTINGS;
@@ -698,7 +700,7 @@ static int MenuLayout()
 		if(!UpdateGui()) return MENU_EXIT;
 
 		if(demo.backButton().getState() == STATE::CLICKED)
-			menu = MENU_SHAPES;
+			menu = MENU_SETTINGS;
 	}
 
 	return menu;
