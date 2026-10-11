@@ -10,3 +10,5 @@ build/
 /build_wii/
 /build_wiiu/
 /docs/
+/test/out/
+/test/geometry_test

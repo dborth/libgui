@@ -73,6 +73,13 @@
  */
 
 /*!
+ * \defgroup grp_shapes Shapes and geometry
+ * \brief Platform-agnostic tessellation of rounded rectangles, ellipses,
+ * polygons, strokes, arcs, gradients and soft shadows into anti-aliased
+ * triangle meshes (GuiMesh).
+ */
+
+/*!
  * \defgroup grp_pal Platform abstraction
  * \brief The Platform composition root and the video, audio and thread
  * driver interfaces the core library is written against.

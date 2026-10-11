@@ -4,6 +4,25 @@ All notable changes to libgui are documented here. Versions follow
 `MAJOR.MINOR`; dates are approximate, taken from the commit history.
 
 
+## [Unreleased]
+
+### Added
+
+**Shape geometry (`GuiGeometry.h`)**
+* `GuiMesh` tessellates rectangles, rounded rectangles (per-corner
+  radii, capsules), ellipses, convex polygons, lines, outlines (inside /
+  centre / outside), arc strokes and soft shadows into triangle lists of
+  `MeshVertex` (position plus per-vertex RGBA). `GuiFill` gives a solid
+  color or a two-color linear gradient. Edges are anti-aliased by a
+  feathered fringe that fades to alpha 0, so no multisampling is needed.
+  Platform-agnostic: no GX, GX2 or FreeType dependency.
+* `PixelColor` moved from `VideoDriver.h` to the new `drivers/Mesh.h`
+  (still included by `VideoDriver.h`) next to the new `MeshVertex`, so
+  host builds can use them without FreeType.
+* Host-side tests in `test/` (`make -C test`): coverage, winding,
+  gradient, feather and degenerate-input checks, plus a software-rendered
+  PNG gallery. Run by CI.
+
 ## [2.01] - October 1, 2026
 
 ### Added

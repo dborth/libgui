@@ -11,15 +11,10 @@
 #include <stdint.h>
 #include <ft2build.h>
 #include FT_FREETYPE_H
+#include "Mesh.h"
 
-//!8-bit-per-channel RGBA color used by the video interfaces.
-//!\ingroup grp_pal
-typedef struct {
-	uint8_t r;			/*!< Red color component. */
-	uint8_t g;			/*!< Green color component. */
-	uint8_t b;			/*!< Blue color component. */
-	uint8_t a;			/*!< Alpha component. If a function does not use the alpha value, it is safely ignored. */
-} PixelColor;
+// PixelColor and MeshVertex live in Mesh.h so host builds can use them without FreeType
+
 
 class ImageRenderer;
 class GlyphRenderer;
