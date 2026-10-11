@@ -13,6 +13,8 @@ int GuiSound::defaultSfxVolume = 100;
 GuiSound* GuiSound::playingOGG = nullptr;
 GuiSound* GuiSound::activeMusic = nullptr;
 
+GuiSound::GuiSound() { }
+
 GuiSound::GuiSound(const uint8_t * s, int32_t l, SOUND t)
 {
 	sound = s;
@@ -47,7 +49,6 @@ void GuiSound::play()
 		case SOUND::PCM:
 			voice = platform->getAudio()->playVoice(sound, length, vol);
 			break;
-
 		case SOUND::OGG:
 			playingOGG = this;
 			if (loop) {
@@ -55,6 +56,8 @@ void GuiSound::play()
 			}
 			voice = 0;
 			platform->getAudio()->playStream(sound, length, loop, vol);
+			break;
+		case SOUND::NONE:
 			break;
 	}
 }
@@ -69,7 +72,6 @@ void GuiSound::stop()
 		case SOUND::PCM:
 			platform->getAudio()->stopVoice(voice);
 			break;
-
 		case SOUND::OGG:
 			platform->getAudio()->stopStream();
 			if (playingOGG == this) {
@@ -78,6 +80,8 @@ void GuiSound::stop()
 			if (activeMusic == this) {
 				activeMusic = nullptr;
 			}
+			break;
+		case SOUND::NONE:
 			break;
 	}
 }
@@ -92,9 +96,10 @@ void GuiSound::pause()
 		case SOUND::PCM:
 			platform->getAudio()->pauseVoice(voice);
 			break;
-
 		case SOUND::OGG:
 			platform->getAudio()->pauseStream();
+			break;
+		case SOUND::NONE:
 			break;
 	}
 }
@@ -109,9 +114,10 @@ void GuiSound::resume()
 		case SOUND::PCM:
 			platform->getAudio()->resumeVoice(voice);
 			break;
-
 		case SOUND::OGG:
 			platform->getAudio()->resumeStream();
+			break;
+		case SOUND::NONE:
 			break;
 	}
 }
@@ -125,9 +131,10 @@ bool GuiSound::isPlaying()
 	{
 		case SOUND::PCM:
 			return platform->getAudio()->isVoicePlaying(voice);
-
 		case SOUND::OGG:
 			return platform->getAudio()->isStreamPlaying();
+		case SOUND::NONE:
+			return false;
 	}
 
 	return false;
@@ -148,9 +155,10 @@ void GuiSound::setVolume(int vol)
 		case SOUND::PCM:
 			platform->getAudio()->setVoiceVolume(voice, newvol);
 			break;
-
 		case SOUND::OGG:
 			platform->getAudio()->setStreamVolume(newvol);
+			break;
+		case SOUND::NONE:
 			break;
 	}
 }

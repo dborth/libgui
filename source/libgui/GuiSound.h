@@ -8,6 +8,7 @@
 //!Encoding of a GuiSound: a short PCM one-shot or a streamed OGG.
 //!\ingroup grp_core
 enum class SOUND {
+	NONE,
 	PCM,
 	OGG
 };
@@ -30,6 +31,8 @@ class GuiSound
 		//!\param l Length of sound data
 		//!\param t Sound format type (PCM or OGG)
 		GuiSound(const uint8_t * s, int32_t l, SOUND t);
+		//!Constructor
+		GuiSound();
 		//!Destructor
 		~GuiSound();
 		//!Start sound playback
@@ -56,12 +59,12 @@ class GuiSound
 		static void setDefaultVolume(VOLUME_TYPE t, int v);
 
 	protected:
-		const uint8_t * sound; //!< Pointer to the sound data
-		SOUND type; //!< Sound format type (PCM or OGG)
-		int32_t length; //!< Length of sound data
-		int32_t voice; //!< Backend-assigned voice handle (PCM only)
-		int32_t volume; //!< Sound volume (0-100)
-		bool loop; //!< Loop sound playback
+		const uint8_t * sound = nullptr; //!< Pointer to the sound data
+		SOUND type = SOUND::NONE; //!< Sound format type (PCM or OGG)
+		int32_t length = 0; //!< Length of sound data
+		int32_t voice = -1; //!< Backend-assigned voice handle (PCM only)
+		int32_t volume = 100; //!< Sound volume (0-100)
+		bool loop = false; //!< Loop sound playback
 
 		static int defaultMusicVolume; //!< Global music volume (0-100) -- applies to any looping sound
 		static int defaultSfxVolume; //!< Global sound effects volume (0-100) -- applies to any non-looping sound
