@@ -145,9 +145,8 @@ static float NormalizeWPADAnalog(int pos, int min, int max, int center) {
 
 OgcInputDriver::OgcInputDriver() {
 	for (int i = 0; i < 4; i++) {
-		rumbleRequest[i] = false;
-		menuRumbleFrames[i] = 0;
-		menuRumbleGapFrames[i] = 0;
+		rumbleRequest[i] = continuousRumble[i] = false;
+		menuRumbleFrames[i] = continuousRumbleCount[i] = silenceFrames[i] = menuRumbleGapFrames[i] = 0;
 	}
 }
 
@@ -181,9 +180,8 @@ void OgcInputDriver::shutdown() {
 		WPAD_Rumble(i, 0);
 		#endif
 		PAD_ControlMotor(i, PAD_MOTOR_STOP);
-		rumbleRequest[i] = false;
-		menuRumbleFrames[i] = 0;
-		menuRumbleGapFrames[i] = 0;
+		rumbleRequest[i] = continuousRumble[i] = false;
+		menuRumbleFrames[i] = continuousRumbleCount[i] = silenceFrames[i] = menuRumbleGapFrames[i] = 0;
 	}
 }
 
@@ -191,6 +189,10 @@ void OgcInputDriver::setRumble(int channel, bool rumble) {
 	if (channel >= 0 && channel < 4) {
 		rumbleRequest[channel] = rumble;
 	}
+}
+
+void OgcInputDriver::setContinuousRumble(int channel, bool continuous) {
+	if (channel >= 0 && channel < 4) continuousRumble[channel] = continuous;
 }
 
 void OgcInputDriver::update() {
@@ -219,6 +221,8 @@ void OgcInputDriver::update() {
 			padData.hw_stickY[INPUT_HW_GAMECUBE] = clampf((float)PAD_StickY(i) / 128.0f, -1.0f, 1.0f);
 			padData.hw_substickX[INPUT_HW_GAMECUBE] = clampf((float)PAD_SubStickX(i) / 128.0f, -1.0f, 1.0f);
 			padData.hw_substickY[INPUT_HW_GAMECUBE] = clampf((float)PAD_SubStickY(i) / 128.0f, -1.0f, 1.0f);
+			padData.hw_triggerL[INPUT_HW_GAMECUBE] = clampf((float)PAD_TriggerL(i) / 255.0f, 0.0f, 1.0f);
+			padData.hw_triggerR[INPUT_HW_GAMECUBE] = clampf((float)PAD_TriggerR(i) / 255.0f, 0.0f, 1.0f);
 		}
 
 		#ifdef HW_RVL
@@ -273,7 +277,16 @@ void OgcInputDriver::update() {
 				padData.hw_pitch[INPUT_HW_NUNCHUK]   = wpad->exp.nunchuk.orient.pitch;
 				padData.hw_roll[INPUT_HW_NUNCHUK]    = wpad->exp.nunchuk.orient.roll;
 				padData.hw_yaw[INPUT_HW_NUNCHUK]     = wpad->exp.nunchuk.orient.yaw;
-				
+
+				// The Wiimote still points at the sensor bar with a Nunchuk in the other hand
+				if (wpad->ir.valid) {
+					padData.validPointer = true;
+					padData.isTouch = false;
+					padData.cursor_x = wpad->ir.x;
+					padData.cursor_y = wpad->ir.y;
+					padData.cursor_angle = wpad->ir.angle;
+				}
+
 				controller[i]->setSideways(false);
 			}
 			else if (exp_type == WPAD_EXP_CLASSIC) {
@@ -291,6 +304,8 @@ void OgcInputDriver::update() {
 				padData.hw_stickY[hw] = NormalizeWPADAnalog(ljs->pos.y, ljs->min.y, ljs->max.y, ljs->center.y);
 				padData.hw_substickX[hw] = NormalizeWPADAnalog(rjs->pos.x, rjs->min.x, rjs->max.x, rjs->center.x);
 				padData.hw_substickY[hw] = NormalizeWPADAnalog(rjs->pos.y, rjs->min.y, rjs->max.y, rjs->center.y);
+				padData.hw_triggerL[hw] = clampf(wpad->exp.classic.l_shoulder, 0.0f, 1.0f);
+				padData.hw_triggerR[hw] = clampf(wpad->exp.classic.r_shoulder, 0.0f, 1.0f);
 				controller[i]->setSideways(false);
 			}
 			else {
@@ -346,8 +361,7 @@ void OgcInputDriver::update() {
 			}
 		}
 
-		bool wantRumble = menuRumbleFrames[i] > 0;
-		bool doRumble = wantRumble && allowRumble;
+		bool menuWantRumble = menuRumbleFrames[i] > 0;
 
 		if (menuRumbleFrames[i] > 0) {
 			menuRumbleFrames[i]--;
@@ -356,12 +370,34 @@ void OgcInputDriver::update() {
 			menuRumbleGapFrames[i]--;
 		}
 
+		bool wantRumble = menuWantRumble || continuousRumble[i];
+		bool motorOn = false;
+
+		// Hardware safety: never drive the motor for more than ~70 consecutive
+		// frames; force a short rest (5 frames) before it can run again.
+		if (silenceFrames[i] > 0) {
+			silenceFrames[i]--;
+			continuousRumbleCount[i] = 0;
+		} else {
+			if (wantRumble && allowRumble) {
+				continuousRumbleCount[i]++;
+				if (continuousRumbleCount[i] > 70) {
+					silenceFrames[i] = 5;
+					continuousRumbleCount[i] = 0;
+				} else {
+					motorOn = true;
+				}
+			} else {
+				continuousRumbleCount[i] = 0;
+			}
+		}
+
 		#ifdef HW_RVL
-		WPAD_Rumble(i, doRumble ? 1 : 0);
+		WPAD_Rumble(i, motorOn ? 1 : 0);
 		#endif
 
-		if (gamecubeActive || !doRumble) {
-			PAD_ControlMotor(i, doRumble ? PAD_MOTOR_RUMBLE : PAD_MOTOR_STOP);
+		if (gamecubeActive) {
+			PAD_ControlMotor(i, motorOn ? PAD_MOTOR_RUMBLE : PAD_MOTOR_STOP);
 		}
 	}
 }

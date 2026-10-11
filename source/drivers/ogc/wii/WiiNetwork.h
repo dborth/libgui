@@ -19,8 +19,9 @@ class WiiNetwork
 		//! Brings the network interface up if it isn't already, or
 		//! confirms it's still alive if it is. Blocks ~10s until the
 		//! console has a usable IP or bring-up is given up on.
+		//! \param cancel optional; polled while waiting, and the wait is abandoned (returning false) as soon as it returns true. Lets a UI abort the ~10s wait.
 		//! \return true once the console has a usable IP.
-		static bool ensureUp();
+		static bool ensureUp(bool (*cancel)(void) = nullptr);
 
 		//! Non-blocking: true if the console currently has a usable IP.
 		static bool isUp();

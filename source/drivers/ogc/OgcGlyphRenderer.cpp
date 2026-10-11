@@ -53,6 +53,9 @@ void OgcGlyphRenderer::loadTextureData(void* texture, FT_Bitmap* bitmap) {
 
 	uint8_t* dst = static_cast<uint8_t*>(texture);
 	uint8_t* src = static_cast<uint8_t*>(bitmap->buffer);
+	// FreeType's row pitch can be larger than the bitmap width (row padding)
+	uint32_t srcPitch = bitmap->pitch < 0 ? -bitmap->pitch : bitmap->pitch;
+	if (srcPitch == 0) srcPitch = bitmap->width;
 	uint32_t pos, x1, y1, x, y;
 
 	// 8x8 tiled block processing for GX_TF_I4
@@ -64,7 +67,7 @@ void OgcGlyphRenderer::loadTextureData(void* texture, FT_Bitmap* bitmap) {
 						continue;
 					}
 
-					pos = y * bitmap->width + x;
+					pos = y * srcPitch + x;
 
 					// Extract high bits from current and adjacent pixels
 					*dst = (src[pos] & 0xF0);

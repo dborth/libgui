@@ -6,6 +6,7 @@
 
 #include <cmath>
 #include "InputController.h"
+#include "Platform.h"
 
 InputController* controller[4] = {nullptr, nullptr, nullptr, nullptr};
 
@@ -98,4 +99,8 @@ bool InputController::left() const {
 bool InputController::right() const {
 	uint32_t targetBtn = sideways ? INPUT_BTN_DOWN : INPUT_BTN_RIGHT;
 	return processDirection(targetBtn, currentData.stickX, true);
+}
+
+void InputController::setContinuousRumble(bool continuous) {
+	platform->getInput()->setContinuousRumble(channel, continuous);
 }

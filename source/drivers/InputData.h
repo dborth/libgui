@@ -90,6 +90,8 @@ struct InputPadData {
 	float    hw_stickY[INPUT_HW_MAX];      //!< Left stick Y, per profile
 	float    hw_substickX[INPUT_HW_MAX];   //!< Right stick X, per profile
 	float    hw_substickY[INPUT_HW_MAX];   //!< Right stick Y, per profile
+	float    hw_triggerL[INPUT_HW_MAX];    //!< Analog L trigger / shoulder, 0.0 - 1.0, per profile (GameCube, Classic, WUPC); 0 where the hardware has no analog trigger
+	float    hw_triggerR[INPUT_HW_MAX];    //!< Analog R trigger / shoulder, 0.0 - 1.0, per profile
 
 	float    hw_gforceX[INPUT_HW_MAX];     //!< Accelerometer X, per profile
 	float    hw_gforceY[INPUT_HW_MAX];     //!< Accelerometer Y, per profile
@@ -112,6 +114,7 @@ struct InputPadData {
 			hw_connected[i] = false;
 			hw_buttons_d[i] = hw_buttons_h[i] = hw_buttons_r[i] = 0;
 			hw_stickX[i] = hw_stickY[i] = hw_substickX[i] = hw_substickY[i] = 0.0f;
+			hw_triggerL[i] = hw_triggerR[i] = 0.0f;
 			hw_gforceX[i] = hw_gforceY[i] = hw_gforceZ[i] = 0.0f;
 			hw_pitch[i] = hw_roll[i] = hw_yaw[i] = 0.0f;
 		}

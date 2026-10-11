@@ -33,6 +33,8 @@ class InputDriver
 		
 		//! Requests a rumble event on the specified controller channel
 		virtual void setRumble(int channel, bool rumble) = 0;
+		//! Holds a channel's motor on (or releases it) until changed. Drivers cap an unbroken run and insert a short gap so the motor is not driven continuously.
+		virtual void setContinuousRumble(int channel, bool continuous) = 0;
 		
 		//!Globally enables or disables rumble requested through setRumble().
 		void setRumbleEnabled(bool enabled) { rumbleEnabled = enabled; }

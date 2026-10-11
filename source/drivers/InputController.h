@@ -41,6 +41,9 @@ public:
 	//! element update() call this wraps.
 	void setChannel(int c) { channel = c; }
 
+	//!Holds this controller's motor on or off (see InputDriver::setContinuousRumble()).
+	void setContinuousRumble(bool continuous);
+
 	//!\return the latest input snapshot passed to update()
 	const InputPadData& getPadData() const { return currentData; }
 

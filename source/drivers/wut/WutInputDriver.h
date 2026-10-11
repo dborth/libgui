@@ -24,6 +24,7 @@ class WutInputDriver : public InputDriver {
 		void shutdown() override;
 		void update() override;
 		void setRumble(int channel, bool rumble) override;
+		void setContinuousRumble(int channel, bool continuous) override;
 
 		//!Opens the Wii U system HOME-button overlay on demand. HOME itself is reported
 		//!to the app as INPUT_BTN_HOME and is not handled by the OS.
@@ -33,6 +34,9 @@ class WutInputDriver : public InputDriver {
 		bool rumbleRequest[4];
 		int menuRumbleFrames[4];     // frames left in the current menu "tick" (0 = idle)
 		int menuRumbleGapFrames[4];  // frames left in the enforced silent gap after a tick
+		bool continuousRumble[4];    // setContinuousRumble() state
+		int continuousRumbleCount[4];// consecutive frames the motor has been driven
+		int silenceFrames[4];        // frames left in the forced rest after a long continuous run
 
 		bool drcTouchedPrev;
 		float drcLastTouchX;
