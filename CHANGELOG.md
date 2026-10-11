@@ -36,6 +36,26 @@ All notable changes to libgui are documented here. Versions follow
 * Demo: a **Shapes** page (Settings > Shapes) draws the gallery from
   `GuiMesh` with no image assets.
 
+**Code-drawn widgets: paints, themes, shapes**
+* `GuiPaint` describes a look (fill or gradient, outline, shadow or
+  glow) as a chainable value: `GuiPaint().gradient(a, b).stroke(2, edge).shadow(14, black, 0, 4)`.
+  Paints compare and blend (`GuiPaint::mix`), and a part that exists on one
+  side only fades in or out. `GuiShapeStyle` is a set of paints per state
+  (normal, focused, pressed, disabled); unset states fall back sensibly.
+* `GuiTheme` holds the shared colors and metrics and builds ready styles:
+  `panelStyle()`, `cardStyle()`, `buttonStyle()`, `chipStyle()`.
+  `GuiTheme::current()` is the library-wide theme.
+* `GuiShape` is a `GuiElement` that draws a rectangle (optionally rounded,
+  or a capsule) or ellipse from a `GuiShapeStyle`, scaled and faded like an
+  image, with blended changes between states. Geometry is cached and only
+  rebuilt when size, style or feather change.
+* `GuiButton` image and icon slots now take any `GuiElement` (a `GuiImage`
+  still works unchanged), and the button mirrors its state into them
+  (`setState` / `resetState` are now overridden), so a `GuiShape` inside a
+  button restyles itself on hover, press and disable.
+* Demo: the Shapes page gains two image-free buttons, one live and one
+  disabled, with centred labels.
+
 ## [2.01] - October 1, 2026
 
 ### Added

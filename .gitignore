@@ -12,3 +12,4 @@ build/
 /docs/
 /test/out/
 /test/geometry_test
+/test/paint_test

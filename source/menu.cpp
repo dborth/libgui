@@ -588,6 +588,39 @@ static int MenuShapes()
 
 	GuiShapesDemo shapes;
 
+	// Buttons with no image assets: a GuiShape as the button's image, a label centred on it.
+	// The button mirrors its state into the shape, which fades between the style's looks.
+	const GuiTheme& theme = GuiTheme::current();
+
+	GuiShape liveShape(170, 44);
+	liveShape.setCapsule();
+	liveShape.setStyle(theme.buttonStyle());
+	GuiText liveTxt("Highlight me", 20, theme.text);
+	GuiText liveTxtOver("Highlight me", 20, theme.textOnAccent);
+	liveTxt.setAlignment(ALIGN_H::CENTRE, ALIGN_V::MIDDLE);
+	liveTxtOver.setAlignment(ALIGN_H::CENTRE, ALIGN_V::MIDDLE);
+	GuiButton liveBtn(170, 44);
+	liveBtn.setAlignment(ALIGN_H::LEFT, ALIGN_V::TOP);
+	liveBtn.setPosition(24, 296);
+	liveBtn.setImage(&liveShape);
+	liveBtn.setLabel(&liveTxt);
+	liveBtn.setLabelOver(&liveTxtOver);
+	liveBtn.setSoundOver(&btnSoundOver);
+	liveBtn.setTrigger(&trigA);
+	liveBtn.setEffectGrow();
+
+	GuiShape offShape(170, 44);
+	offShape.setCapsule();
+	offShape.setStyle(theme.buttonStyle());
+	GuiText offTxt("Disabled", 20, theme.textMuted);
+	offTxt.setAlignment(ALIGN_H::CENTRE, ALIGN_V::MIDDLE);
+	GuiButton offBtn(170, 44);
+	offBtn.setAlignment(ALIGN_H::LEFT, ALIGN_V::TOP);
+	offBtn.setPosition(24, 346);
+	offBtn.setImage(&offShape);
+	offBtn.setLabel(&offTxt);
+	offBtn.setState(STATE::DISABLED);
+
 	GuiText backBtnTxt("Go Back", 22, (PixelColor){0, 0, 0, 255});
 	GuiImage backBtnImg(&btnOutline);
 	GuiImage backBtnImgOver(&btnOutlineOver);
@@ -603,6 +636,8 @@ static int MenuShapes()
 
 	GuiWindow w(platform->getVideo()->getScreenWidth(), platform->getVideo()->getScreenHeight());
 	w.append(&shapes);
+	w.append(&liveBtn);
+	w.append(&offBtn);
 	w.append(&backBtn);
 
 	mainWindow->appendWithAutoRemove(&w);
@@ -610,6 +645,9 @@ static int MenuShapes()
 	while(menu == MENU_NONE)
 	{
 		if(!UpdateGui()) return MENU_EXIT;
+
+		if(liveBtn.getState() == STATE::CLICKED)
+			liveBtn.resetState(); // lets the shape fade back from its pressed look
 
 		if(backBtn.getState() == STATE::CLICKED)
 			menu = MENU_SETTINGS;
