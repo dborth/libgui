@@ -1,6 +1,6 @@
 /****************************************************************************
  * libgui Template
- * Daryl Borth 2009-2026
+ * Daryl Borth 2026
  * layoutdemo.cpp
  ***************************************************************************/
 #include "layoutdemo.h"
@@ -27,7 +27,7 @@ GuiCard& GuiLayoutDemo::playerCard(int n)
 }
 
 GuiLayoutDemo::GuiLayoutDemo(GuiTrigger * trigger, GuiSound * soundOver) :
-	frame(0), focused(-1), status("Move with the D-pad or the pointer"), backBtn(nullptr)
+	frame(0), focused(-1), status("Move with the D-pad or the pointer"), backBtn(nullptr), configBtn(nullptr)
 {
 	players[0] = Player{ "Wiimote + Nunchuk", "Joystick 1", "Arrow keys", 80 };
 	players[1] = Player{ "Classic Controller", "Keys + mouse", "Arrow keys", 45 };
@@ -60,6 +60,8 @@ GuiLayoutDemo::GuiLayoutDemo(GuiTrigger * trigger, GuiSound * soundOver) :
 	// five buttons in rows of three. Identify only works once a card has been visited.
 	GuiTextButton& back = ui.button("Go Back").size(150, 44);
 	backBtn = &back;
+	GuiTextButton& config = ui.button("Config").size(150, 44);
+	configBtn = &config;
 	this->add(ui.grid(3).gap(t.spacing + 4)
 		.add(ui.button("Test").size(150, 44).onClick([this]{ status = "Test pressed"; }))
 		.add(ui.button("Map").size(150, 44).onClick([this]{ status = "Map pressed"; }))
@@ -67,6 +69,7 @@ GuiLayoutDemo::GuiLayoutDemo(GuiTrigger * trigger, GuiSound * soundOver) :
 		.add(ui.button("Identify").size(150, 44)
 			.onClick([this]{ status = GuiFormat("Identifying player %d", focused + 1); })
 			.enabledWhen([this]{ return focused >= 0; }))
+		.add(config)
 		.add(back));
 
 	this->add(ui.label().bind([this]{ return status; }).fontSize(16).muted());

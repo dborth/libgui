@@ -1,6 +1,6 @@
 /****************************************************************************
  * Platform Abstraction Layer (OGC driver)
- * Daryl Borth 2009-2026
+ * Daryl Borth 2026
  * OgcAudioDriver.cpp
  ***************************************************************************/
 #include <ogcsys.h>

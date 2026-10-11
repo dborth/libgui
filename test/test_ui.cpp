@@ -2,6 +2,7 @@
 // Built with AddressSanitizer, so a use-after-free in the teardown order fails the test. Run with `make -C test elements`.
 #include "../source/libgui/Gui.h"
 #include "../source/layoutdemo.h"
+#include "../source/controllerdemo.h"
 #include <cstdio>
 
 extern bool g_triggerClicked;
@@ -290,8 +291,8 @@ int main()
 		for(GuiElement * e : all)
 			if(dynamic_cast<GuiButton *>(e))
 				btns.push_back(e);
-		CHECK(btns.size() == 8, "two cards, the panel's surface and five buttons: %zu", btns.size());
-		GuiElement * card0 = btns[0], * card1 = btns[1], * panel = btns[2], * test = btns[3], * reset = btns[5], * identify = btns[6], * back = btns[7];
+		CHECK(btns.size() == 9, "two cards, the panel's surface and six buttons: %zu", btns.size());
+		GuiElement * card0 = btns[0], * card1 = btns[1], * panel = btns[2], * test = btns[3], * reset = btns[5], * identify = btns[6], * config = btns[7], * back = btns[8];
 
 		CHECK(!panel->isSelectable(), "the panel cannot be selected");
 		CHECK(card0->isSelectable() && card1->isSelectable() && test->isSelectable(), "cards and buttons can");
@@ -317,13 +318,58 @@ int main()
 		host.page.update(nullptr);
 		CHECK(identify->getState() == STATE::SELECTED, "down from Test reaches Identify");
 		host.page.moveSelectionHor(1);
+		CHECK(config->getState() == STATE::SELECTED, "right: Config");
+		host.page.moveSelectionHor(1);
 		CHECK(back->getState() == STATE::SELECTED, "right: Go Back");
 		host.page.moveSelectionVert(-1);
-		CHECK(map->getState() == STATE::SELECTED, "up from Go Back: Map, the button above it");
+		CHECK(reset->getState() == STATE::SELECTED, "up from Go Back: Reset, the button above it");
 
 		demo.backButton().setState(STATE::CLICKED);
 		host.page.update(nullptr);
 		CHECK(demo.backButton().getState() == STATE::CLICKED, "Go Back has no callback, so the page loop can poll it as before");
+	}
+
+	// ---- the controller configuration screen
+	{
+		Page host;
+		GuiControllerDemo demo(nullptr, nullptr);
+		host.page.append(&demo);
+		host.page.update(nullptr);
+		demo.layout();
+		CHECK(demo.getWidth() == 624 && demo.getTop() + demo.getHeight() <= 480, "the screen fits: %d x %d at y=%d", demo.getWidth(), demo.getHeight(), demo.getTop());
+
+		std::vector<GuiElement *> all, btns;
+		collect(&demo, all);
+		for(GuiElement * e : all)
+			if(dynamic_cast<GuiButton *>(e))
+				btns.push_back(e);
+		// 4 + 4 side rows, 2 + 4 + 2 + 4 group rows, the bar's surface, and Back
+		CHECK(btns.size() == 4 + 4 + 12 + 1 + 1, "buttons and rows: %zu", btns.size());
+		CHECK(demo.highlighted() == 0, "nothing highlighted at first");
+
+		host.page.moveSelectionVert(1);
+		host.page.update(nullptr);
+		CHECK(demo.highlighted() == INPUT_TRIGGER_L, "the first row is the left bumper and its control is highlighted: %d", demo.highlighted());
+		host.page.moveSelectionVert(1);
+		host.page.update(nullptr);
+		CHECK(demo.highlighted() == INPUT_TRIGGER_ZL, "down: left trigger");
+		host.page.moveSelectionHor(1);
+		host.page.update(nullptr);
+		CHECK(demo.highlighted() == INPUT_TRIGGER_R || demo.highlighted() == INPUT_TRIGGER_ZR, "right crosses the controller to the right-hand list: %d", demo.highlighted());
+
+		// every highlightable row maps to a control the layout really has
+		const GuiControllerLayout& pro = GuiProControllerLayout();
+		for(int i = 0; i < 40; i++)
+		{
+			host.page.moveSelectionVert(1);
+			host.page.update(nullptr);
+			if(demo.highlighted() != 0)
+				CHECK(pro.find(demo.highlighted()) != nullptr, "highlighted control %d exists on the layout", demo.highlighted());
+		}
+		// walk the whole screen from the last row back to the first, in every direction
+		for(int i = 0; i < 12; i++) host.page.moveSelectionHor(1);
+		for(int i = 0; i < 12; i++) { host.page.moveSelectionHor(-1); host.page.update(nullptr); }
+		CHECK(demo.highlighted() != 0, "selection is somewhere sensible after wandering");
 	}
 
 	CHECK(live == 0, "nothing leaked: %d", live);

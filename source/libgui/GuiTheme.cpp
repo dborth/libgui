@@ -1,6 +1,6 @@
 /****************************************************************************
  * libgui
- * Daryl Borth 2009-2026
+ * Daryl Borth 2026
  * GuiTheme.cpp
  ***************************************************************************/
 
@@ -84,4 +84,16 @@ GuiShapeStyle GuiTheme::buttonStyle() const
 GuiShapeStyle GuiTheme::chipStyle() const
 {
 	return GuiShapeStyle(GuiPaint().color(outline));
+}
+
+GuiShapeStyle GuiTheme::rowStyle() const
+{
+	GuiPaint lit = GuiPaint().color(rgb(62, 74, 94));
+	GuiPaint pressed = GuiPaint().color(rgb(accent.r, accent.g, accent.b, 110));
+	return GuiShapeStyle(GuiPaint()).onFocus(lit).onPress(pressed);
+}
+
+GuiShapeStyle GuiTheme::barStyle() const
+{
+	return GuiShapeStyle(GuiPaint().color(rgb(8, 10, 14)));
 }

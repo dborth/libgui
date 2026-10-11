@@ -20,6 +20,7 @@
 #include "menu.h"
 #include "shapesdemo.h"
 #include "layoutdemo.h"
+#include "controllerdemo.h"
 #include "demo.h"
 #include "filelist.h"
 #include "filebrowser.h"
@@ -699,8 +700,41 @@ static int MenuLayout()
 	{
 		if(!UpdateGui()) return MENU_EXIT;
 
+		if(demo.configButton().getState() == STATE::CLICKED)
+			menu = MENU_CONTROLLER;
+
 		if(demo.backButton().getState() == STATE::CLICKED)
 			menu = MENU_SETTINGS;
+	}
+
+	return menu;
+}
+
+/****************************************************************************
+ * MenuController
+ ***************************************************************************/
+static int MenuController()
+{
+	int menu = MENU_NONE;
+
+	GuiSound btnSoundOver(button_over_pcm, button_over_pcm_size, SOUND::PCM);
+
+	GuiTrigger trigA;
+	trigA.setPrimaryTrigger();
+
+	GuiControllerDemo demo(&trigA, &btnSoundOver);
+
+	GuiWindow w(platform->getVideo()->getScreenWidth(), platform->getVideo()->getScreenHeight());
+	w.append(&demo);
+
+	mainWindow->appendWithAutoRemove(&w);
+
+	while(menu == MENU_NONE)
+	{
+		if(!UpdateGui()) return MENU_EXIT;
+
+		if(demo.backButton().getState() == STATE::CLICKED)
+			menu = MENU_LAYOUT;
 	}
 
 	return menu;
@@ -1033,6 +1067,9 @@ void MainMenu(int menu)
 				break;
 			case MENU_LAYOUT:
 				currentMenu = MenuLayout();
+				break;
+			case MENU_CONTROLLER:
+				currentMenu = MenuController();
 				break;
 			default: // unrecognized menu
 				currentMenu = MenuSettings();

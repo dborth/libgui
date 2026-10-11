@@ -1,6 +1,6 @@
 /****************************************************************************
  * libgui
- * Daryl Borth 2009-2026
+ * Daryl Borth 2026
  * GuiTheme.h
  *
  * One place for the colors and metrics a code-drawn UI shares, and ready
@@ -49,4 +49,8 @@ struct GuiTheme {
 	GuiShapeStyle buttonStyle() const;
 	//!A small label background (a "chip")
 	GuiShapeStyle chipStyle() const;
+	//!A flat list row: invisible at rest, a gray bar when focused, tinted when pressed
+	GuiShapeStyle rowStyle() const;
+	//!A dark strip for a hint or status bar
+	GuiShapeStyle barStyle() const;
 };

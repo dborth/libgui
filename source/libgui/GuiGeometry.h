@@ -72,6 +72,16 @@ struct GuiFill {
 	static GuiFill linear(PixelColor a, PixelColor b, float angleDeg);
 };
 
+//!A rounded rectangle as a convex polygon, rotated about its center. Use it where a shape
+//!has to be tilted, or where several shapes should merge into one silhouette (draw each
+//!piece's outline stroke first and the fills after, and the joins disappear).
+//!\param r Rectangle before rotation
+//!\param radius Corner radius (clamped to half the shorter side)
+//!\param angleDeg Rotation in degrees, clockwise on screen
+//!\param tolerance Largest allowed distance between the true curve and the polygon
+//!\ingroup grp_shapes
+std::vector<GuiPoint> GuiRoundRectPolygon(const GuiRect& r, float radius, float angleDeg, float tolerance = 0.15f);
+
 //!Accumulates shapes as a triangle list of MeshVertex. Build one when a
 //!shape's size or style changes and keep it; drawing it again is free of
 //!any geometry work.

@@ -32,7 +32,10 @@ wchar_t * GuiTextRenderer::charToWideChar(const char * p)
 	return w;
 }
 void GuiTextRenderer::setPixelSize(int16_t px) { g_pixelSize = px; }
-uint16_t GuiTextRenderer::getWidth(const wchar_t * t) { return (uint16_t)(wcslen(t) * (size_t)g_pixelSize / 2); }
+#ifndef HOST_CHAR_WIDTH_PERCENT
+#define HOST_CHAR_WIDTH_PERCENT 50 // average glyph width as a percentage of the pixel size
+#endif
+uint16_t GuiTextRenderer::getWidth(const wchar_t * t) { return (uint16_t)(wcslen(t) * (size_t)g_pixelSize * HOST_CHAR_WIDTH_PERCENT / 100); }
 uint16_t GuiTextRenderer::getHeight(const wchar_t *) { return (uint16_t)(g_pixelSize + 4); }
 uint16_t GuiTextRenderer::drawText(int16_t, int16_t, const wchar_t *, PixelColor, uint32_t) { return 0; }
 

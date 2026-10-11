@@ -17,3 +17,4 @@ build/
 /test/elements_test
 /test/stubs/
 /test/ui_test
+/test/controller_test

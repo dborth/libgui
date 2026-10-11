@@ -2,10 +2,14 @@
 CXX ?= g++
 CXXFLAGS ?= -std=c++11 -O2 -Wall -Wextra
 
-all: out geometry_test paint_test layout_test
+all: out geometry_test paint_test layout_test controller_test
 	./geometry_test
 	./paint_test
 	./layout_test
+	./controller_test
+
+controller_test: test_controller.cpp Raster.h ../source/libgui/GuiControllerDraw.cpp ../source/libgui/GuiControllerLayout.cpp ../source/libgui/GuiGeometry.cpp ../source/libgui/GuiPaint.cpp ../source/libgui/GuiTheme.cpp
+	$(CXX) $(CXXFLAGS) -o $@ test_controller.cpp ../source/libgui/GuiControllerDraw.cpp ../source/libgui/GuiControllerLayout.cpp ../source/libgui/GuiGeometry.cpp ../source/libgui/GuiPaint.cpp ../source/libgui/GuiTheme.cpp
 
 # Also runs the real container and window classes (needs FreeType headers; see below)
 elements: stubs elements_test ui_test
@@ -29,7 +33,8 @@ layout_test: test_layout.cpp ../source/libgui/GuiLayoutSolver.cpp ../source/libg
 # test_ui is built with AddressSanitizer so teardown-order mistakes fail loudly.
 FT_CFLAGS ?= $(shell pkg-config --cflags freetype2 2>/dev/null || echo -I/usr/include/freetype2)
 HOST_SRC = host_stubs.cpp $(addprefix ../source/libgui/, GuiLayout.cpp GuiWindow.cpp GuiElement.cpp GuiLayoutSolver.cpp \
-	GuiGeometry.cpp GuiUi.cpp GuiButton.cpp GuiShape.cpp GuiPaint.cpp GuiTheme.cpp GuiText.cpp)
+	GuiGeometry.cpp GuiUi.cpp GuiButton.cpp GuiShape.cpp GuiPaint.cpp GuiTheme.cpp GuiText.cpp \
+	GuiControllerView.cpp GuiControllerDraw.cpp GuiControllerLayout.cpp GuiGlyph.cpp)
 
 stubs: ../source/filelist.h
 	mkdir -p stubs
@@ -39,10 +44,10 @@ stubs: ../source/filelist.h
 elements_test: test_layout_elements.cpp $(HOST_SRC)
 	$(CXX) $(CXXFLAGS) -I../source $(FT_CFLAGS) -Istubs -o $@ test_layout_elements.cpp $(HOST_SRC)
 
-ui_test: test_ui.cpp ../source/layoutdemo.cpp ../source/layoutdemo.h $(HOST_SRC)
-	$(CXX) $(CXXFLAGS) -fsanitize=address,undefined -fno-omit-frame-pointer -I../source $(FT_CFLAGS) -Istubs -o $@ test_ui.cpp ../source/layoutdemo.cpp $(HOST_SRC)
+ui_test: test_ui.cpp ../source/layoutdemo.cpp ../source/layoutdemo.h ../source/controllerdemo.cpp ../source/controllerdemo.h $(HOST_SRC)
+	$(CXX) $(CXXFLAGS) -fsanitize=address,undefined -fno-omit-frame-pointer -I../source $(FT_CFLAGS) -Istubs -o $@ test_ui.cpp ../source/layoutdemo.cpp ../source/controllerdemo.cpp $(HOST_SRC)
 
 clean:
-	rm -rf geometry_test paint_test layout_test elements_test ui_test stubs out
+	rm -rf geometry_test paint_test layout_test controller_test elements_test ui_test stubs out
 
 .PHONY: all elements stubs clean

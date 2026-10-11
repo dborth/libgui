@@ -1,6 +1,6 @@
 /****************************************************************************
  * libgui Template
- * Daryl Borth 2009-2026
+ * Daryl Borth 2026
  * layoutdemo.h
  * The Controllers screen from the design mockups, described with the builder
  * layer (UiScope): no pixel coordinates, no new/delete, no per-widget helper
@@ -19,6 +19,8 @@ class GuiLayoutDemo : public GuiColumn
 		//!\param soundOver Sound played when a button or card gets the selection (may be null)
 		GuiLayoutDemo(GuiTrigger * trigger, GuiSound * soundOver);
 		GuiButton& backButton() { return *backBtn; }
+		//!Opens the controller configuration screen
+		GuiButton& configButton() { return *configBtn; }
 	private:
 		struct Player {
 			const char * device;
@@ -36,6 +38,7 @@ class GuiLayoutDemo : public GuiColumn
 		int focused;			// the last card the selection visited (-1 = none yet)
 		std::string status;		// shown on the bottom line
 		GuiTextButton * backBtn;
+		GuiTextButton * configBtn;
 };
 
 #endif

@@ -1,6 +1,6 @@
 /****************************************************************************
  * libgui
- * Daryl Borth 2009-2026
+ * Daryl Borth 2026
  * GuiUi.h
  *
  * The builder layer. A UiScope creates and owns a page's elements, so a screen
@@ -209,6 +209,8 @@ class UiScope
 		GuiChip& chip(const char * text = "") { return make<GuiChip>(*this, text); }
 		GuiTextButton& button(const char * text) { return make<GuiTextButton>(*this, text); }
 		GuiCard& card() { return make<GuiCard>(*this); }
+		GuiGlyph& glyph(GLYPH kind, const char * letter = "") { return make<GuiGlyph>(kind, letter); }
+		GuiControllerView& controllerView(const GuiControllerLayout& layout, float scale = 1.0f) { return make<GuiControllerView>(layout, scale); }
 
 		//!Runs `fn` once per frame, before drawing
 		void bind(UiCallback fn);

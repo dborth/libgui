@@ -112,6 +112,26 @@ All notable changes to libgui are documented here. Versions follow
   (builder teardown order, bindings, callbacks, card selection and the whole demo screen's D-pad
   traversal). `make -C test all elements` runs everything; CI does.
 
+**Controller drawing and the configuration screen**
+* `GuiControllerLayout` describes a controller as data: a silhouette of rounded pieces and a table of
+  controls (round buttons, rounded rectangles, analog sticks) keyed by the `INPUT_BTN_*` /
+  `INPUT_TRIGGER_*` / `INPUT_THUMB_*` bits. `GuiProControllerLayout()` is a Pro-style pad (two sticks, D-pad,
+  ABXY, L/R/ZL/ZR, plus, minus, home, capture). Another controller is another table, not new drawing code.
+* `GuiControllerView` draws any layout from shapes: the silhouette is one merged outline, controls light up
+  while pressed (`setLit`), the control being edited is highlighted with a glow (`setHighlight`), an
+  optional line leads from a list row to it (`setLeader`), and analog sticks follow their position
+  (`setStick`). The drawing itself (`GuiBuildControllerBody`, `GuiBuildControllerSpot`, ...) is
+  platform-agnostic and host-tested.
+* `GuiGlyph` is a small control icon drawn from shapes (a lettered circle, a bumper, D-pad arrows, plus, minus,
+  stick click, capture, home) for list rows and hint bars; `ui.glyph(GLYPH::BUTTON, "A")`.
+* `GuiRoundRectPolygon()` returns a rounded rectangle as a polygon, rotated about its center, so a shape
+  can be tilted or several pieces merged into one silhouette (draw each piece's outline first and the fills after).
+* `GuiTheme::rowStyle()` (a flat list row that shows a gray bar when focused) and `barStyle()`.
+* Demo: a **Controller** page (Layout > Config) is a controller configuration screen: the controller in
+  the middle, shoulder and system controls in lists on either side, the sticks, D-pad and face buttons grouped
+  underneath, and a highlight and leader line that follow the selected row. Every row is a `GuiCard`, so the
+  D-pad and pointer move between them; A on a row picks the next example target.
+
 ## [2.01] - October 1, 2026
 
 ### Added

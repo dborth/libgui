@@ -1,6 +1,6 @@
 /****************************************************************************
  * libgui
- * Daryl Borth 2009-2026
+ * Daryl Borth 2026
  * GuiLayout.h
  *
  * Layout containers: GuiRow, GuiColumn, GuiGrid and GuiOverlay. They are

@@ -1,6 +1,6 @@
 /****************************************************************************
  * libgui
- * Daryl Borth 2009-2026
+ * Daryl Borth 2026
  * GuiLayoutSolver.h
  *
  * Platform-agnostic layout math: given the natural sizes of some items and a

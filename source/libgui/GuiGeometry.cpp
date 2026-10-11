@@ -570,3 +570,27 @@ void GuiMesh::addShadow(const GuiRect& r, const GuiCorners& c, float blur, float
 	for(int k = 0; k < steps; k++)
 		emitBand(verts, rings[(size_t)k], alpha[k], rings[(size_t)k + 1], alpha[k + 1], ev);
 }
+
+std::vector<GuiPoint> GuiRoundRectPolygon(const GuiRect& r, float radius, float angleDeg, float tolerance)
+{
+	std::vector<GuiPoint> out;
+	if(r.w <= 0.0f || r.h <= 0.0f)
+		return out;
+
+	const float half = 0.5f * std::min(r.w, r.h);
+	const float rad = clampf(radius, 0.0f, half);
+	const int n = arcCount(rad, tolerance < 0.01f ? 0.01f : tolerance);
+	Ring ring = roundRectRing(r, GuiCorners(rad), 0.0f, n);
+
+	const float a = angleDeg * kPi / 180.0f;
+	const float c = cosf(a), s = sinf(a);
+	const float cx = r.x + r.w * 0.5f, cy = r.y + r.h * 0.5f;
+	out.reserve(ring.pts.size());
+	for(size_t i = 0; i < ring.pts.size(); i++)
+	{
+		const float dx = ring.pts[i].x - cx, dy = ring.pts[i].y - cy;
+		GuiPoint p = { cx + dx * c - dy * s, cy + dx * s + dy * c };
+		out.push_back(p);
+	}
+	return out;
+}

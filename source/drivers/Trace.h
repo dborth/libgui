@@ -1,6 +1,6 @@
 /****************************************************************************
  * libgui
- * Daryl Borth 2009-2026
+ * Daryl Borth 2026
  * Trace.h
  *
  * Stall diagnostics that don't disturb timing.
