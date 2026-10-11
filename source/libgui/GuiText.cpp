@@ -496,24 +496,3 @@ void GuiText::getNaturalSize(int& w, int& h)
 	if(maxWidth > 0 && w > maxWidth)
 		w = maxWidth;
 }
-
-void GuiText::setLayoutPosition(int x, int y)
-{
-	int w, h;
-	this->getNaturalSize(w, h);
-
-	// the text hangs from its anchor point according to its style; move the anchor
-	// so the text's top-left corner lands where the layout wants it
-	int ax = 0, ay = 0;
-	if(style & GUI_TEXT_JUSTIFY_CENTER)
-		ax = w / 2;
-	else if(style & GUI_TEXT_JUSTIFY_RIGHT)
-		ax = w;
-	if(style & GUI_TEXT_ALIGN_MIDDLE)
-		ay = h / 2;
-	else if(style & GUI_TEXT_ALIGN_BOTTOM)
-		ay = h;
-
-	this->setAlignment(ALIGN_H::LEFT, ALIGN_V::TOP);
-	this->setPosition(x + ax, y + ay);
-}

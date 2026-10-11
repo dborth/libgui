@@ -34,6 +34,22 @@ class Label : public GuiElement
 		int nw, nh;
 };
 
+// Mimics GuiText's anchoring: setAlignment decides which point of the text sits at (getLeft(), getTop()).
+// A layout container must leave the text with its top-left corner where it asked.
+class AnchoredText : public GuiElement
+{
+	public:
+		AnchoredText(int w, int h) : nw(w), nh(h), centred(true) { width = 0; height = 0; }
+		void getNaturalSize(int& w, int& h) override { w = nw; h = nh; }
+		void setAlignment(ALIGN_H hor, ALIGN_V vert) override { GuiElement::setAlignment(hor, vert); centred = hor == ALIGN_H::CENTRE || vert == ALIGN_V::MIDDLE; }
+		void draw() override {}
+		// where the text's top-left corner ends up on screen
+		int visualLeft() { return getLeft() - (centred ? nw / 2 : 0); }
+		int visualTop() { return getTop() - (centred ? nh / 2 : 0); }
+		int nw, nh;
+		bool centred; // default style is centred, like GuiText's
+};
+
 int main()
 {
 	// a row: positions follow natural sizes and spacing
@@ -88,6 +104,20 @@ int main()
 		t.nw = 100;
 		row.layout();
 		CHECK(b.getLeft() == 105 && row.getWidth() == 135, "a longer label pushes the next child: %d, row %d", b.getLeft(), row.getWidth());
+	}
+	// text-like elements whose anchor is set by setAlignment land with their top-left corner on the layout's position
+	{
+		AnchoredText t(60, 20), u(40, 20);
+		GuiRow row;
+		row.setSpacing(10).add(&t).add(&u);
+		row.layout();
+		CHECK(t.visualLeft() == 0 && t.visualTop() == 0, "first text's corner at the origin: %d,%d", t.visualLeft(), t.visualTop());
+		CHECK(u.visualLeft() == 70, "second text's corner after the first: %d", u.visualLeft());
+		AnchoredText v(80, 16);
+		GuiColumn col;
+		col.setPadding(12).add(&v);
+		col.layout();
+		CHECK(v.visualLeft() == 12 && v.visualTop() == 12, "padding respected: %d,%d", v.visualLeft(), v.visualTop());
 	}
 	// hidden children take no room
 	{

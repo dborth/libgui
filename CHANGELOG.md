@@ -71,16 +71,17 @@ All notable changes to libgui are documented here. Versions follow
   the platform-agnostic `GuiLayoutSolver` and is tested on the host.
 * `GuiElement` gains a small layout protocol (`getNaturalSize`,
   `setLayoutPosition`, `setLayoutSize`, `layout`, `collectNavigable`) with
-  defaults that suit any sized element. `GuiText` overrides it: it reports its
-  rendered size and is placed by its top-left corner whatever its
-  justification.
+  defaults that suit any sized element. `GuiText` reports its rendered size;
+  layout places text with `setAlignment(LEFT, TOP)`, which is what anchors it
+  by its top-left corner.
 * `GuiWindow` moves the D-pad selection through nested layout containers by
   on-screen position (`GuiNavigate`): the nearest selectable item in the
   direction, rows of mixed heights count as one row, and moving sideways past
   the end of a row continues on the next. Disabled buttons are skipped. A window
   without layout containers keeps the existing selection behaviour.
-* Demo: a **Layout** page (Shapes > Layout) builds the Controllers screen from
-  the design mockups with the containers; its buttons are reached with the D-pad.
+* Demo: a **Layout** page builds the Controllers screen from the design
+  mockups with the containers: a title bar, two cards, a grid of facts and a grid of
+  buttons that the D-pad moves between in every direction.
 
 ## [2.01] - October 1, 2026
 

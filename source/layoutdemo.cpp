@@ -27,16 +27,15 @@ DemoButton::DemoButton(const char * label, int w, int h, GuiTrigger * trigger, G
 }
 
 DemoPlayerCard::DemoPlayerCard(const char * number, const char * device, const char * battery, const char * role, const char * scheme) :
+	GuiOverlay(592, 0),
 	backdrop(1, 1),
 	numberTxt(number, 22, GuiTheme::current().accent),
 	deviceTxt(device, 20, GuiTheme::current().text),
 	batteryTxt(battery, 16, GuiTheme::current().textMuted),
 	roleTxt(role, 16, GuiTheme::current().text),
 	schemeTxt(scheme, 16, GuiTheme::current().textMuted),
-	hintTxt("Test  >   Map  >", 16, GuiTheme::current().textMuted),
 	chipBackdrop(1, 1),
-	header(264, 0),
-	details()
+	header(568, 0)
 {
 	const GuiTheme& theme = GuiTheme::current();
 
@@ -50,7 +49,7 @@ DemoPlayerCard::DemoPlayerCard(const char * number, const char * device, const c
 	chip.add(&chipBackdrop, GuiItem().background());
 	chip.add(&roleTxt);
 
-	// P1   Wiimote + Nunchuk        battery 80%
+	// P1   Wiimote + Nunchuk                        battery 80%
 	header.setSpacing(theme.spacing).setAlignItems(LAYOUT_ALIGN::CENTRE);
 	header.add(&numberTxt);
 	header.add(&deviceTxt, GuiItem().grow(1));
@@ -64,7 +63,6 @@ DemoPlayerCard::DemoPlayerCard(const char * number, const char * device, const c
 	body.setSpacing(theme.spacing);
 	body.add(&header);
 	body.add(&details);
-	body.add(&hintTxt);
 
 	// the card: a backdrop behind the content, with room around it
 	this->setPadding(theme.padding);
@@ -83,10 +81,13 @@ GuiLayoutDemo::GuiLayoutDemo(GuiTrigger * trigger, GuiSound * soundOver) :
 	mouseTxt("USB mouse: none", 15, GuiTheme::current().textMuted),
 	irTxt("Wiimote IR: no (Nunchuk)", 15, GuiTheme::current().textMuted),
 	touchTxt("GamePad touch: n/a", 15, GuiTheme::current().textMuted),
-	stripRow(560, 0),
+	stripGrid(2, 564, 0),
 	testBtn("Test", 150, 44, trigger, soundOver),
 	mapBtn("Map", 150, 44, trigger, soundOver),
-	backBtn("Go Back", 150, 44, trigger, soundOver)
+	resetBtn("Reset", 150, 44, trigger, soundOver),
+	identifyBtn("Identify", 150, 44, trigger, soundOver),
+	backBtn("Go Back", 150, 44, trigger, soundOver),
+	buttons(3)
 {
 	const GuiTheme& theme = GuiTheme::current();
 
@@ -95,25 +96,28 @@ GuiLayoutDemo::GuiLayoutDemo(GuiTrigger * trigger, GuiSound * soundOver) :
 	titleBar.addSpace();
 	titleBar.add(&schemeTxt);
 
-	cards.setSpacing(theme.spacing + 4);
+	cards.setSpacing(theme.spacing);
 	cards.add(&card1);
 	cards.add(&card2);
 
-	// four short facts spread evenly across a panel
+	// four short facts in two columns on a panel
 	stripBackdrop.setCorners(GuiCorners(theme.radius));
 	stripBackdrop.setStyle(theme.panelStyle());
-	stripRow.setJustify(LAYOUT_JUSTIFY::SPACE_BETWEEN);
-	stripRow.add(&keyboardTxt);
-	stripRow.add(&mouseTxt);
-	stripRow.add(&irTxt);
-	stripRow.add(&touchTxt);
+	stripGrid.setSpacing(0, 6);
+	stripGrid.add(&keyboardTxt);
+	stripGrid.add(&mouseTxt);
+	stripGrid.add(&irTxt);
+	stripGrid.add(&touchTxt);
 	strip.setPadding(14, 10);
 	strip.add(&stripBackdrop, GuiItem().background());
-	strip.add(&stripRow);
+	strip.add(&stripGrid);
 
+	// five buttons in rows of three: the D-pad moves between them in every direction
 	buttons.setSpacing(theme.spacing + 4);
 	buttons.add(&testBtn.button);
 	buttons.add(&mapBtn.button);
+	buttons.add(&resetBtn.button);
+	buttons.add(&identifyBtn.button);
 	buttons.add(&backBtn.button);
 
 	// the screen: top to bottom, placed once
@@ -123,5 +127,5 @@ GuiLayoutDemo::GuiLayoutDemo(GuiTrigger * trigger, GuiSound * soundOver) :
 	this->add(&strip);
 	this->add(&buttons);
 	this->setAlignment(ALIGN_H::LEFT, ALIGN_V::TOP);
-	this->setPosition(24, 20);
+	this->setPosition(24, 16);
 }

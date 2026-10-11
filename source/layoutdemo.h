@@ -23,21 +23,21 @@ class DemoButton
 		GuiText textLit;
 };
 
-//!One player's card: backdrop, a header row, a role chip and a hint line.
+//!One player's card: backdrop, a header row (number, device, battery) and a role chip with the scheme.
 class DemoPlayerCard : public GuiOverlay
 {
 	public:
 		DemoPlayerCard(const char * number, const char * device, const char * battery, const char * role, const char * scheme);
 	private:
 		GuiShape backdrop;
-		GuiText numberTxt, deviceTxt, batteryTxt, roleTxt, schemeTxt, hintTxt;
+		GuiText numberTxt, deviceTxt, batteryTxt, roleTxt, schemeTxt;
 		GuiShape chipBackdrop;
 		GuiOverlay chip;
 		GuiRow header, details;
 		GuiColumn body;
 };
 
-//!The whole screen: title bar, two cards, a devices strip and a row of buttons.
+//!The whole screen: title bar, two cards, a devices panel and a grid of buttons.
 class GuiLayoutDemo : public GuiColumn
 {
 	public:
@@ -47,13 +47,13 @@ class GuiLayoutDemo : public GuiColumn
 		GuiText titleTxt, schemeTxt;
 		GuiRow titleBar;
 		DemoPlayerCard card1, card2;
-		GuiRow cards;
+		GuiColumn cards;
 		GuiShape stripBackdrop;
 		GuiText keyboardTxt, mouseTxt, irTxt, touchTxt;
-		GuiRow stripRow;
+		GuiGrid stripGrid;
 		GuiOverlay strip;
-		DemoButton testBtn, mapBtn, backBtn;
-		GuiRow buttons;
+		DemoButton testBtn, mapBtn, resetBtn, identifyBtn, backBtn;
+		GuiGrid buttons;
 };
 
 #endif
