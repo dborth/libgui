@@ -61,6 +61,10 @@ struct GuiPaint {
 	static GuiPaint mix(const GuiPaint& a, const GuiPaint& b, float t);
 };
 
+//!Blends two colors per channel (alpha included): t = 0 gives a, t = 1 gives b.
+//!\ingroup grp_shapes
+PixelColor GuiMixColor(PixelColor a, PixelColor b, float t);
+
 //!The states a styled shape distinguishes.
 //!\ingroup grp_shapes
 enum class SHAPE_STATE {

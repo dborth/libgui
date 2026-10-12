@@ -240,6 +240,30 @@ int main()
 		CHECK(s1->getState() == STATE::DEFAULT, "enabled again");
 	}
 
+	// ---- selection skips hidden elements
+	{
+		UiScope ui;
+		Page host; GuiWindow& page = host.page;
+		bool showMiddle = false;
+		GuiTextButton& a = ui.button("A").size(100, 30);
+		GuiTextButton& b = ui.button("B").size(100, 30).visibleWhen([&]{ return showMiddle; });
+		GuiTextButton& c = ui.button("C").size(100, 30);
+		GuiColumn& col = ui.column();
+		col.gap(8).add(a).add(b).add(c);
+		page.append(&col);
+		ui.attachTo(page);
+		page.update(nullptr);
+		col.layout();
+		a.setState(STATE::SELECTED);
+		page.moveSelectionVert(1);
+		CHECK(c.getState() == STATE::SELECTED && b.getState() == STATE::DEFAULT, "a hidden button is skipped: C selected, B not");
+		showMiddle = true;
+		page.update(nullptr);
+		col.layout();
+		page.moveSelectionVert(-1);
+		CHECK(b.getState() == STATE::SELECTED, "and reachable once shown");
+	}
+
 	// ---- chips
 	{
 		UiScope ui;

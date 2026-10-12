@@ -132,6 +132,12 @@ All notable changes to libgui are documented here. Versions follow
   underneath, and a highlight and leader line that follow the selected row. Every row is a `GuiCard`, so the
   D-pad and pointer move between them; A on a row picks the next example target.
 
+**Theming**
+* The controller drawing and the list and bar styles don't bake in a palette: the silhouette, stick wells and
+  aps, the focused-row bar, the dark bar and the focused-button outline are derived from the `GuiTheme` colors
+  (`GuiMixColor()`, a new public per-channel blend), so an app theme recolors them.
+* Selection skips hidden elements (`visibleWhen(false)`), so a panel that is not showing cannot take the D-pad.
+
 ## [2.01] - October 1, 2026
 
 ### Added

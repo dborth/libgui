@@ -134,6 +134,29 @@ int main()
 		CHECK(writePng(im, "out/controller.png", 1), "could not write out/controller.png");
 	}
 
+	// ---- the drawing follows the theme: a gray theme gives a gray controller
+	{
+		GuiTheme saved = GuiTheme::current();
+		GuiTheme& t = GuiTheme::current();
+		t.background = { 30, 30, 30, 255 }; t.surface = { 46, 46, 46, 255 }; t.surfaceRaised = { 62, 62, 62, 255 };
+		t.outline = { 84, 84, 84, 255 }; t.outlineStrong = { 120, 120, 120, 255 };
+		GuiMesh body(1.0f);
+		GuiBuildControllerBody(body, pro, 1.0f);
+		bool tinted = false;
+		for(size_t i = 0; i < body.size(); i++)
+		{
+			const PixelColor& c = body.vertices()[i].c;
+			if(c.r != c.g || c.g != c.b) tinted = true;
+		}
+		CHECK(!tinted, "no blue tint is baked into the silhouette");
+		GuiMesh stick(1.0f), cap(1.0f);
+		GuiBuildControllerSpot(stick, *pro.find(INPUT_THUMB_L), CTL_STATE::NORMAL, 1.0f);
+		GuiBuildControllerStickCap(cap, *pro.find(INPUT_THUMB_L), 0, 0, false, 1.0f);
+		for(size_t i = 0; i < stick.size(); i++) { const PixelColor& c = stick.vertices()[i].c; CHECK(c.r == c.g && c.g == c.b, "stick well and rings are gray: %d,%d,%d", c.r, c.g, c.b); break; }
+		for(size_t i = 0; i < cap.size(); i++) { const PixelColor& c = cap.vertices()[i].c; if(c.r != c.g || c.g != c.b) { CHECK(false, "stick cap is gray: %d,%d,%d", c.r, c.g, c.b); break; } }
+		GuiTheme::current() = saved;
+	}
+
 	// ---- glyphs
 	{
 		const GLYPH kinds[] = { GLYPH::BUTTON, GLYPH::BUMPER, GLYPH::UP, GLYPH::DOWN, GLYPH::LEFT, GLYPH::RIGHT, GLYPH::PLUS, GLYPH::MINUS, GLYPH::STICK, GLYPH::CAPTURE, GLYPH::HOME };

@@ -119,6 +119,22 @@ int main()
 		CHECK(GuiTheme::current().buttonStyle().forState(SHAPE_STATE::FOCUSED).fill.to.g == 200, "styles follow the theme");
 	}
 
+	// the shared color mix, and styles that follow the theme (no baked-in colors)
+	{
+		PixelColor a = { 0, 100, 200, 255 }, b = { 100, 200, 0, 55 };
+		PixelColor m = GuiMixColor(a, b, 0.5f);
+		CHECK(m.r == 50 && m.g == 150 && m.b == 100 && m.a == 155, "mix: %d,%d,%d,%d", m.r, m.g, m.b, m.a);
+		CHECK(GuiMixColor(a, b, 0.0f).g == 100 && GuiMixColor(a, b, 1.0f).g == 200 && GuiMixColor(a, b, 9.0f).g == 200, "mix ends and clamp");
+
+		GuiTheme gray;
+		gray.background = rgba(30, 30, 30); gray.surface = rgba(46, 46, 46); gray.surfaceRaised = rgba(62, 62, 62);
+		gray.outline = rgba(84, 84, 84); gray.outlineStrong = rgba(120, 120, 120);
+		const PixelColor row = gray.rowStyle().forState(SHAPE_STATE::FOCUSED).fill.from;
+		CHECK(row.r == row.g && row.g == row.b, "a gray theme gives a gray focus bar: %d,%d,%d", row.r, row.g, row.b);
+		const PixelColor bar = gray.barStyle().forState(SHAPE_STATE::NORMAL).fill.from;
+		CHECK(bar.r == bar.g && bar.g == bar.b && bar.r < gray.background.r, "and a gray, darker bar: %d,%d,%d", bar.r, bar.g, bar.b);
+	}
+
 	printf("%d checks, %d failures\n", checks, failures);
 	return failures ? 1 : 0;
 }

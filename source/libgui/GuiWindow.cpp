@@ -288,7 +288,7 @@ void GuiWindow::moveSelectionIn(std::vector<GuiElement*>& list, NAV_DIR d)
 		items[i].r.y = (float)list[i]->getTop();
 		items[i].r.w = (float)list[i]->getWidth();
 		items[i].r.h = (float)list[i]->getHeight();
-		items[i].selectable = list[i]->isSelectable() && list[i]->getState() != STATE::DISABLED;
+		items[i].selectable = list[i]->isSelectable() && list[i]->isVisible() && list[i]->getState() != STATE::DISABLED;
 	}
 
 	int next = GuiNavigate(items, current, d);

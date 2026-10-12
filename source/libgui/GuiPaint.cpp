@@ -239,3 +239,8 @@ void GuiAddPaintedShape(GuiMesh& mesh, SHAPE shape, const GuiRect& r, const GuiC
 			mesh.strokeRoundRect(r, corners, paint.strokeWidth, paint.strokeAlign, paint.strokeFill);
 	}
 }
+
+PixelColor GuiMixColor(PixelColor a, PixelColor b, float t)
+{
+	return mixColor(a, b, clamp01(t));
+}

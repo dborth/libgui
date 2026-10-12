@@ -33,7 +33,7 @@ void GuiBuildControllerBody(GuiMesh& mesh, const GuiControllerLayout& layout, fl
 	const GuiTheme& theme = GuiTheme::current();
 	const float outline = std::max(1.5f, 2.0f * scale);
 	const GuiFill outlineFill = GuiFill::solid(theme.outlineStrong);
-	const GuiFill bodyFill = GuiFill::linear(rgb(30, 38, 52), rgb(22, 28, 38), 90);
+	const GuiFill bodyFill = GuiFill::linear(GuiMixColor(theme.surface, theme.surfaceRaised, 0.3f), GuiMixColor(theme.background, theme.surface, 0.5f), 90);
 
 	std::vector<std::vector<GuiPoint> > pieces;
 	for(size_t i = 0; i < layout.body.size(); i++)
@@ -67,11 +67,11 @@ void GuiBuildControllerSpot(GuiMesh& mesh, const GuiControlSpot& spot, CTL_STATE
 	const float stroke = std::max(1.2f, 1.5f * scale);
 	GuiRect r = { spot.x * scale, spot.y * scale, spot.w * scale, spot.h * scale };
 
-	PixelColor fill = spot.shape == CTL_SHAPE::STICK ? rgb(14, 18, 24) : theme.surface;
+	PixelColor fill = spot.shape == CTL_SHAPE::STICK ? theme.background : theme.surface;
 	PixelColor edge = theme.outlineStrong;
 	if(lit)
 	{
-		fill = spot.shape == CTL_SHAPE::STICK ? rgb(14, 18, 24) : theme.good;
+		fill = spot.shape == CTL_SHAPE::STICK ? theme.background : theme.good;
 		edge = mixToWhite(theme.good, 0.35f);
 	}
 	if(hl)
@@ -120,7 +120,7 @@ void GuiBuildControllerStickCap(GuiMesh& mesh, const GuiControlSpot& spot, float
 	const float cy = (spot.y + spot.h * 0.5f) * scale + dy * travel;
 	GuiRect r = { cx - d * 0.5f, cy - d * 0.5f, d, d };
 
-	const PixelColor fill = lit ? theme.good : rgb(40, 50, 68);
+	const PixelColor fill = lit ? theme.good : theme.outline;
 	const PixelColor edge = lit ? mixToWhite(theme.good, 0.35f) : theme.outlineStrong;
 	mesh.addEllipse(r, GuiFill::linear(mixToWhite(fill, 0.12f), fill, 90));
 	mesh.strokeEllipse(r, std::max(1.2f, 1.5f * scale), STROKE::INSIDE, GuiFill::solid(edge));
