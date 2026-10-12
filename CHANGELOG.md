@@ -138,6 +138,9 @@ All notable changes to libgui are documented here. Versions follow
   (`GuiMixColor()`, a new public per-channel blend), so an app theme recolors them.
 * Selection skips hidden elements (`visibleWhen(false)`), so a panel that is not showing cannot take the D-pad.
 
+**Builders**
+* `GuiTextButton::fontSize()` sets the label's size, for compact buttons such as key caps.
+
 ## [2.01] - October 1, 2026
 
 ### Added

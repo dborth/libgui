@@ -180,6 +180,7 @@ int main()
 		btn.getNaturalSize(w, h);
 		CHECK(w > 160, "a growing button is resized by layout: %d", w);
 
+		btn.fontSize(14);
 		btn.setText("Longer");
 		btn.disabled();
 		CHECK(btn.getState() == STATE::DISABLED, "disabled()");

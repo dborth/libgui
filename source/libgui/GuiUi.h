@@ -88,6 +88,8 @@ class GuiTextButton : public GuiButton
 		GuiTextButton(UiScope& scope, const char * text);
 		//!Sets the size; the label stays centred
 		GuiTextButton& size(int w, int h);
+		//!Sets the label's font size (default 20)
+		GuiTextButton& fontSize(int px);
 		//!Called when the button is clicked. The button stays selected afterwards.
 		GuiTextButton& onClick(UiCallback fn);
 		//!Called when the button becomes selected (by the pointer or the D-pad)
