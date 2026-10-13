@@ -37,8 +37,9 @@ void GuiControllerView::clearLabels()
 
 void GuiControllerView::rebuild()
 {
-	width = (int)ceilf(layout->width * scale);
-	height = (int)ceilf(layout->height * scale);
+	// (a hair is taken off first: 400 * 0.6f is 240.000004 in floats and must not become 241)
+	width = (int)ceilf(layout->width * scale - 0.01f);
+	height = (int)ceilf(layout->height * scale - 0.01f);
 
 	spots.assign(layout->spots.size(), SpotCache());
 	for(size_t i = 0; i < spots.size(); i++)

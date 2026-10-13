@@ -141,6 +141,10 @@ All notable changes to libgui are documented here. Versions follow
 **Builders**
 * `GuiTextButton::fontSize()` sets the label's size, for compact buttons such as key caps.
 
+**Fixed**
+* `GuiControllerView` no longer rounds its size up by a pixel when `layout size * scale` is a whole number
+  that floating point leaves a hair high (400 * 0.6 gave 241 instead of 240).
+
 ## [2.01] - October 1, 2026
 
 ### Added
