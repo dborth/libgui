@@ -36,6 +36,31 @@ All notable changes to libgui are documented here. Versions follow
 * Demo: a **Shapes** page (Settings > Shapes) draws the gallery from
   `GuiMesh` with no image assets.
 
+**Shape mesh cache and backend-resident meshes**
+* New `GuiMeshCache` (`GuiMeshCache.h`): shapes with the same size,
+  corners, paint, feather and curve tolerance share one cached mesh
+  instead of each tessellating and holding its own (a keyboard's letter
+  keys use one). Unreferenced meshes stay cached up to a budget (32768
+  vertices, longest idle evicted first); `GuiMeshCache::flush()` frees
+  them, and the demo calls it when the menu exits.
+* `GuiShape` fades between states in four steps whose in-between meshes
+  are shared and cached, instead of re-tessellating every frame of a fade.
+* New `ImageRenderer::createMesh()` / `destroyMesh()` /
+  `drawMeshInstance()` (default no-ops, so `drawMesh()` remains the
+  fallback). A mesh drawn a second time is handed to the backend:
+  GameCube/Wii record it as a GX display list placed with the position
+  matrix (`GX_CallDispList`); Wii U keeps static GX2 vertex buffers placed
+  with `ColorShader`'s offset and scale (`WutDrawCmd::Kind::MeshInstance`).
+  Destroyed meshes are freed only once the GPU is done with them (after
+  `GX_DrawDone()` / after draining GX2 in `prepareFrame()`). Draws with
+  alpha below 255 still go through `drawMesh()`.
+* Smaller meshes: the default curve tolerance of `GuiMesh` is 0.3 (was
+  0.15), `GuiShape` uses 0.3 physical pixels, shadow bands scale with the
+  blur (2 to 6, was always 6), and a fill's anti-aliased edge is left out
+  where an opaque inside outline covers it (`edgeFringe` on
+  `addRoundRect()` / `addEllipse()` / `addRect()` / `addPolygon()`).
+  A resting 40x40 key goes from 2664 to 1332 vertices.
+
 **Code-drawn widgets: paints, themes, shapes**
 * `GuiPaint` describes a look (fill or gradient, outline, shadow or
   glow) as a chainable value: `GuiPaint().gradient(a, b).stroke(2, edge).shadow(14, black, 0, 4)`.

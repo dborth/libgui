@@ -79,6 +79,9 @@ int main(int, char **)
 	InitDeviceCheckingThread();
 	MainMenu(MENU_SETTINGS);
 
+	// the menu's shapes are gone: give back the meshes they shared, and the video backend's copies
+	GuiMeshCache::flush();
+
 	Thread::JoinAll();
 	platform->requestExit();
 }

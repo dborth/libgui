@@ -302,6 +302,48 @@ int main()
 		CHECK(writePng(zoom, "out/zoom_card_corner.png", 6), "could not write zoom image");
 	}
 
+	// Mesh size: what the shape cache and the video backends pay per draw
+	{
+		const GuiRect r = { 10, 10, 40, 40 };
+		const GuiCorners c(10);
+		const GuiFill fill = GuiFill::linear(rgba(70, 76, 92), rgba(40, 44, 56), 90);
+		const GuiFill edge = GuiFill::solid(rgba(110, 118, 140));
+
+		// a fill's anti-aliased edge can be left out, and the interior stays opaque
+		GuiMesh withEdge(1.0f), noEdge(1.0f);
+		withEdge.addRoundRect(r, c, fill, true);
+		noEdge.addRoundRect(r, c, fill, false);
+		checkSane(noEdge, "fill without edge fringe");
+		CHECK(noEdge.size() < withEdge.size(), "edge fringe should cost triangles: %zu vs %zu", noEdge.size(), withEdge.size());
+		bool opaque = true;
+		for(size_t i = 0; i < noEdge.size(); i++) opaque = opaque && noEdge.vertices()[i].c.a == 255;
+		CHECK(opaque, "a fill without an edge fringe is opaque throughout");
+
+		// under an opaque inside outline the result is the same picture
+		PixelColor bg = rgba(20, 22, 28);
+		Image a(60, 60, bg), b(60, 60, bg);
+		withEdge.strokeRoundRect(r, c, 1.5f, STROKE::INSIDE, edge);
+		noEdge.strokeRoundRect(r, c, 1.5f, STROKE::INSIDE, edge);
+		drawTriangles(a, withEdge.vertices());
+		drawTriangles(b, noEdge.vertices());
+		float worst = 0;
+		for(size_t i = 0; i < a.px.size(); i++) worst = fmaxf(worst, fabsf(a.px[i] - b.px[i]));
+		CHECK(worst <= 60.0f, "dropping the fill fringe under an opaque outline changed a pixel by %.1f", worst);
+
+		// shadow bands follow the blur instead of a fixed count
+		GuiMesh small(1.0f), big(1.0f);
+		small.addShadow(r, c, 4, 0, 0, 1, rgba(0, 0, 0, 120));
+		big.addShadow(r, c, 20, 0, 0, 1, rgba(0, 0, 0, 120));
+		checkSane(small, "small shadow");
+		CHECK(small.size() < big.size(), "a 4px shadow should cost fewer triangles than a 20px one: %zu vs %zu", small.size(), big.size());
+
+		// the coarser default curve tolerance still hugs the true outline
+		GuiMesh coarse(1.0f);
+		coarse.addRoundRect(r, c, GuiFill::solid(rgba(255, 255, 255)));
+		double area = 40.0 * 40.0 - (4.0 - kPi) * 10.0 * 10.0; // a square minus its four rounded-off corners
+		expectInk(coarse, area, 0.02, "default-tolerance rounded rect");
+	}
+
 	printf("%d checks, %d failures\n", checks, failures);
 	return failures ? 1 : 0;
 }
