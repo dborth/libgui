@@ -72,6 +72,44 @@ struct GuiFill {
 	static GuiFill linear(PixelColor a, PixelColor b, float angleDeg);
 };
 
+//!A closed outline made of straight lines and cubic Beziers, in whatever units the caller likes.
+//!It is how a silhouette that is not a handful of rounded rectangles is stored (the controller
+//!outlines converted from SVG are lists of these). Commands: MOVE starts a contour (1 point), LINE
+//!draws to a point (1), CUBIC draws a cubic Bezier (3: two control points, then the end), CLOSE ends
+//!the contour (0). Points are stored flat as x, y pairs.
+//!\ingroup grp_shapes
+struct GuiPath {
+	enum CMD : uint8_t { MOVE = 'M', LINE = 'L', CUBIC = 'C', CLOSE = 'Z' };
+	std::vector<uint8_t> cmds;	/*!< One CMD per segment. */
+	std::vector<float> pts;		/*!< x, y pairs, as many as the commands consume. */
+
+	//!Checks whether the path has no commands
+	bool empty() const { return cmds.empty(); }
+	GuiPath& moveTo(float x, float y) { cmds.push_back(MOVE); pts.push_back(x); pts.push_back(y); return *this; }
+	GuiPath& lineTo(float x, float y) { cmds.push_back(LINE); pts.push_back(x); pts.push_back(y); return *this; }
+	GuiPath& cubicTo(float x1, float y1, float x2, float y2, float x, float y)
+	{
+		cmds.push_back(CUBIC);
+		pts.push_back(x1); pts.push_back(y1); pts.push_back(x2); pts.push_back(y2); pts.push_back(x); pts.push_back(y);
+		return *this;
+	}
+	GuiPath& close() { cmds.push_back(CLOSE); return *this; }
+};
+
+//!Turns a path into one polygon per contour, multiplied by `scale`. Curves are split until no part of the
+//!polygon is farther than `tolerance` from the true curve, so a flat stretch costs one segment and a tight
+//!corner costs more. A contour with fewer than 3 points is dropped.
+//!\param path The path
+//!\param scale Multiplies every coordinate
+//!\param tolerance Largest allowed distance between the true curve and the polygon, in the scaled units
+//!\ingroup grp_shapes
+std::vector<std::vector<GuiPoint> > GuiFlattenPath(const GuiPath& path, float scale, float tolerance = 0.15f);
+
+//!Gets the bounding box of a path's points (control points included, so it can be a little larger than the
+//!drawn curve), multiplied by `scale`
+//!\ingroup grp_shapes
+GuiRect GuiPathBounds(const GuiPath& path, float scale = 1.0f);
+
 //!A rounded rectangle as a convex polygon, rotated about its center. Use it where a shape
 //!has to be tilted, or where several shapes should merge into one silhouette (draw each
 //!piece's outline stroke first and the fills after, and the joins disappear).
@@ -106,6 +144,8 @@ class GuiMesh
 		const std::vector<MeshVertex>& vertices() const { return verts; }
 		//!Gets the feather width the mesh was built with
 		float getFeather() const { return feather; }
+		//!Gets the curve tolerance the mesh was built with
+		float getTolerance() const { return tolerance; }
 
 		//!Adds a filled rectangle
 		void addRect(const GuiRect& r, const GuiFill& fill, bool edgeFringe = true);
@@ -116,8 +156,9 @@ class GuiMesh
 		//!Adds a filled ellipse inscribed in a rectangle (a circle when w == h)
 		//!\param edgeFringe see addRoundRect()
 		void addEllipse(const GuiRect& r, const GuiFill& fill, bool edgeFringe = true);
-		//!Adds a filled convex polygon (triangle, chevron, ...). Concave shapes
-		//!must be split into convex pieces.
+		//!Adds a filled polygon (triangle, chevron, a controller silhouette, ...). The polygon may be
+		//!concave but must not cross itself. A convex one is filled as a fan; a concave one is
+		//!triangulated (ear clipping, quadratic in the vertex count, so build it once and keep the mesh).
 		void addPolygon(const std::vector<GuiPoint>& pts, const GuiFill& fill, bool edgeFringe = true);
 		//!Adds a straight line with flat ends
 		void addLine(GuiPoint a, GuiPoint b, float width, const GuiFill& fill);
@@ -126,7 +167,8 @@ class GuiMesh
 		void strokeRoundRect(const GuiRect& r, const GuiCorners& corners, float width, STROKE align, const GuiFill& fill);
 		//!Adds an ellipse outline
 		void strokeEllipse(const GuiRect& r, float width, STROKE align, const GuiFill& fill);
-		//!Adds a convex-polygon outline with mitered corners
+		//!Adds a polygon outline with mitered corners (the miter is capped on very sharp corners). A concave
+		//!polygon works as long as the stroke is thin compared with its smallest notch.
 		void strokePolygon(const std::vector<GuiPoint>& pts, float width, STROKE align, const GuiFill& fill);
 		//!Adds an arc stroke centered on a radius, with flat ends. Used for
 		//!progress rings. Angles are in degrees, 0 = +X (right), increasing clockwise on screen.

@@ -16,6 +16,11 @@ All notable changes to libgui are documented here. Versions follow
   color or a two-color linear gradient. Edges are anti-aliased by a
   feathered fringe that fades to alpha 0, so no multisampling is needed.
   Platform-agnostic: no GX, GX2 or FreeType dependency.
+* `GuiPath` (lines and cubic Beziers) and `GuiFlattenPath()` /
+  `GuiPathBounds()`: flatten to a polygon within a tolerance
+* `GuiMesh::addPolygon()` fills concave polygons (ear clipping). Strokes 
+  don't fold over a corner next to a very short edge, and every triangle of 
+  a band or fill is wound the same way.
 * `PixelColor` moved from `VideoDriver.h` to the new `drivers/Mesh.h`
   (still included by `VideoDriver.h`) next to the new `MeshVertex`, so
   host builds can use them without FreeType.
