@@ -32,9 +32,11 @@ layout_test: test_layout.cpp ../source/libgui/GuiLayoutSolver.cpp ../source/libg
 # the text renderer) and stand-ins for the asset headers the build normally generates from data/.
 # test_ui is built with AddressSanitizer so teardown-order mistakes fail loudly.
 FT_CFLAGS ?= $(shell pkg-config --cflags freetype2 2>/dev/null || echo -I/usr/include/freetype2)
-HOST_SRC = host_stubs.cpp $(addprefix ../source/libgui/, GuiLayout.cpp GuiWindow.cpp GuiElement.cpp GuiLayoutSolver.cpp \
+# Mutex.cpp is the real RAII wrapper; with platform == nullptr (host_stubs.cpp) it is a harmless no-op,
+# which is all GuiMeshCache's lock needs in these single-threaded tests.
+HOST_SRC = host_stubs.cpp ../source/drivers/Mutex.cpp $(addprefix ../source/libgui/, GuiLayout.cpp GuiWindow.cpp GuiElement.cpp GuiLayoutSolver.cpp \
 	GuiGeometry.cpp GuiUi.cpp GuiButton.cpp GuiShape.cpp GuiPaint.cpp GuiTheme.cpp GuiText.cpp \
-	GuiControllerView.cpp GuiControllerDraw.cpp GuiControllerLayout.cpp GuiGlyph.cpp)
+	GuiControllerView.cpp GuiControllerDraw.cpp GuiControllerLayout.cpp GuiGlyph.cpp GuiMeshCache.cpp)
 
 stubs: ../source/filelist.h
 	mkdir -p stubs
