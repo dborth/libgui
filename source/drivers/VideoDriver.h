@@ -16,7 +16,6 @@
 
 // PixelColor and MeshVertex live in Mesh.h so host builds can use them without FreeType
 
-
 class ImageRenderer;
 class GlyphRenderer;
 
@@ -77,6 +76,11 @@ class ImageRenderer
 		virtual void * createTexture(int width, int height) = 0;
 		//! Loads raw RGBA8 pixels into the pre-allocated texture
 		virtual void loadTextureData(void * texture, const uint8_t * rgba, int width, int height) = 0;
+		//!Whether a texture allocated for allocWidth x allocHeight can be reloaded in place
+		virtual bool canReuseTexture(int allocWidth, int allocHeight, int width, int height) const
+		{
+			return width <= allocWidth && height <= allocHeight;
+		}
 		//!Destroys a texture created by createTexture.
 		virtual void destroyTexture(void * texture) = 0;
 		//!Draws a texture created by createTexture.

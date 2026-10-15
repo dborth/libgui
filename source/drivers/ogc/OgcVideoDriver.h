@@ -40,8 +40,8 @@ class OgcVideoDriver : public VideoDriver
 		GXRModeObj* vmode = nullptr;
 		void* gp_fifo = nullptr;
 
-		ImageRenderer* imageRenderer;
-		GlyphRenderer* glyphRenderer;
+		ImageRenderer* imageRenderer = nullptr;
+		GlyphRenderer* glyphRenderer = nullptr;
 };
 
 //!GX-backed ImageRenderer for GuiImage/GuiImageData textures.
