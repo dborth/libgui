@@ -71,6 +71,8 @@ void OgcFreeRetiredMeshes();
 class OgcGlyphRenderer : public GlyphRenderer {
 	private:
 		uint8_t vertexIndex;
+		bool inText;			//!< between beginText() and endText(): the glyph state is already set
+		bool textureCacheStale;	//!< glyph texture memory has changed since the texture cache was last invalidated
 
 	public:
 		//!\param vtxFmtIndex GX vertex format slot this renderer's draws use
@@ -81,6 +83,8 @@ class OgcGlyphRenderer : public GlyphRenderer {
 		void loadTextureData(void* texture, FT_Bitmap* bitmap) override;
 		void destroyTexture(void* texture) override;
 
+		void beginText() override;
+		void endText() override;
 		void drawQuad(void* texture, int16_t screenX, int16_t screenY, uint16_t width, uint16_t height, const PixelColor& color) override;
 		void drawFeature(int16_t screenX, int16_t screenY, uint16_t width, uint16_t height, const PixelColor& color) override;
 

@@ -135,10 +135,12 @@ class GuiLayout : public GuiWindow
 		void syncEntries();
 
 		std::vector<Entry> entries;
+		std::vector<Entry*> visibleScratch;	//!< layout() works in this, so a pass allocates nothing once it has grown
 		int userFixedW, userFixedH;
 		int assignedW, assignedH;
 		int naturalW, naturalH;
 		bool dirty;
+		bool settled;						//!< layout() has run since this was last updated or drawn, so doing it again is wasted work
 };
 
 //!Lays children out left to right.

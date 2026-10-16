@@ -7,6 +7,7 @@
 
 #include <stdint.h>
 #include <map>
+#include <vector>
 #include <ft2build.h>
 #include FT_FREETYPE_H
 
@@ -85,10 +86,25 @@ private:
 
 	struct ftData {
 		FontOffset align;
+		bool metricsReady;
 		std::map<wchar_t, GlyphData> charMap;
+
+		// Direct index for the first 256 characters, so the common lookup is one array read rather than
+		// two std::map searches. null: not looked up yet; &missingGlyph: the font has no such glyph.
+		GlyphData* fast[256];
+
+		ftData() : metricsReady(false) {
+			align.ascender = align.descender = align.max = align.min = 0;
+			for (int i = 0; i < 256; ++i) fast[i] = nullptr;
+		}
 	};
 
 	std::map<int16_t, ftData> fontData;
+	ftData* current;	// fontData[currentPixelSize], or null until it is needed (map nodes never move)
+	std::vector<uint16_t> widthScratch;	// scrollWindow()'s running widths, kept so it doesn't allocate
+	std::vector<wchar_t> lineScratch;
+	static GlyphData missingGlyph;
+	static uint32_t metricsGeneration;
 
 	// Internal Calculations
 	int16_t getStyleOffsetWidth(uint16_t width, uint32_t format);
@@ -98,6 +114,9 @@ private:
 	// Font Management
 	void unloadFont();
 	GlyphData* cacheGlyphData(wchar_t charCode, int16_t pixelSize);
+	// The glyph for a character at the current size: the fast table first, cacheGlyphData() on a miss.
+	// null if the font has none.
+	GlyphData* glyph(wchar_t charCode);
 
 	// Physical-pixels-per-design-pixel glyphs are rasterized at (see
 	// VideoDriver::getUIScale()).
@@ -120,6 +139,9 @@ public:
 	//!repeatedly doesn't re-shape glyphs already seen at that size.
 	void setPixelSize(int16_t pixelSize);
 
+	//! Destroys every cached glyph texture. Glyphs are re-rendered when next used.
+	void clearGlyphCache() { unloadFont(); }
+
 	// Core Drawing Signatures
 	//!Draws text at (x, y) using the current pixel size.
 	//!\param x Left edge, in pixels
@@ -135,6 +157,22 @@ public:
 	// Dimensions & Offsets
 	//!\return text width in pixels at the current pixel size
 	uint16_t getWidth(const wchar_t* text);
+
+	//! How many leading characters of `text` fit in `maxWidth` (the largest n for which the first n
+	//! characters measure no wider than that), found in one pass. Same answer as trimming the string
+	//! one character at a time and calling getWidth() each time, without the repeated measuring.
+	int fitCount(const wchar_t* text, int maxWidth);
+
+	//! The part of a horizontally scrolling line that is shown at one scroll position: the text from
+	//! `pos` on, two spaces, then the start of the text again, cut to fit `maxWidth`. Measures the line
+	//! once rather than after every character added or removed, with the same result as doing that.
+	//! \param textlen Length of `text`
+	//! \param out Room for textlen + 1 characters
+	void scrollWindow(const wchar_t* text, uint32_t textlen, uint32_t pos, int maxWidth, wchar_t* out);
+
+	//! Changes whenever a measurement made earlier could now come out differently (a renderer was
+	//! made or its glyphs were thrown away). Anything that keeps text sizes can compare it.
+	static uint32_t getMetricsGeneration() { return metricsGeneration; }
 	//!\overload
 	uint16_t getWidth(const char* text);
 	//!\return text height in pixels at the current pixel size
