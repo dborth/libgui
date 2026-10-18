@@ -49,11 +49,10 @@ GuiCard& GuiControllerDemo::listRow(GLYPH glyph, const char * letter, const char
 	return row;
 }
 
-GuiControllerDemo::GuiControllerDemo(GuiTrigger * trigger, GuiSound * soundOver) :
+GuiControllerDemo::GuiControllerDemo(GuiTrigger * trigger) :
 	view(nullptr), status("Move over a control, A to change what it does"), backBtn(nullptr)
 {
 	ui.setTrigger(trigger);
-	ui.setSounds(soundOver, nullptr);
 	const GuiTheme& t = ui.theme();
 	const int sideW = 164;
 	const int groupW = 145;

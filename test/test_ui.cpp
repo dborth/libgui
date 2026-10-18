@@ -314,7 +314,7 @@ int main()
 	// ---- the Layout demo screen, built for real: it fits, and the D-pad reaches everything it should
 	{
 		Page host;
-		GuiLayoutDemo demo(nullptr, nullptr);
+		GuiLayoutDemo demo(nullptr);
 		host.page.append(&demo);
 		host.page.update(nullptr);
 		demo.layout();
@@ -367,7 +367,7 @@ int main()
 	// ---- the controller configuration screen
 	{
 		Page host;
-		GuiControllerDemo demo(nullptr, nullptr);
+		GuiControllerDemo demo(nullptr);
 		host.page.append(&demo);
 		host.page.update(nullptr);
 		demo.layout();

@@ -102,7 +102,6 @@ WindowPrompt(const char *title, const char *msg, const char *btn1Label, const ch
 	GuiWindow promptWindow(448,288);
 	promptWindow.setAlignment(ALIGN_H::CENTRE, ALIGN_V::MIDDLE);
 	promptWindow.setPosition(0, -10);
-	GuiSound btnSoundOver(button_over_pcm, button_over_pcm_size, SOUND::PCM);
 	GuiImageData btnOutline(button_png);
 	GuiImageData btnOutlineOver(button_over_png);
 	GuiTrigger trigA;
@@ -138,7 +137,6 @@ WindowPrompt(const char *title, const char *msg, const char *btn1Label, const ch
 	btn1.setLabel(&btn1Txt);
 	btn1.setImage(&btn1Img);
 	btn1.setImageOver(&btn1ImgOver);
-	btn1.setSoundOver(&btnSoundOver);
 	btn1.setTrigger(&trigA);
 	btn1.setState(STATE::SELECTED);
 	btn1.setEffectGrow();
@@ -152,7 +150,6 @@ WindowPrompt(const char *title, const char *msg, const char *btn1Label, const ch
 	btn2.setLabel(&btn2Txt);
 	btn2.setImage(&btn2Img);
 	btn2.setImageOver(&btn2ImgOver);
-	btn2.setSoundOver(&btnSoundOver);
 	btn2.setTrigger(&trigA);
 	btn2.setEffectGrow();
 
@@ -201,7 +198,6 @@ static void OnScreenKeyboard(char * var, uint16_t maxlen)
 
 	GuiKeyboard keyboard(var, maxlen);
 
-	GuiSound btnSoundOver(button_over_pcm, button_over_pcm_size, SOUND::PCM);
 	GuiImageData btnOutline(button_png);
 	GuiImageData btnOutlineOver(button_over_png);
 	GuiTrigger trigA;
@@ -218,7 +214,6 @@ static void OnScreenKeyboard(char * var, uint16_t maxlen)
 	okBtn.setLabel(&okBtnTxt);
 	okBtn.setImage(&okBtnImg);
 	okBtn.setImageOver(&okBtnImgOver);
-	okBtn.setSoundOver(&btnSoundOver);
 	okBtn.setTrigger(&trigA);
 	okBtn.setEffectGrow();
 
@@ -231,7 +226,6 @@ static void OnScreenKeyboard(char * var, uint16_t maxlen)
 	cancelBtn.setLabel(&cancelBtnTxt);
 	cancelBtn.setImage(&cancelBtnImg);
 	cancelBtn.setImageOver(&cancelBtnImgOver);
-	cancelBtn.setSoundOver(&btnSoundOver);
 	cancelBtn.setTrigger(&trigA);
 	cancelBtn.setEffectGrow();
 
@@ -393,7 +387,6 @@ static int MenuSettings()
 	titleTxt.setAlignment(ALIGN_H::LEFT, ALIGN_V::TOP);
 	titleTxt.setPosition(50,50);
 
-	GuiSound btnSoundOver(button_over_pcm, button_over_pcm_size, SOUND::PCM);
 	GuiImageData btnOutline(button_png);
 	GuiImageData btnOutlineOver(button_over_png);
 	GuiImageData btnLargeOutline(button_large_png);
@@ -412,7 +405,6 @@ static int MenuSettings()
 	fileBtn.setLabel(&fileBtnTxt);
 	fileBtn.setImage(&fileBtnImg);
 	fileBtn.setImageOver(&fileBtnImgOver);
-	fileBtn.setSoundOver(&btnSoundOver);
 	fileBtn.setTrigger(&trigA);
 	fileBtn.setEffectGrow();
 
@@ -426,7 +418,6 @@ static int MenuSettings()
 	shapesBtn.setLabel(&shapesBtnTxt);
 	shapesBtn.setImage(&shapesBtnImg);
 	shapesBtn.setImageOver(&shapesBtnImgOver);
-	shapesBtn.setSoundOver(&btnSoundOver);
 	shapesBtn.setTrigger(&trigA);
 	shapesBtn.setEffectGrow();
 
@@ -445,7 +436,6 @@ static int MenuSettings()
 	savingBtn.setLabel(&savingBtnTxt3, 2);
 	savingBtn.setImage(&savingBtnImg);
 	savingBtn.setImageOver(&savingBtnImgOver);
-	savingBtn.setSoundOver(&btnSoundOver);
 	savingBtn.setTrigger(&trigA);
 	savingBtn.setEffectGrow();
 
@@ -465,7 +455,6 @@ static int MenuSettings()
 	menuBtn.setLabel(&menuBtnTxt);
 	menuBtn.setImage(&menuBtnImg);
 	menuBtn.setImageOver(&menuBtnImgOver);
-	menuBtn.setSoundOver(&btnSoundOver);
 	menuBtn.setTrigger(&trigA);
 	menuBtn.setEffectGrow();
 
@@ -479,7 +468,6 @@ static int MenuSettings()
 	layoutBtn.setLabel(&layoutBtnTxt);
 	layoutBtn.setImage(&layoutBtnImg);
 	layoutBtn.setImageOver(&layoutBtnImgOver);
-	layoutBtn.setSoundOver(&btnSoundOver);
 	layoutBtn.setTrigger(&trigA);
 	layoutBtn.setEffectGrow();
 
@@ -493,7 +481,6 @@ static int MenuSettings()
 	networkBtn.setLabel(&networkBtnTxt);
 	networkBtn.setImage(&networkBtnImg);
 	networkBtn.setImageOver(&networkBtnImgOver);
-	networkBtn.setSoundOver(&btnSoundOver);
 	networkBtn.setTrigger(&trigA);
 	networkBtn.setEffectGrow();
 
@@ -506,7 +493,6 @@ static int MenuSettings()
 	exitBtn.setLabel(&exitBtnTxt);
 	exitBtn.setImage(&exitBtnImg);
 	exitBtn.setImageOver(&exitBtnImgOver);
-	exitBtn.setSoundOver(&btnSoundOver);
 	exitBtn.setTrigger(&trigA);
 	exitBtn.setEffectGrow();
 
@@ -519,7 +505,6 @@ static int MenuSettings()
 	resetBtn.setLabel(&resetBtnTxt);
 	resetBtn.setImage(&resetBtnImg);
 	resetBtn.setImageOver(&resetBtnImgOver);
-	resetBtn.setSoundOver(&btnSoundOver);
 	resetBtn.setTrigger(&trigA);
 	resetBtn.setEffectGrow();
 
@@ -600,7 +585,6 @@ static int MenuShapes()
 {
 	int menu = MENU_NONE;
 
-	GuiSound btnSoundOver(button_over_pcm, button_over_pcm_size, SOUND::PCM);
 	GuiImageData btnOutline(button_png);
 	GuiImageData btnOutlineOver(button_over_png);
 
@@ -626,7 +610,6 @@ static int MenuShapes()
 	liveBtn.setImage(&liveShape);
 	liveBtn.setLabel(&liveTxt);
 	liveBtn.setLabelOver(&liveTxtOver);
-	liveBtn.setSoundOver(&btnSoundOver);
 	liveBtn.setTrigger(&trigA);
 	liveBtn.setEffectGrow();
 
@@ -651,7 +634,6 @@ static int MenuShapes()
 	backBtn.setLabel(&backBtnTxt);
 	backBtn.setImage(&backBtnImg);
 	backBtn.setImageOver(&backBtnImgOver);
-	backBtn.setSoundOver(&btnSoundOver);
 	backBtn.setTrigger(&trigA);
 	backBtn.setEffectGrow();
 
@@ -684,12 +666,10 @@ static int MenuLayout()
 {
 	int menu = MENU_NONE;
 
-	GuiSound btnSoundOver(button_over_pcm, button_over_pcm_size, SOUND::PCM);
-
 	GuiTrigger trigA;
 	trigA.setPrimaryTrigger();
 
-	GuiLayoutDemo demo(&trigA, &btnSoundOver);
+	GuiLayoutDemo demo(&trigA);
 
 	GuiWindow w(platform->getVideo()->getScreenWidth(), platform->getVideo()->getScreenHeight());
 	w.append(&demo);
@@ -717,12 +697,10 @@ static int MenuController()
 {
 	int menu = MENU_NONE;
 
-	GuiSound btnSoundOver(button_over_pcm, button_over_pcm_size, SOUND::PCM);
-
 	GuiTrigger trigA;
 	trigA.setPrimaryTrigger();
 
-	GuiControllerDemo demo(&trigA, &btnSoundOver);
+	GuiControllerDemo demo(&trigA);
 
 	GuiWindow w(platform->getVideo()->getScreenWidth(), platform->getVideo()->getScreenHeight());
 	w.append(&demo);
@@ -763,7 +741,6 @@ static int MenuSettingsFile()
 	titleTxt.setAlignment(ALIGN_H::LEFT, ALIGN_V::TOP);
 	titleTxt.setPosition(50,50);
 
-	GuiSound btnSoundOver(button_over_pcm, button_over_pcm_size, SOUND::PCM);
 	GuiImageData btnOutline(button_png);
 	GuiImageData btnOutlineOver(button_over_png);
 
@@ -780,7 +757,6 @@ static int MenuSettingsFile()
 	backBtn.setLabel(&backBtnTxt);
 	backBtn.setImage(&backBtnImg);
 	backBtn.setImageOver(&backBtnImgOver);
-	backBtn.setSoundOver(&btnSoundOver);
 	backBtn.setTrigger(&trigA);
 	backBtn.setTrigger(&trigB);
 	backBtn.setEffectGrow();
@@ -915,7 +891,6 @@ static int MenuSettingsNetwork()
 	statusTxt.setAlignment(ALIGN_H::LEFT, ALIGN_V::TOP);
 	statusTxt.setPosition(50,180);
 
-	GuiSound btnSoundOver(button_over_pcm, button_over_pcm_size, SOUND::PCM);
 	GuiImageData btnOutline(button_png);
 	GuiImageData btnOutlineOver(button_over_png);
 
@@ -932,7 +907,6 @@ static int MenuSettingsNetwork()
 	connectBtn.setLabel(&connectBtnTxt);
 	connectBtn.setImage(&connectBtnImg);
 	connectBtn.setImageOver(&connectBtnImgOver);
-	connectBtn.setSoundOver(&btnSoundOver);
 	connectBtn.setTrigger(&trigA);
 	connectBtn.setEffectGrow();
 
@@ -945,7 +919,6 @@ static int MenuSettingsNetwork()
 	disconnectBtn.setLabel(&disconnectBtnTxt);
 	disconnectBtn.setImage(&disconnectBtnImg);
 	disconnectBtn.setImageOver(&disconnectBtnImgOver);
-	disconnectBtn.setSoundOver(&btnSoundOver);
 	disconnectBtn.setTrigger(&trigA);
 	disconnectBtn.setEffectGrow();
 
@@ -958,7 +931,6 @@ static int MenuSettingsNetwork()
 	backBtn.setLabel(&backBtnTxt);
 	backBtn.setImage(&backBtnImg);
 	backBtn.setImageOver(&backBtnImgOver);
-	backBtn.setSoundOver(&btnSoundOver);
 	backBtn.setTrigger(&trigA);
 	backBtn.setTrigger(&trigB);
 	backBtn.setEffectGrow();

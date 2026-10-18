@@ -16,8 +16,7 @@ class GuiLayoutDemo : public GuiColumn
 {
 	public:
 		//!\param trigger Trigger the buttons and cards click with (null for the default, A)
-		//!\param soundOver Sound played when a button or card gets the selection (may be null)
-		GuiLayoutDemo(GuiTrigger * trigger, GuiSound * soundOver);
+		GuiLayoutDemo(GuiTrigger * trigger);
 		GuiButton& backButton() { return *backBtn; }
 		//!Opens the controller configuration screen
 		GuiButton& configButton() { return *configBtn; }

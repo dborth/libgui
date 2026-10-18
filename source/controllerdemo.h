@@ -16,8 +16,7 @@ class GuiControllerDemo : public GuiColumn
 {
 	public:
 		//!\param trigger Trigger rows and buttons click with (null for the default, A)
-		//!\param soundOver Sound played when a row gets the selection (may be null)
-		GuiControllerDemo(GuiTrigger * trigger, GuiSound * soundOver);
+		GuiControllerDemo(GuiTrigger * trigger);
 		GuiButton& backButton() { return *backBtn; }
 		//!The control highlighted on the controller (0 = none)
 		int highlighted() const;

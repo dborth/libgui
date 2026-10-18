@@ -26,14 +26,13 @@ GuiCard& GuiLayoutDemo::playerCard(int n)
 				.add(ui.label(players[n].scheme).fontSize(16).muted())));
 }
 
-GuiLayoutDemo::GuiLayoutDemo(GuiTrigger * trigger, GuiSound * soundOver) :
+GuiLayoutDemo::GuiLayoutDemo(GuiTrigger * trigger) :
 	frame(0), focused(-1), status("Move with the D-pad or the pointer"), backBtn(nullptr), configBtn(nullptr)
 {
 	players[0] = Player{ "Wiimote + Nunchuk", "Joystick 1", "Arrow keys", 80 };
 	players[1] = Player{ "Classic Controller", "Keys + mouse", "Arrow keys", 45 };
 
 	ui.setTrigger(trigger);
-	ui.setSounds(soundOver, nullptr);
 	const GuiTheme& t = ui.theme();
 
 	ui.bind([this]{ frame++; });
