@@ -61,8 +61,6 @@ class GuiKeyboard : public GuiWindow
 		GuiImageData * keyMediumOver;
 		GuiImageData * keyLarge;
 		GuiImageData * keyLargeOver;
-		GuiSound * keySoundOver;
-		GuiSound * keySoundClick;
 		GuiTrigger * trigA;
 		Key keys[KB_ROWS][KB_COLUMNS]; //!< two chars = less space than one pointer
 		//!\endcond

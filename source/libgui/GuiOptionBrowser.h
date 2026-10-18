@@ -78,8 +78,6 @@ class GuiOptionBrowser : public GuiElement
 		GuiImageData * arrowUp;
 		GuiImageData * arrowUpOver;
 
-		GuiSound * btnSoundOver;
-		GuiSound * btnSoundClick;
 		GuiTrigger * trigA;
 
 		bool listChanged;

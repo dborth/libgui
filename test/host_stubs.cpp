@@ -19,7 +19,6 @@ GuiTrigger::GuiTrigger() {}
 void GuiTrigger::setPrimaryTrigger(int) {}
 bool GuiTrigger::isClicked(const InputController *) const { return g_triggerClicked; }
 bool GuiTrigger::isHeld(const InputController *) const { return false; }
-void GuiSound::play() {}
 
 // ---- text
 static int16_t g_pixelSize = 20;

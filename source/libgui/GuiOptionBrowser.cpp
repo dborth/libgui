@@ -21,9 +21,6 @@ GuiOptionBrowser::GuiOptionBrowser(int w, int h, OptionList * l)
 	trigA = new GuiTrigger;
 	trigA->setPrimaryTrigger();
 
-	btnSoundOver = new GuiSound(button_over_pcm, button_over_pcm_size, SOUND::PCM);
-	btnSoundClick = new GuiSound(button_click_pcm, button_click_pcm_size, SOUND::PCM);
-
 	bgOptions = new GuiImageData(bg_options_png);
 	bgOptionsImg = new GuiImage(bgOptions);
 	bgOptionsImg->setParent(this);
@@ -53,8 +50,6 @@ GuiOptionBrowser::GuiOptionBrowser(int w, int h, OptionList * l)
 	arrowUpBtn->setAlignment(ALIGN_H::RIGHT, ALIGN_V::TOP);
 	arrowUpBtn->setSelectable(false);
 	arrowUpBtn->setTrigger(trigA);
-	arrowUpBtn->setSoundOver(btnSoundOver);
-	arrowUpBtn->setSoundClick(btnSoundClick);
 
 	arrowDownBtn = new GuiButton(arrowDownImg->getWidth(), arrowDownImg->getHeight());
 	arrowDownBtn->setParent(this);
@@ -63,8 +58,6 @@ GuiOptionBrowser::GuiOptionBrowser(int w, int h, OptionList * l)
 	arrowDownBtn->setAlignment(ALIGN_H::RIGHT, ALIGN_V::BOTTOM);
 	arrowDownBtn->setSelectable(false);
 	arrowDownBtn->setTrigger(trigA);
-	arrowDownBtn->setSoundOver(btnSoundOver);
-	arrowDownBtn->setSoundClick(btnSoundClick);
 
 	for(int i=0; i<OPTION_PAGESIZE; i++)
 	{
@@ -87,7 +80,7 @@ GuiOptionBrowser::GuiOptionBrowser(int w, int h, OptionList * l)
 		optionBtn[i]->setImageOver(optionBg[i]);
 		optionBtn[i]->setPosition(2,30*i+3);
 		optionBtn[i]->setTrigger(trigA);
-		optionBtn[i]->setSoundClick(btnSoundClick);
+		optionBtn[i]->setSoundOver(nullptr);
 	}
 }
 
@@ -112,8 +105,6 @@ GuiOptionBrowser::~GuiOptionBrowser()
 	delete arrowUpOver;
 
 	delete trigA;
-	delete btnSoundOver;
-	delete btnSoundClick;
 
 	for(int i=0; i<OPTION_PAGESIZE; i++)
 	{

@@ -23,9 +23,6 @@ GuiFileBrowser::GuiFileBrowser(int w, int h)
 	trigHeldA = new GuiTrigger;
 	trigHeldA->setHeldTrigger(-1, INPUT_BTN_A);
 
-	btnSoundOver = new GuiSound(button_over_pcm, button_over_pcm_size, SOUND::PCM);
-	btnSoundClick = new GuiSound(button_click_pcm, button_click_pcm_size, SOUND::PCM);
-
 	bgFileSelection = new GuiImageData(bg_file_selection_png);
 	bgFileSelectionImg = new GuiImage(bgFileSelection);
 	bgFileSelectionImg->setParent(this);
@@ -63,8 +60,6 @@ GuiFileBrowser::GuiFileBrowser(int w, int h)
 	arrowUpBtn->setClickable(false);
 	arrowUpBtn->setHoldable(true);
 	arrowUpBtn->setTrigger(trigHeldA);
-	arrowUpBtn->setSoundOver(btnSoundOver);
-	arrowUpBtn->setSoundClick(btnSoundClick);
 
 	arrowDownBtn = new GuiButton(arrowDownImg->getWidth(), arrowDownImg->getHeight());
 	arrowDownBtn->setParent(this);
@@ -75,8 +70,6 @@ GuiFileBrowser::GuiFileBrowser(int w, int h)
 	arrowDownBtn->setClickable(false);
 	arrowDownBtn->setHoldable(true);
 	arrowDownBtn->setTrigger(trigHeldA);
-	arrowDownBtn->setSoundOver(btnSoundOver);
-	arrowDownBtn->setSoundClick(btnSoundClick);
 
 	scrollbarBoxBtn = new GuiButton(scrollbarBoxImg->getWidth(), scrollbarBoxImg->getHeight());
 	scrollbarBoxBtn->setParent(this);
@@ -105,7 +98,7 @@ GuiFileBrowser::GuiFileBrowser(int w, int h)
 		fileList[i]->setImageOver(fileListBg[i]);
 		fileList[i]->setPosition(2,30*i+3);
 		fileList[i]->setTrigger(trigA);
-		fileList[i]->setSoundClick(btnSoundClick);
+		fileList[i]->setSoundOver(nullptr); // rows click, but are silent on hover
 	}
 }
 
@@ -135,8 +128,6 @@ GuiFileBrowser::~GuiFileBrowser()
 	delete scrollbarBox;
 	delete scrollbarBoxOver;
 
-	delete btnSoundOver;
-	delete btnSoundClick;
 	delete trigHeldA;
 	delete trigA;
 

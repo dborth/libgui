@@ -1042,6 +1042,10 @@ void MainMenu(int menu)
 	GuiTrigger trigA;
 	trigA.setPrimaryTrigger();
 
+	static GuiSound menuSoundOver(button_over_pcm, button_over_pcm_size, SOUND::PCM);
+	static GuiSound menuSoundClick(button_click_pcm, button_click_pcm_size, SOUND::PCM);
+	GuiSound::setDefaultSounds(&menuSoundOver, &menuSoundClick);
+
 	bgMusic = new GuiSound(bg_music_ogg, bg_music_ogg_size, SOUND::OGG);
 	bgMusic->setVolume(50);
 	bgMusic->play(); // startup music

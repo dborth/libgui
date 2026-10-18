@@ -30,6 +30,16 @@ static void collect(GuiElement * e, std::vector<GuiElement *>& out)
 		collect(w->getGuiElementAt(i), out);
 }
 
+// exposes the sounds a GuiButton holds
+class CueButton : public GuiButton
+{
+	public:
+		CueButton() : GuiButton(10, 10) {}
+		GuiSound * over() { return soundOver; }
+		GuiSound * hold() { return soundHold; }
+		GuiSound * click() { return soundClick; }
+};
+
 static int live = 0;
 class Tracked : public GuiElement
 {
@@ -395,6 +405,33 @@ int main()
 		for(int i = 0; i < 12; i++) host.page.moveSelectionHor(1);
 		for(int i = 0; i < 12; i++) { host.page.moveSelectionHor(-1); host.page.update(nullptr); }
 		CHECK(demo.highlighted() != 0, "selection is somewhere sensible after wandering");
+	}
+
+	// default sound cues: registered once, picked up by every button and builder surface made afterwards
+	{
+		CHECK(GuiSound::getDefaultOver() == nullptr && GuiSound::getDefaultClick() == nullptr, "no sounds registered: silent by default");
+		GuiSound over, click, other;
+		GuiSound::setDefaultSounds(&over, &click);
+		CHECK(GuiSound::getDefaultOver() == &over && GuiSound::getDefaultClick() == &click, "defaults registered");
+		{
+			CueButton plain;
+			CHECK(plain.over() == &over && plain.click() == &click && plain.hold() == nullptr, "a new button plays the defaults");
+			CueButton replaced;
+			replaced.setSoundOver(&other);
+			CHECK(replaced.over() == &other && replaced.click() == &click, "a button can override one sound");
+			CueButton silenced;
+			silenced.setSoundOver(nullptr);
+			CHECK(silenced.over() == nullptr && silenced.click() == &click, "nullptr silences one sound");
+
+			UiScope scope;
+			CHECK(scope.getSoundOver() == &over && scope.getSoundClick() == &click, "a UiScope starts from the defaults");
+			scope.setSounds(nullptr, nullptr);
+			CHECK(scope.getSoundOver() == nullptr && scope.getSoundClick() == nullptr, "a UiScope can be made silent");
+		}
+		CueButton before;
+		GuiSound::setDefaultSounds(nullptr, nullptr);
+		CueButton after;
+		CHECK(before.over() == &over && after.over() == nullptr && after.click() == nullptr, "changing the defaults affects only buttons made afterwards");
 	}
 
 	CHECK(live == 0, "nothing leaked: %d", live);

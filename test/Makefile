@@ -36,7 +36,7 @@ FT_CFLAGS ?= $(shell pkg-config --cflags freetype2 2>/dev/null || echo -I/usr/in
 # which is all GuiMeshCache's lock needs in these single-threaded tests.
 HOST_SRC = host_stubs.cpp ../source/drivers/Mutex.cpp $(addprefix ../source/libgui/, GuiLayout.cpp GuiWindow.cpp GuiElement.cpp GuiLayoutSolver.cpp \
 	GuiGeometry.cpp GuiUi.cpp GuiButton.cpp GuiShape.cpp GuiPaint.cpp GuiTheme.cpp GuiText.cpp \
-	GuiControllerView.cpp GuiControllerDraw.cpp GuiControllerLayout.cpp GuiGlyph.cpp GuiMeshCache.cpp)
+	GuiControllerView.cpp GuiControllerDraw.cpp GuiControllerLayout.cpp GuiGlyph.cpp GuiMeshCache.cpp GuiSound.cpp)
 
 stubs: ../source/filelist.h
 	mkdir -p stubs
