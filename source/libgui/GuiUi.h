@@ -98,6 +98,8 @@ class GuiTextButton : public GuiButton
 		GuiTextButton& style(const GuiShapeStyle& s);
 		//!Squarer corners instead of a capsule
 		GuiTextButton& rounded(float radius);
+		//!The text color while the button is highlighted (default: the theme's text-on-accent, for a dark highlight; a light highlight needs dark text)
+		GuiTextButton& litTextColor(PixelColor c) { textLit.textColor(c); return *this; }
 		//!Disables or enables the button (a disabled button cannot be selected or clicked)
 		GuiTextButton& disabled(bool d = true);
 		//!Sets the text
@@ -154,6 +156,12 @@ class GuiCard : public GuiOverlay
 		GuiCard& disabled(bool d = true);
 		//!Shows the card only while `fn` returns true
 		GuiCard& visibleWhen(std::function<bool()> fn);
+		//!Gives the card the selection, as if the D-pad had moved onto it
+		void select() { surface.setState(STATE::SELECTED); }
+		//!Takes the selection away
+		void deselect() { surface.resetState(); }
+		//!Whether the card is the one with the selection (pointer over it, or the D-pad on it)
+		bool isSelected() { const STATE s = surface.getState(); return s == STATE::SELECTED || s == STATE::HELD; }
 		//!Enables the card only while `fn` returns true
 		GuiCard& enabledWhen(std::function<bool()> fn);
 		//!Same as the GuiLayout setters, but returning the card so calls can continue

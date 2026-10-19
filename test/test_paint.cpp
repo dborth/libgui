@@ -129,10 +129,66 @@ int main()
 		GuiTheme gray;
 		gray.background = rgba(30, 30, 30); gray.surface = rgba(46, 46, 46); gray.surfaceRaised = rgba(62, 62, 62);
 		gray.outline = rgba(84, 84, 84); gray.outlineStrong = rgba(120, 120, 120);
+		gray.highlight = GuiMixColor(gray.surfaceRaised, gray.outlineStrong, 0.65f);
 		const PixelColor row = gray.rowStyle().forState(SHAPE_STATE::FOCUSED).fill.from;
 		CHECK(row.r == row.g && row.g == row.b, "a gray theme gives a gray focus bar: %d,%d,%d", row.r, row.g, row.b);
 		const PixelColor bar = gray.barStyle().forState(SHAPE_STATE::NORMAL).fill.from;
 		CHECK(bar.r == bar.g && bar.g == bar.b && bar.r < gray.background.r, "and a gray, darker bar: %d,%d,%d", bar.r, bar.g, bar.b);
+	}
+
+	// highlight, mark and shadow: new theme fields whose defaults leave the look as it was
+	{
+		GuiTheme t;
+		const PixelColor derived = GuiMixColor(t.surfaceRaised, t.outlineStrong, 0.65f);
+		PixelColor row = t.rowStyle().forState(SHAPE_STATE::FOCUSED).fill.from;
+		CHECK(t.highlight.a == 255 && t.highlight.r == derived.r && t.highlight.g == derived.g && t.highlight.b == derived.b, "highlight defaults to the mix the row bar always used");
+		CHECK(row.r == derived.r && row.g == derived.g && row.b == derived.b, "so the default row bar is unchanged");
+		t.highlight = rgba(1, 2, 3);
+		row = t.rowStyle().forState(SHAPE_STATE::FOCUSED).fill.from;
+		CHECK(row.r == 1 && row.g == 2 && row.b == 3, "a set highlight is the row bar: %d,%d,%d", row.r, row.g, row.b);
+		CHECK(t.mark.r == 255 && t.mark.g == 150 && t.mark.b == 40, "mark defaults to the default accent");
+		GuiTheme u;
+		CHECK(u.cardStyle().forState(SHAPE_STATE::NORMAL).shadowColor.a == 150, "the card's shadow keeps its old strength");
+		u.shadow = rgba(0, 0, 0, 64);
+		CHECK(u.cardStyle().forState(SHAPE_STATE::NORMAL).shadowColor.a == 64, "the card's shadow follows the theme");
+	}
+
+	// triangles: fill only, one winding, the apex on the middle of a side, half of the rectangle covered
+	{
+		const GuiRect r = { 10, 20, 40, 30 };
+		struct Case { SHAPE shape; float ax, ay; const char * name; } cases[4] = {
+			{ SHAPE::TRIANGLE_UP, 30, 20, "up" }, { SHAPE::TRIANGLE_DOWN, 30, 50, "down" },
+			{ SHAPE::TRIANGLE_LEFT, 10, 35, "left" }, { SHAPE::TRIANGLE_RIGHT, 50, 35, "right" } };
+		const GuiPaint plain = GuiPaint().color(red);
+		const GuiPaint busy = GuiPaint().color(red).stroke(3, blue).shadow(10, black, 2, 2);
+		for(int i = 0; i < 4; i++)
+		{
+			GuiMesh m(1);
+			GuiAddPaintedShape(m, cases[i].shape, r, GuiCorners(8.0f), plain);
+			GuiMesh b(1);
+			GuiAddPaintedShape(b, cases[i].shape, r, GuiCorners(8.0f), busy);
+			const std::vector<MeshVertex>& v = m.vertices();
+			double ink = 0;
+			int wrong = 0;
+			float nearest = 1e9f, minX = 1e9f, maxX = -1e9f, minY = 1e9f, maxY = -1e9f;
+			for(size_t k = 0; k + 2 < v.size(); k += 3)
+			{
+				double s = (v[k+1].x - v[k].x) * (v[k+2].y - v[k].y) - (v[k+2].x - v[k].x) * (v[k+1].y - v[k].y);
+				if(s < -1e-3) wrong++;
+				ink += 0.5 * fabs(s) * (v[k].c.a + v[k+1].c.a + v[k+2].c.a) / (3.0 * 255.0);
+			}
+			for(size_t k = 0; k < v.size(); k++)
+			{
+				nearest = fminf(nearest, hypotf(v[k].x - cases[i].ax, v[k].y - cases[i].ay));
+				minX = fminf(minX, v[k].x); maxX = fmaxf(maxX, v[k].x); minY = fminf(minY, v[k].y); maxY = fmaxf(maxY, v[k].y);
+			}
+			CHECK(v.size() > 0 && v.size() % 3 == 0, "triangle %s: %zu vertices", cases[i].name, v.size());
+			CHECK(wrong == 0, "triangle %s: %d triangles wound the wrong way", cases[i].name, wrong);
+			CHECK(fabs(ink - 0.5 * r.w * r.h) < 0.03 * 0.5 * r.w * r.h, "triangle %s covers %.1f of %.1f", cases[i].name, ink, 0.5 * r.w * r.h);
+			CHECK(nearest < 1.5f, "triangle %s: the apex is %.2f from the middle of its side", cases[i].name, nearest);
+			CHECK(minX > r.x - 1.5f && maxX < r.x + r.w + 1.5f && minY > r.y - 1.5f && maxY < r.y + r.h + 1.5f, "triangle %s stays in its rectangle", cases[i].name);
+			CHECK(b.vertices().size() == v.size(), "triangle %s: no outline or shadow is drawn (%zu vs %zu vertices)", cases[i].name, b.vertices().size(), v.size());
+		}
 	}
 
 	printf("%d checks, %d failures\n", checks, failures);

@@ -41,8 +41,8 @@ void WutLoggerUsbSerial::write(LogLevel /*level*/, const char * line, size_t len
 
 #else // !WUT_USBSERIAL_AVAILABLE
 
-bool WutLoggerUsbSerial::init(const LogConfig & /*config*/) { return false; }
+bool WutLoggerUsbSerial::init(const LogConfig &) { return false; }
 void WutLoggerUsbSerial::shutdown() { }
-void WutLoggerUsbSerial::write(LogLevel /*level*/, const char * /*line*/, size_t /*len*/) { }
+void WutLoggerUsbSerial::write(LogLevel, const char *, size_t) { }
 
 #endif

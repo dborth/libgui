@@ -179,6 +179,7 @@ int main()
 
 		// without a callback, the state is left for the caller to poll
 		GuiTextButton& plain = ui.button("Plain");
+		CHECK(&plain.litTextColor(PixelColor{10, 20, 30, 255}) == &plain, "litTextColor continues the chain");
 		plain.setState(STATE::CLICKED);
 		plain.update(nullptr);
 		CHECK(plain.getState() == STATE::CLICKED, "no onClick: CLICKED stays for polling");
@@ -234,6 +235,13 @@ int main()
 		page.moveSelectionVert(-1);
 		page.update(nullptr);
 		CHECK(s0->getState() == STATE::SELECTED && focused == 0, "up goes back");
+		c0.deselect();
+		CHECK(!c0.isSelected() && s0->getState() == STATE::DEFAULT, "deselect takes the selection away");
+		c1.select();
+		CHECK(c1.isSelected() && !c0.isSelected(), "select gives the card the selection");
+		s1->setState(STATE::HELD);
+		CHECK(c1.isSelected(), "a held card still counts as selected");
+		c1.deselect();
 
 		s0->setState(STATE::CLICKED);
 		page.update(nullptr);

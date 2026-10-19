@@ -15,6 +15,16 @@ class Box : public GuiElement
 		void draw() override {}
 };
 
+// Counts how often it is updated
+class Counter : public GuiElement
+{
+	public:
+		Counter() : updates(0) { width = 10; height = 10; }
+		void update(InputController * c) override { updates++; }
+		void draw() override {}
+		int updates;
+};
+
 // Mimics GuiText: reports a measured size, and a size set by layout would be wrong for it
 class Label : public GuiElement
 {
@@ -204,6 +214,37 @@ int main()
 		tall.setState(STATE::SELECTED);
 		page2.moveSelectionHor(1);
 		CHECK(shortBox.getState() == STATE::SELECTED, "right across a row of mixed heights");
+	}
+
+	// a hidden layout takes no input and no selection
+	{
+		Box a(100, 20, true), hidden1(100, 20, true), c(100, 20, true);
+		Counter count;
+		GuiColumn col; col.setSpacing(10).add(&a).add(&hidden1).add(&c);
+		GuiColumn tuck; tuck.add(&count);
+		GuiWindow page(640, 480);
+		page.append(&col);
+		page.append(&tuck);
+		col.layout();
+		a.setState(STATE::SELECTED);
+		hidden1.setVisible(false);
+		page.moveSelectionVert(1);
+		CHECK(c.getState() == STATE::SELECTED, "a hidden item is skipped by the D-pad");
+		// and a hidden layout's selectable items never take the selection
+		Box inside(100, 20, true);
+		GuiColumn gone; gone.add(&inside);
+		page.append(&gone);
+		col.layout();
+		gone.setVisible(false);
+		c.setState(STATE::SELECTED);
+		page.moveSelectionVert(1);
+		CHECK(inside.getState() != STATE::SELECTED, "the D-pad does not enter a hidden layout");
+		tuck.setVisible(true);
+		page.update(nullptr);
+		CHECK(count.updates == 1, "a visible layout updates its items (%d)", count.updates);
+		tuck.setVisible(false);
+		page.update(nullptr);
+		CHECK(count.updates == 1, "a hidden layout does not update its items (%d)", count.updates);
 	}
 
 	printf("%d checks, %d failures\n", checks, failures);

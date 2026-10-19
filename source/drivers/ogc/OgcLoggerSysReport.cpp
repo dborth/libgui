@@ -11,7 +11,7 @@
 bool OgcLoggerSysReport::init(const LogConfig & /*config*/) { return true; }
 void OgcLoggerSysReport::shutdown() { }
 
-void OgcLoggerSysReport::write(LogLevel /*level*/, const char * line, size_t /*len*/)
+void OgcLoggerSysReport::write(LogLevel, const char * line, size_t)
 {
 	// line is already NUL-terminated by Logger::log() - no format
 	// string risk from passing it as the format argument here, but "%s"

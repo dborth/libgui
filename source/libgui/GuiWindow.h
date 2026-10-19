@@ -91,4 +91,6 @@ class GuiWindow : public GuiElement
 		//!Moves the selection within a collected list by on-screen geometry
 		void moveSelectionIn(std::vector<GuiElement*>& list, NAV_DIR d);
 		std::vector<GuiElement*> _elements; //!< Contains all elements within the GuiWindow
+		//!Draws the dimming over a disabled screen: the one place that colour is set
+		void drawWash();
 };
