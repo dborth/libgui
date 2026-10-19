@@ -1,10 +1,11 @@
 /****************************************************************************
- * libgui
+ * libgui Template
  * Daryl Borth 2026
- * GuiControllerView.cpp
+ * controllerview.cpp
  ***************************************************************************/
 
-#include "Gui.h"
+#include "libgui/Gui.h"
+#include "controllerview.h"
 #include <cmath>
 #include <algorithm>
 
@@ -16,18 +17,18 @@ static PixelColor withAlpha(PixelColor c, uint8_t a)
 
 // ---- the element
 
-GuiControllerView::GuiControllerView(const GuiControllerLayout& l, float s) :
+ControllerView::ControllerView(const ControllerLayout& l, float s) :
 	layout(&l), scale(s), leader(false), leaderX(0), leaderY(0), meshFeather(-1.0f), dirty(true), originX(0), originY(0), alpha(255)
 {
 	rebuild();
 }
 
-GuiControllerView::~GuiControllerView()
+ControllerView::~ControllerView()
 {
 	clearLabels();
 }
 
-void GuiControllerView::clearLabels()
+void ControllerView::clearLabels()
 {
 	for(size_t i = 0; i < labels.size(); i++)
 		delete labels[i];
@@ -35,7 +36,7 @@ void GuiControllerView::clearLabels()
 	labelLit.clear();
 }
 
-void GuiControllerView::rebuild()
+void ControllerView::rebuild()
 {
 	// (a hair is taken off first: 400 * 0.6f is 240.000004 in floats and must not become 241)
 	width = (int)ceilf(layout->width * scale - 0.01f);
@@ -53,7 +54,7 @@ void GuiControllerView::rebuild()
 	const GuiTheme& theme = GuiTheme::current();
 	for(size_t i = 0; i < layout->spots.size(); i++)
 	{
-		const GuiControlSpot& s = layout->spots[i];
+		const ControlSpot& s = layout->spots[i];
 		GuiText * t = nullptr;
 		if(s.label)
 		{
@@ -70,39 +71,39 @@ void GuiControllerView::rebuild()
 	dirty = true;
 }
 
-void GuiControllerView::setLayout(const GuiControllerLayout& l)
+void ControllerView::setLayout(const ControllerLayout& l)
 {
 	layout = &l;
 	highlighted.clear();
 	rebuild();
 }
 
-void GuiControllerView::setScale(float s)
+void ControllerView::setScale(float s)
 {
 	scale = s;
 	rebuild();
 }
 
-void GuiControllerView::setHighlight(int id)
+void ControllerView::setHighlight(int id)
 {
 	highlighted.clear();
 	if(id != 0)
 		highlighted.push_back(id);
 }
 
-void GuiControllerView::setHighlight(const std::vector<int>& ids)
+void ControllerView::setHighlight(const std::vector<int>& ids)
 {
 	highlighted = ids;
 }
 
-void GuiControllerView::setLeader(bool on, float fromX, float fromY)
+void ControllerView::setLeader(bool on, float fromX, float fromY)
 {
 	leader = on;
 	leaderX = fromX;
 	leaderY = fromY;
 }
 
-void GuiControllerView::setStick(int id, float x, float y)
+void ControllerView::setStick(int id, float x, float y)
 {
 	for(size_t i = 0; i < layout->spots.size(); i++)
 	{
@@ -114,9 +115,9 @@ void GuiControllerView::setStick(int id, float x, float y)
 	}
 }
 
-bool GuiControllerView::getSpotCentre(int id, float& x, float& y) const
+bool ControllerView::getSpotCentre(int id, float& x, float& y) const
 {
-	const GuiControlSpot * s = layout->find(id);
+	const ControlSpot * s = layout->find(id);
 	if(!s)
 		return false;
 	x = originX + (s->x + s->w * 0.5f) * scale;
@@ -124,7 +125,7 @@ bool GuiControllerView::getSpotCentre(int id, float& x, float& y) const
 	return true;
 }
 
-void GuiControllerView::emit(const GuiMesh& m)
+void ControllerView::emit(const GuiMesh& m)
 {
 	const std::vector<MeshVertex>& src = m.vertices();
 	for(size_t i = 0; i < src.size(); i++)
@@ -138,7 +139,7 @@ void GuiControllerView::emit(const GuiMesh& m)
 	}
 }
 
-void GuiControllerView::draw()
+void ControllerView::draw()
 {
 	if(!this->isVisible())
 		return;
@@ -152,7 +153,7 @@ void GuiControllerView::draw()
 		if(dirty || feather != meshFeather)
 		{
 			body = GuiMesh(feather);
-			GuiBuildControllerBody(body, *layout, scale);
+			BuildControllerBody(body, *layout, scale);
 			for(size_t i = 0; i < spots.size(); i++)
 				for(int k = 0; k < 4; k++)
 				{
@@ -173,7 +174,7 @@ void GuiControllerView::draw()
 		{
 			for(size_t i = 0; i < layout->spots.size(); i++)
 			{
-				const GuiControlSpot& s = layout->spots[i];
+				const ControlSpot& s = layout->spots[i];
 				if(s.id == 0)
 					continue;
 				const bool hl = std::find(highlighted.begin(), highlighted.end(), s.id) != highlighted.end();
@@ -183,7 +184,7 @@ void GuiControllerView::draw()
 				const int k = (isLit ? 1 : 0) + (hl ? 2 : 0);
 				if(!spots[i].built[k])
 				{
-					GuiBuildControllerSpot(spots[i].mesh[k], s, (CTL_STATE)k, scale);
+					BuildControllerSpot(spots[i].mesh[k], s, (CTL_STATE)k, scale);
 					spots[i].built[k] = true;
 				}
 				emit(spots[i].mesh[k]);
@@ -199,11 +200,11 @@ void GuiControllerView::draw()
 		// stick caps move, so they are built each frame
 		for(size_t i = 0; i < layout->spots.size(); i++)
 		{
-			const GuiControlSpot& s = layout->spots[i];
+			const ControlSpot& s = layout->spots[i];
 			if(s.shape != CTL_SHAPE::STICK)
 				continue;
 			GuiMesh cap(feather);
-			GuiBuildControllerStickCap(cap, s, stickX[i], stickY[i], lit && lit(s.id), scale);
+			BuildControllerStickCap(cap, s, stickX[i], stickY[i], lit && lit(s.id), scale);
 			emit(cap);
 		}
 

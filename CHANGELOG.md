@@ -142,16 +142,23 @@ All notable changes to libgui are documented here. Versions follow
   (builder teardown order, bindings, callbacks, card selection and the whole demo screen's D-pad
   traversal). `make -C test all elements` runs everything; CI does.
 
-**Controller drawing and the configuration screen**
-* `GuiControllerLayout` describes a controller as data: a silhouette of rounded pieces and a table of
-  controls (round buttons, rounded rectangles, analog sticks) keyed by the `INPUT_BTN_*` /
-  `INPUT_TRIGGER_*` / `INPUT_THUMB_*` bits. `GuiProControllerLayout()` is a Pro-style pad (two sticks, D-pad,
-  ABXY, L/R/ZL/ZR, plus, minus, home, capture). Another controller is another table, not new drawing code.
-* `GuiControllerView` draws any layout from shapes: the silhouette is one merged outline, controls light up
-  while pressed (`setLit`), the control being edited is highlighted with a glow (`setHighlight`), an
-  optional line leads from a list row to it (`setLeader`), and analog sticks follow their position
-  (`setStick`). The drawing itself (`GuiBuildControllerBody`, `GuiBuildControllerSpot`, ...) is
-  platform-agnostic and host-tested.
+**Theming**
+* The controller drawing and the list and bar styles don't bake in a palette: the silhouette, stick wells and
+  aps, the focused-row bar, the dark bar and the focused-button outline are derived from the `GuiTheme` colors
+  (`GuiMixColor()`, a new public per-channel blend), so an app theme recolors them.
+* Selection skips hidden elements (`visibleWhen(false)`), so a panel that is not showing cannot take the D-pad.
+
+**Builders**
+* `GuiTextButton::fontSize()` sets the label's size, for compact buttons such as key caps.
+
+**Demo controller drawing and the configuration screen**
+* The controller drawing is demo code, not part of the library core: `controllerlayout` describes a
+  controller as data (a silhouette of rounded pieces and a table of controls keyed by the `INPUT_BTN_*` /
+  `INPUT_TRIGGER_*` / `INPUT_THUMB_*` bits; `ProControllerLayout()` is a Pro-style pad), `controllerdraw` holds
+  the platform-agnostic, host-tested geometry, and `controllerview` is the element that draws any layout, lights
+  controls up while pressed (`setLit`), highlights the control being edited (`setHighlight`), leads a line from
+  a list row to it (`setLeader`) and moves analog sticks (`setStick`). Create it with
+  `ui.make<ControllerView>(layout, scale)`. libgui itself only provides the building blocks they are made from.
 * `GuiGlyph` is a small control icon drawn from shapes (a lettered circle, a bumper, D-pad arrows, plus, minus,
   stick click, capture, home) for list rows and hint bars; `ui.glyph(GLYPH::BUTTON, "A")`.
 * `GuiRoundRectPolygon()` returns a rounded rectangle as a polygon, rotated about its center, so a shape
@@ -161,15 +168,6 @@ All notable changes to libgui are documented here. Versions follow
   the middle, shoulder and system controls in lists on either side, the sticks, D-pad and face buttons grouped
   underneath, and a highlight and leader line that follow the selected row. Every row is a `GuiCard`, so the
   D-pad and pointer move between them; A on a row picks the next example target.
-
-**Theming**
-* The controller drawing and the list and bar styles don't bake in a palette: the silhouette, stick wells and
-  aps, the focused-row bar, the dark bar and the focused-button outline are derived from the `GuiTheme` colors
-  (`GuiMixColor()`, a new public per-channel blend), so an app theme recolors them.
-* Selection skips hidden elements (`visibleWhen(false)`), so a panel that is not showing cannot take the D-pad.
-
-**Builders**
-* `GuiTextButton::fontSize()` sets the label's size, for compact buttons such as key caps.
 
 **Fixed**
 * `GuiControllerView` no longer rounds its size up by a pixel when `layout size * scale` is a whole number

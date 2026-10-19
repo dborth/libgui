@@ -1,10 +1,10 @@
 /****************************************************************************
- * libgui
+ * libgui Template
  * Daryl Borth 2026
- * GuiControllerDraw.cpp
+ * controllerdraw.cpp
  ***************************************************************************/
 
-#include "GuiControllerDraw.h"
+#include "controllerdraw.h"
 #include <cmath>
 #include <algorithm>
 
@@ -28,7 +28,7 @@ static PixelColor mixToWhite(PixelColor c, float t)
 	return c;
 }
 
-void GuiBuildControllerBody(GuiMesh& mesh, const GuiControllerLayout& layout, float scale)
+void BuildControllerBody(GuiMesh& mesh, const ControllerLayout& layout, float scale)
 {
 	const GuiTheme& theme = GuiTheme::current();
 	const float outline = std::max(1.5f, 2.0f * scale);
@@ -38,7 +38,7 @@ void GuiBuildControllerBody(GuiMesh& mesh, const GuiControllerLayout& layout, fl
 	std::vector<std::vector<GuiPoint> > pieces;
 	for(size_t i = 0; i < layout.body.size(); i++)
 	{
-		const GuiBodyPiece& b = layout.body[i];
+		const BodyPiece& b = layout.body[i];
 		GuiRect r = { b.x * scale, b.y * scale, b.w * scale, b.h * scale };
 		pieces.push_back(GuiRoundRectPolygon(r, b.radius * scale, b.angle));
 	}
@@ -55,10 +55,10 @@ void GuiBuildControllerBody(GuiMesh& mesh, const GuiControllerLayout& layout, fl
 	// controls that never change appearance
 	for(size_t i = 0; i < layout.spots.size(); i++)
 		if(layout.spots[i].id == 0)
-			GuiBuildControllerSpot(mesh, layout.spots[i], CTL_STATE::NORMAL, scale);
+			BuildControllerSpot(mesh, layout.spots[i], CTL_STATE::NORMAL, scale);
 }
 
-void GuiBuildControllerSpot(GuiMesh& mesh, const GuiControlSpot& spot, CTL_STATE state, float scale)
+void BuildControllerSpot(GuiMesh& mesh, const ControlSpot& spot, CTL_STATE state, float scale)
 {
 	const GuiTheme& theme = GuiTheme::current();
 	const bool lit = state == CTL_STATE::LIT || state == CTL_STATE::LIT_HIGHLIGHT;
@@ -103,7 +103,7 @@ void GuiBuildControllerSpot(GuiMesh& mesh, const GuiControlSpot& spot, CTL_STATE
 	}
 }
 
-void GuiBuildControllerStickCap(GuiMesh& mesh, const GuiControlSpot& spot, float x, float y, bool lit, float scale)
+void BuildControllerStickCap(GuiMesh& mesh, const ControlSpot& spot, float x, float y, bool lit, float scale)
 {
 	const GuiTheme& theme = GuiTheme::current();
 	const float d = spot.w * scale * 0.56f;

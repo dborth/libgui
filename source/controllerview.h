@@ -1,26 +1,26 @@
 /****************************************************************************
- * libgui
+ * libgui Template
  * Daryl Borth 2026
- * GuiControllerView.h
+ * controllerview.h
  ***************************************************************************/
 #pragma once
-#include "GuiControllerDraw.h"
+#include "libgui/Gui.h"
+#include "controllerdraw.h"
 
-//!Draws a controller from a GuiControllerLayout and shows what is happening on it: controls light up
+//!Draws a controller from a ControllerLayout and shows what is happening on it: controls light up
 //!while pressed, a chosen control is highlighted (optionally with a line from a list row to it), and
 //!sticks follow their position. It is a picture, not a button: selection lives in the list beside it,
 //!and the list tells the view what to highlight.
-//!\ingroup grp_controller
-class GuiControllerView : public GuiElement
+class ControllerView : public GuiElement
 {
 	public:
 		//!\param layout The controller to draw (must outlive the view)
 		//!\param scale Multiplies the layout's units
-		GuiControllerView(const GuiControllerLayout& layout, float scale = 1.0f);
-		~GuiControllerView();
+		ControllerView(const ControllerLayout& layout, float scale = 1.0f);
+		~ControllerView();
 
 		//!Changes the controller drawn
-		void setLayout(const GuiControllerLayout& layout);
+		void setLayout(const ControllerLayout& layout);
 		//!Changes the size
 		void setScale(float scale);
 		//!Highlights one control (0 = none)
@@ -50,7 +50,7 @@ class GuiControllerView : public GuiElement
 		void clearLabels();
 		void emit(const GuiMesh& m);
 
-		const GuiControllerLayout * layout;
+		const ControllerLayout * layout;
 		float scale;
 		std::vector<int> highlighted;
 		bool leader;

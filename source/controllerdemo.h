@@ -11,6 +11,7 @@
 
 #include <map>
 #include "libgui/Gui.h"
+#include "controllerview.h"
 
 class GuiControllerDemo : public GuiColumn
 {
@@ -26,7 +27,7 @@ class GuiControllerDemo : public GuiColumn
 		GuiCard& listRow(GLYPH glyph, const char * letter, const char * name, int control, Side side, int width);
 
 		UiScope ui;
-		GuiControllerView * view;
+		ControllerView * view;
 		std::string status;
 		std::map<int, int> targetOf;	// control -> index into the list of example targets
 		GuiTextButton * backBtn;

@@ -95,13 +95,6 @@
  */
 
 /*!
- * \defgroup grp_controller Controller drawing
- * \brief A controller drawn from shapes and described as a table (GuiControllerLayout), with a view
- * that lights controls up and highlights them (GuiControllerView) and small control icons (GuiGlyph).
- * Control ids are the INPUT_* bits, so an input state maps straight onto what is drawn.
- */
-
-/*!
  * \defgroup grp_pal Platform abstraction
  * \brief The Platform composition root and the video, audio and thread
  * driver interfaces the core library is written against.

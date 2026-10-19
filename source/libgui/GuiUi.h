@@ -212,7 +212,6 @@ class UiScope
 		GuiTextButton& button(const char * text) { return make<GuiTextButton>(*this, text); }
 		GuiCard& card() { return make<GuiCard>(*this); }
 		GuiGlyph& glyph(GLYPH kind, const char * letter = "") { return make<GuiGlyph>(kind, letter); }
-		GuiControllerView& controllerView(const GuiControllerLayout& layout, float scale = 1.0f) { return make<GuiControllerView>(layout, scale); }
 
 		//!Runs `fn` once per frame, before drawing
 		void bind(UiCallback fn);

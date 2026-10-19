@@ -57,14 +57,14 @@ GuiControllerDemo::GuiControllerDemo(GuiTrigger * trigger) :
 	const int sideW = 164;
 	const int groupW = 145;
 
-	view = &ui.controllerView(GuiProControllerLayout(), 0.68f);
+	view = &ui.make<ControllerView>(ProControllerLayout(), 0.68f);
 
 	// the controller in the middle, shoulder and system controls listed beside it
 	GuiLayout& left = ui.column().gap(4).align(LAYOUT_ALIGN::END).pad(0, 14, 0, 0)
 		.add(listRow(GLYPH::BUMPER, "L", "Left Bumper", INPUT_TRIGGER_L, Side::LEFT, sideW))
 		.add(listRow(GLYPH::BUMPER, "ZL", "Left Trigger", INPUT_TRIGGER_ZL, Side::LEFT, sideW))
 		.add(listRow(GLYPH::MINUS, "", "Select", INPUT_BTN_MINUS, Side::LEFT, sideW))
-		.add(listRow(GLYPH::CAPTURE, "", "Capture", GUI_CTL_CAPTURE, Side::LEFT, sideW));
+		.add(listRow(GLYPH::CAPTURE, "", "Capture", CTL_CAPTURE, Side::LEFT, sideW));
 	GuiLayout& right = ui.column().gap(4).pad(0, 14, 0, 0)
 		.add(listRow(GLYPH::BUMPER, "R", "Right Bumper", INPUT_TRIGGER_R, Side::RIGHT, sideW))
 		.add(listRow(GLYPH::BUMPER, "ZR", "Right Trigger", INPUT_TRIGGER_ZR, Side::RIGHT, sideW))

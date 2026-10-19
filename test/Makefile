@@ -8,8 +8,8 @@ all: out geometry_test paint_test layout_test controller_test
 	./layout_test
 	./controller_test
 
-controller_test: test_controller.cpp Raster.h ../source/libgui/GuiControllerDraw.cpp ../source/libgui/GuiControllerLayout.cpp ../source/libgui/GuiGeometry.cpp ../source/libgui/GuiPaint.cpp ../source/libgui/GuiTheme.cpp ../source/libgui/GuiGlyph.h
-	$(CXX) $(CXXFLAGS) -o $@ test_controller.cpp ../source/libgui/GuiControllerDraw.cpp ../source/libgui/GuiControllerLayout.cpp ../source/libgui/GuiGeometry.cpp ../source/libgui/GuiPaint.cpp ../source/libgui/GuiTheme.cpp
+controller_test: test_controller.cpp Raster.h ../source/controllerdraw.cpp ../source/controllerlayout.cpp ../source/libgui/GuiGeometry.cpp ../source/libgui/GuiPaint.cpp ../source/libgui/GuiTheme.cpp ../source/libgui/GuiGlyph.h
+	$(CXX) $(CXXFLAGS) -o $@ test_controller.cpp ../source/controllerdraw.cpp ../source/controllerlayout.cpp ../source/libgui/GuiGeometry.cpp ../source/libgui/GuiPaint.cpp ../source/libgui/GuiTheme.cpp
 
 # Also runs the real container and window classes (needs FreeType headers; see below)
 elements: stubs elements_test ui_test
@@ -36,7 +36,7 @@ FT_CFLAGS ?= $(shell pkg-config --cflags freetype2 2>/dev/null || echo -I/usr/in
 # which is all GuiMeshCache's lock needs in these single-threaded tests.
 HOST_SRC = host_stubs.cpp ../source/drivers/Mutex.cpp $(addprefix ../source/libgui/, GuiLayout.cpp GuiWindow.cpp GuiElement.cpp GuiLayoutSolver.cpp \
 	GuiGeometry.cpp GuiUi.cpp GuiButton.cpp GuiShape.cpp GuiPaint.cpp GuiTheme.cpp GuiText.cpp \
-	GuiControllerView.cpp GuiControllerDraw.cpp GuiControllerLayout.cpp GuiGlyph.cpp GuiMeshCache.cpp GuiSound.cpp)
+	GuiGlyph.cpp GuiMeshCache.cpp GuiSound.cpp)
 
 stubs: ../source/filelist.h
 	mkdir -p stubs
@@ -46,8 +46,10 @@ stubs: ../source/filelist.h
 elements_test: test_layout_elements.cpp $(HOST_SRC)
 	$(CXX) $(CXXFLAGS) -I../source $(FT_CFLAGS) -Istubs -o $@ test_layout_elements.cpp $(HOST_SRC)
 
-ui_test: test_ui.cpp ../source/layoutdemo.cpp ../source/layoutdemo.h ../source/controllerdemo.cpp ../source/controllerdemo.h $(HOST_SRC)
-	$(CXX) $(CXXFLAGS) -fsanitize=address,undefined -fno-omit-frame-pointer -I../source $(FT_CFLAGS) -Istubs -o $@ test_ui.cpp ../source/layoutdemo.cpp ../source/controllerdemo.cpp $(HOST_SRC)
+CONTROLLER_SRC = $(addprefix ../source/, controllerdemo.cpp controllerview.cpp controllerdraw.cpp controllerlayout.cpp)
+
+ui_test: test_ui.cpp ../source/layoutdemo.cpp ../source/layoutdemo.h $(CONTROLLER_SRC) ../source/controllerdemo.h ../source/controllerview.h $(HOST_SRC)
+	$(CXX) $(CXXFLAGS) -fsanitize=address,undefined -fno-omit-frame-pointer -I../source $(FT_CFLAGS) -Istubs -o $@ test_ui.cpp ../source/layoutdemo.cpp $(CONTROLLER_SRC) $(HOST_SRC)
 
 clean:
 	rm -rf geometry_test paint_test layout_test controller_test elements_test ui_test stubs out

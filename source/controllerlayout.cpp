@@ -1,12 +1,12 @@
 /****************************************************************************
- * libgui
+ * libgui Template
  * Daryl Borth 2026
- * GuiControllerLayout.cpp
+ * controllerlayout.cpp
  ***************************************************************************/
 
-#include "GuiControllerLayout.h"
+#include "controllerlayout.h"
 
-const GuiControlSpot * GuiControllerLayout::find(int id) const
+const ControlSpot * ControllerLayout::find(int id) const
 {
 	if(id == 0)
 		return nullptr;
@@ -16,31 +16,31 @@ const GuiControlSpot * GuiControllerLayout::find(int id) const
 	return nullptr;
 }
 
-static GuiControlSpot circle(int id, float cx, float cy, float d, const char * label)
+static ControlSpot circle(int id, float cx, float cy, float d, const char * label)
 {
-	return GuiControlSpot{ id, CTL_SHAPE::CIRCLE, cx - d * 0.5f, cy - d * 0.5f, d, d, 0.0f, label };
+	return ControlSpot{ id, CTL_SHAPE::CIRCLE, cx - d * 0.5f, cy - d * 0.5f, d, d, 0.0f, label };
 }
 
-static GuiControlSpot rrect(int id, float x, float y, float w, float h, float radius, const char * label)
+static ControlSpot rrect(int id, float x, float y, float w, float h, float radius, const char * label)
 {
-	return GuiControlSpot{ id, CTL_SHAPE::ROUNDRECT, x, y, w, h, radius, label };
+	return ControlSpot{ id, CTL_SHAPE::ROUNDRECT, x, y, w, h, radius, label };
 }
 
-static GuiControlSpot stick(int id, float cx, float cy, float d)
+static ControlSpot stick(int id, float cx, float cy, float d)
 {
-	return GuiControlSpot{ id, CTL_SHAPE::STICK, cx - d * 0.5f, cy - d * 0.5f, d, d, 0.0f, nullptr };
+	return ControlSpot{ id, CTL_SHAPE::STICK, cx - d * 0.5f, cy - d * 0.5f, d, d, 0.0f, nullptr };
 }
 
-static GuiControllerLayout buildPro()
+static ControllerLayout buildPro()
 {
-	GuiControllerLayout l;
+	ControllerLayout l;
 	l.width = 400.0f;
 	l.height = 290.0f;
 
 	// silhouette: a wide body and two grips leaning outward
-	l.body.push_back(GuiBodyPiece{ 52.0f, 46.0f, 296.0f, 128.0f, 60.0f, 0.0f });
-	l.body.push_back(GuiBodyPiece{ 60.0f, 132.0f, 78.0f, 136.0f, 38.0f, 15.0f });
-	l.body.push_back(GuiBodyPiece{ 262.0f, 132.0f, 78.0f, 136.0f, 38.0f, -15.0f });
+	l.body.push_back(BodyPiece{ 52.0f, 46.0f, 296.0f, 128.0f, 60.0f, 0.0f });
+	l.body.push_back(BodyPiece{ 60.0f, 132.0f, 78.0f, 136.0f, 38.0f, 15.0f });
+	l.body.push_back(BodyPiece{ 262.0f, 132.0f, 78.0f, 136.0f, 38.0f, -15.0f });
 
 	// shoulder buttons and triggers, stacked at the top corners
 	l.spots.push_back(rrect(INPUT_TRIGGER_ZL, 62.0f, 6.0f, 92.0f, 24.0f, 12.0f, "ZL"));
@@ -51,7 +51,7 @@ static GuiControllerLayout buildPro()
 	// small buttons between the sticks
 	l.spots.push_back(circle(INPUT_BTN_MINUS, 168.0f, 74.0f, 17.0f, "-"));
 	l.spots.push_back(circle(INPUT_BTN_PLUS, 232.0f, 74.0f, 17.0f, "+"));
-	l.spots.push_back(rrect(GUI_CTL_CAPTURE, 170.0f, 98.0f, 16.0f, 16.0f, 3.0f, nullptr));
+	l.spots.push_back(rrect(CTL_CAPTURE, 170.0f, 98.0f, 16.0f, 16.0f, 3.0f, nullptr));
 	l.spots.push_back(circle(INPUT_BTN_HOME, 222.0f, 106.0f, 17.0f, nullptr));
 
 	// sticks
@@ -73,8 +73,8 @@ static GuiControllerLayout buildPro()
 	return l;
 }
 
-const GuiControllerLayout& GuiProControllerLayout()
+const ControllerLayout& ProControllerLayout()
 {
-	static const GuiControllerLayout layout = buildPro();
+	static const ControllerLayout layout = buildPro();
 	return layout;
 }

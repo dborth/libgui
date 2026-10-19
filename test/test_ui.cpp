@@ -393,7 +393,7 @@ int main()
 		CHECK(demo.highlighted() == INPUT_TRIGGER_R || demo.highlighted() == INPUT_TRIGGER_ZR, "right crosses the controller to the right-hand list: %d", demo.highlighted());
 
 		// every highlightable row maps to a control the layout really has
-		const GuiControllerLayout& pro = GuiProControllerLayout();
+		const ControllerLayout& pro = ProControllerLayout();
 		for(int i = 0; i < 40; i++)
 		{
 			host.page.moveSelectionVert(1);
