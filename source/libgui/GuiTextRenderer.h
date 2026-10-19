@@ -177,6 +177,9 @@ public:
 	uint16_t getWidth(const char* text);
 	//!\return text height in pixels at the current pixel size
 	uint16_t getHeight(const wchar_t* text);
+	//!The height of a line of text at the current pixel size: from the top of the ascender to the bottom of the
+	//!descender, the same for every string.
+	uint16_t getLineHeight();
 	//!\overload
 	uint16_t getHeight(const char* text);
 

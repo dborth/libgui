@@ -196,7 +196,7 @@ void GuiText::measure()
 
 	fontSystem->setPixelSize(size);
 	measuredW = fontSystem->getWidth(text);
-	measuredH = fontSystem->getHeight(text);
+	measuredH = fontSystem->getLineHeight(); // a line's height, not the height of these glyphs
 	measuredSize = size;
 	measuredGen = GuiTextRenderer::getMetricsGeneration();
 }

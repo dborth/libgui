@@ -325,6 +325,12 @@ uint16_t GuiTextRenderer::getHeight(const wchar_t* text) {
 	return offset.max - offset.min;
 }
 
+uint16_t GuiTextRenderer::getLineHeight() {
+	const int ascender = ToDesignPixels(ftFace->size->metrics.ascender >> 6, uiScale);
+	const int descender = ToDesignPixels(ftFace->size->metrics.descender >> 6, uiScale);
+	return ascender - descender; // the descender is negative
+}
+
 // --- Drawing Pipeline ---
 
 uint16_t GuiTextRenderer::drawText(int16_t x, int16_t y, const wchar_t* text, PixelColor color, uint32_t renderFlags) {
