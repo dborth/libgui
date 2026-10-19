@@ -74,7 +74,7 @@ GuiTextRenderer::GuiTextRenderer(const uint8_t* fontBuffer, FT_Long bufferSize, 
 	++metricsGeneration;
 	ftLibrary = createFreeTypeLibrary();
 	FT_New_Memory_Face(ftLibrary, (FT_Byte*)fontBuffer, bufferSize, 0, &ftFace);
-	ftKerningEnabled = FT_HAS_KERNING(ftFace);
+	ftKerningEnabled = ftFace && FT_HAS_KERNING(ftFace);
 }
 
 GuiTextRenderer::~GuiTextRenderer() {

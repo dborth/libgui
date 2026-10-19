@@ -38,36 +38,36 @@ const PixelColor black = {0, 0, 0, 255};
 //!Per-pixel-size font metrics used for text-block alignment/positioning.
 //!\ingroup grp_core
 struct FontOffset {
-	int16_t ascender; //!< Font ascender for the current size (distance above the baseline), in design pixels
-	int16_t descender; //!< Font descender for the current size (negative: distance below the baseline), in design pixels
-	int16_t max; //!< Height above the baseline of the tallest glyph in the measured string (see GuiTextRenderer::getOffset())
-	int16_t min; //!< Depth below the baseline of the lowest glyph in the measured string (see GuiTextRenderer::getOffset())
+	int16_t ascender = 0; //!< Font ascender for the current size (distance above the baseline), in design pixels
+	int16_t descender = 0; //!< Font descender for the current size (negative: distance below the baseline), in design pixels
+	int16_t max = 0; //!< Height above the baseline of the tallest glyph in the measured string (see GuiTextRenderer::getOffset())
+	int16_t min = 0; //!< Depth below the baseline of the lowest glyph in the measured string (see GuiTextRenderer::getOffset())
 };
 
 //!Cached per-glyph metrics and rasterized texture, keyed by (pixel size, char code) in GuiTextRenderer::fontData.
 //!\ingroup grp_core
 struct GlyphData {
-	int16_t renderOffsetX; //!< Horizontal offset from the pen position to the bitmap's left edge
-	uint16_t glyphAdvanceX; //!< Horizontal pen advance after this glyph
-	uint16_t glyphAdvanceY; //!< Vertical pen advance after this glyph
-	uint32_t glyphIndex; //!< FreeType glyph index
+	int16_t renderOffsetX = 0; //!< Horizontal offset from the pen position to the bitmap's left edge
+	uint16_t glyphAdvanceX = 0; //!< Horizontal pen advance after this glyph
+	uint16_t glyphAdvanceY = 0; //!< Vertical pen advance after this glyph
+	uint32_t glyphIndex = 0; //!< FreeType glyph index
 
 	//!Pixel dims of the rasterized bitmap/texture, at uiScale - always
 	//!>= drawWidth/drawHeight, and equal to them when uiScale is 1.0.
-	uint16_t textureWidth;
-	uint16_t textureHeight; //!< Height counterpart of textureWidth
+	uint16_t textureWidth = 0;
+	uint16_t textureHeight = 0; //!< Height counterpart of textureWidth
 
 	//!Design-pixel dims to actually draw the quad at (textureWidth/Height
 	//!divided back down by uiScale) - keeps text laid out and sized
 	//!identically to uiScale 1.0 while the texture itself is crisper.
-	uint16_t drawWidth;
-	uint16_t drawHeight; //!< Height counterpart of drawWidth
+	uint16_t drawWidth = 0;
+	uint16_t drawHeight = 0; //!< Height counterpart of drawWidth
 
-	int16_t renderOffsetY; //!< Height of the bitmap's top edge above the baseline
-	int16_t renderOffsetMax; //!< Height of the glyph bitmap above the baseline (feeds FontOffset::max)
-	int16_t renderOffsetMin; //!< Depth of the glyph bitmap below the baseline (feeds FontOffset::min)
+	int16_t renderOffsetY = 0; //!< Height of the bitmap's top edge above the baseline
+	int16_t renderOffsetMax = 0; //!< Height of the glyph bitmap above the baseline (feeds FontOffset::max)
+	int16_t renderOffsetMin = 0; //!< Depth of the glyph bitmap below the baseline (feeds FontOffset::min)
 
-	void* texture; //!< Abstracted texture pointer
+	void* texture = nullptr; //!< Abstracted texture pointer
 };
 
 //!FreeType2-based glyph shaping/caching. Shapes and caches glyphs per
@@ -77,10 +77,10 @@ struct GlyphData {
 //!\ingroup grp_core
 class GuiTextRenderer {
 private:
-	FT_Library ftLibrary;
-	FT_Face ftFace;
-	int16_t currentPixelSize;
-	bool ftKerningEnabled;
+	FT_Library ftLibrary = nullptr;
+	FT_Face ftFace = nullptr;
+	int16_t currentPixelSize = 0;
+	bool ftKerningEnabled = false;
 
 	GlyphRenderer* renderer;
 

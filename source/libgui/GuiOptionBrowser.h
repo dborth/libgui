@@ -12,9 +12,9 @@
 //!Fixed-size name/value pair list backing a GuiOptionBrowser. A blank
 //!name[] entry is skipped as a separator (see GuiOptionBrowser::findMenuItem()).
 typedef struct _optionlist {
-	int length; //!< Number of valid entries in name[]/value[]
-	char name[MAX_OPTIONS][50]; //!< Option names; a blank name is a separator
-	char value[MAX_OPTIONS][50]; //!< Option values, shown right-aligned next to each name
+	int length = 0; //!< Number of valid entries in name[]/value[]
+	char name[MAX_OPTIONS][50] = {}; //!< Option names; a blank name is a separator
+	char value[MAX_OPTIONS][50] = {}; //!< Option values, shown right-aligned next to each name
 } OptionList;
 
 //!Display a list of menu options

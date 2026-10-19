@@ -23,6 +23,9 @@
 struct GuiPoint {
 	float x;	/*!< X coordinate. */
 	float y;	/*!< Y coordinate. */
+
+	constexpr GuiPoint() : x(0.0f), y(0.0f) {}
+	constexpr GuiPoint(float x_, float y_) : x(x_), y(y_) {}
 };
 
 //!An axis-aligned rectangle (top-left origin) in design-canvas pixels.
@@ -32,6 +35,9 @@ struct GuiRect {
 	float y;	/*!< Top edge. */
 	float w;	/*!< Width. */
 	float h;	/*!< Height. */
+
+	constexpr GuiRect() : x(0.0f), y(0.0f), w(0.0f), h(0.0f) {}
+	constexpr GuiRect(float x_, float y_, float w_, float h_) : x(x_), y(y_), w(w_), h(h_) {}
 };
 
 //!Per-corner radii, in the order top-left, top-right, bottom-right, bottom-left.
@@ -58,10 +64,10 @@ enum class STROKE {
 //!A solid color or a two-color linear gradient.
 //!\ingroup grp_shapes
 struct GuiFill {
-	PixelColor from;	/*!< Solid color, or the gradient's start color. */
-	PixelColor to;		/*!< The gradient's end color (unused when solid). */
-	float angle;		/*!< Gradient direction in degrees: 0 = left to right, 90 = top to bottom. */
-	bool gradient;		/*!< true for a gradient, false for a solid color. */
+	PixelColor from = { 0, 0, 0, 0 };	/*!< Solid color, or the gradient's start color. */
+	PixelColor to = { 0, 0, 0, 0 };		/*!< The gradient's end color (unused when solid). */
+	float angle = 0.0f;					/*!< Gradient direction in degrees: 0 = left to right, 90 = top to bottom. */
+	bool gradient = false;				/*!< true for a gradient, false for a solid color. */
 
 	//!A single flat color
 	static GuiFill solid(PixelColor c);

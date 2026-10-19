@@ -27,7 +27,7 @@ class GuiKeyboard : public GuiWindow
 		GuiKeyboard(char * t, uint32_t m);
 		~GuiKeyboard();
 		void update(InputController * c);
-		char kbtextstr[256]; //!< Current entered text - read this after the keyboard closes
+		char kbtextstr[256] = {}; //!< Current entered text - read this after the keyboard closes
 	protected:
 		//!\cond INTERNAL
 		uint32_t kbtextmaxlen;

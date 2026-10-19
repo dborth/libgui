@@ -434,6 +434,23 @@ int main()
 		CHECK(before.over() == &over && after.over() == nullptr && after.click() == nullptr, "changing the defaults affects only buttons made afterwards");
 	}
 
+	// plain value types start zeroed, so a default-constructed one is never garbage
+	{
+		GuiPoint * p = new GuiPoint;
+		GuiRect * r = new GuiRect;
+		GuiFill * f = new GuiFill;
+		GuiMeshKey * k = new GuiMeshKey;
+		OptionList * o = new OptionList;
+		CHECK(p->x == 0 && p->y == 0, "GuiPoint defaults to the origin");
+		CHECK(r->x == 0 && r->y == 0 && r->w == 0 && r->h == 0, "GuiRect defaults to empty");
+		const GuiRect lit = { 1, 2, 3, 4 };
+		CHECK(lit.x == 1 && lit.h == 4, "GuiRect still takes {x, y, w, h}");
+		CHECK(!f->gradient && f->angle == 0 && f->from.a == 0 && f->to.a == 0, "GuiFill defaults to a transparent solid");
+		CHECK(k->width == 0 && k->height == 0 && k->feather == 0 && k->tolerance == 0, "GuiMeshKey defaults to empty");
+		CHECK(o->length == 0 && o->name[0][0] == 0 && o->value[MAX_OPTIONS - 1][49] == 0, "OptionList defaults to no entries");
+		delete p; delete r; delete f; delete k; delete o;
+	}
+
 	CHECK(live == 0, "nothing leaked: %d", live);
 	printf("%d checks, %d failures\n", checks, failures);
 	return failures ? 1 : 0;

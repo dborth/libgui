@@ -35,9 +35,9 @@ class GuiTextTranslator
 	private:
 		struct MSG
 		{
-			uint32_t id;
-			char* msgstr;
-			MSG* next;
+			uint32_t id = 0;
+			char* msgstr = nullptr;
+			MSG* next = nullptr;
 		};
 
 		MSG* head;

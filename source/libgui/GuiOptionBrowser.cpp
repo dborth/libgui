@@ -73,6 +73,7 @@ GuiOptionBrowser::GuiOptionBrowser(int w, int h, OptionList * l)
 
 		optionBg[i] = new GuiImage(bgOptionsEntry);
 
+		optionIndex[i] = -1; // no option until the first update fills the row
 		optionBtn[i] = new GuiButton(512,30);
 		optionBtn[i]->setParent(this);
 		optionBtn[i]->setLabel(optionTxt[i], 0);
