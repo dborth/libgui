@@ -84,6 +84,7 @@ void GuiTextRenderer::scrollWindow(const wchar_t * text, uint32_t textlen, uint3
 }
 
 uint16_t GuiTextRenderer::getHeight(const wchar_t *) { return (uint16_t)(g_pixelSize + 4); }
+uint16_t GuiTextRenderer::getLineHeight() { return (uint16_t)(g_pixelSize + 4); }
 uint16_t GuiTextRenderer::drawText(int16_t, int16_t, const wchar_t *, PixelColor, uint32_t) { return 0; }
 
 GuiTextTranslator::GuiTextTranslator() {}
