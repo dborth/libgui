@@ -192,14 +192,6 @@ All notable changes to libgui are documented here. Versions follow
   and `outlineStrong` that the focused row used); a theme that changes those colors sets `highlight` as well.
 * `GuiCard::select()`, `deselect()` and `isSelected()`; `GuiTextButton::litTextColor()` for a light highlight.
 
-**Fixed**
-* A hidden `GuiLayout` no longer updates its items, so a button inside it cannot be clicked while it is hidden.
-* A disabled screen is dimmed once. The parent window draws the dimming after the last of a run of disabled child
-  windows and before anything drawn above them (a dialog), instead of each disabled window dimming on its own, so
-  stacked modals no longer darken twice.
-* `GuiControllerView` no longer rounds its size up by a pixel when `layout size * scale` is a whole number
-  that floating point leaves a hair high (400 * 0.6 gave 241 instead of 240).
-
 ## [2.01] - October 1, 2026
 
 ### Added

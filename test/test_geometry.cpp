@@ -2,6 +2,8 @@
 #include "../source/libgui/GuiGeometry.h"
 #include "Raster.h"
 #include <cstdlib>
+#include <algorithm>
+#include <vector>
 
 static int failures = 0, checks = 0;
 #define CHECK(cond, ...) do { checks++; if(!(cond)) { failures++; printf("FAIL %s:%d  %s  ", __FILE__, __LINE__, #cond); printf(__VA_ARGS__); printf("\n"); } } while(0)
@@ -76,7 +78,9 @@ int main()
 		GuiMesh m(f); GuiRect r = { 0, 0, 50, 50 };
 		m.addEllipse(r, white);
 		checkSane(m, "circle");
-		expectInk(m, kPi * 625.0, 0.005, "circle");
+		// The rim is an inscribed polygon that stays within half the curve tolerance of the circle, so it covers up to
+		// ~0.7% less than a true circle of this size. 1%, like the ellipse below.
+		expectInk(m, kPi * 625.0, 0.01, "circle");
 	}
 	{
 		GuiMesh m(f); GuiRect r = { 0, 0, 80, 30 };
@@ -342,6 +346,37 @@ int main()
 		coarse.addRoundRect(r, c, GuiFill::solid(rgba(255, 255, 255)));
 		double area = 40.0 * 40.0 - (4.0 - kPi) * 10.0 * 10.0; // a square minus its four rounded-off corners
 		expectInk(coarse, area, 0.02, "default-tolerance rounded rect");
+	}
+
+	// A circle's segments stay within the curve tolerance and no more than they need: the rim polygon of a filled
+	// ellipse (no feather, so every rim vertex lies on the circle) strays from the true circle by at most half the
+	// tolerance, using clearly fewer segments than the earlier acos(1 - t / r) step, which only reached a quarter.
+	{
+		const float tol = 0.3f;
+		const float radii[] = { 5.0f, 10.0f, 20.0f, 50.0f, 100.0f };
+		for(size_t k = 0; k < sizeof(radii) / sizeof(radii[0]); k++)
+		{
+			const float R = radii[k];
+			GuiMesh m(0.0f, tol);
+			m.addEllipse(GuiRect{ 300 - R, 300 - R, 2 * R, 2 * R }, white);
+			std::vector<double> ang;
+			for(size_t i = 0; i < m.vertices().size(); i++)
+			{
+				const double dx = m.vertices()[i].x - 300, dy = m.vertices()[i].y - 300;
+				if(fabs(sqrt(dx * dx + dy * dy) - R) < 0.02) ang.push_back(atan2(dy, dx));
+			}
+			std::sort(ang.begin(), ang.end());
+			ang.erase(std::unique(ang.begin(), ang.end(), [](double a, double b) { return fabs(a - b) < 1e-4; }), ang.end());
+			const int n = (int)ang.size();
+			double gap = 0;
+			for(int i = 0; i < n; i++)
+				gap = std::max(gap, ang[(i + 1) % n] + (i + 1 == n ? 2 * kPi : 0) - ang[i]);
+			const double sagitta = R * (1 - cos(gap / 2));
+			const int previous = (int)std::max(12.0, std::min(96.0, ceil(2 * kPi / acos(std::max(-1.0, 1.0 - tol / R)))));
+			CHECK(n >= 12, "R=%g: only %d rim vertices", R, n);
+			CHECK(sagitta <= 0.5 * tol * 1.01, "R=%g: rim strays %.4f from the circle, half the tolerance is %.4f", R, sagitta, 0.5 * tol);
+			CHECK(n <= previous * 0.8, "R=%g: %d rim vertices, the earlier step used %d (expected at least 20%% fewer)", R, n, previous);
+		}
 	}
 
 	printf("%d checks, %d failures\n", checks, failures);
