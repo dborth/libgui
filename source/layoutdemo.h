@@ -11,6 +11,24 @@
 
 #include "libgui/Gui.h"
 
+//!A question asked in place: which control scheme to use. A GuiPopover with one button per scheme; the one the
+//!player picks is chosen(), and clicking a button (or B, or clicking away) closes it. Read it as the sample of how to
+//!use GuiPopover: build the panel in `ui`, mount() it beside the control that asked, attach `ui`.
+class GuiSchemePopover : public GuiPopover
+{
+	public:
+		static const int SCHEMES = 3;
+		static const char * schemeName(int n);
+		//!\param anchor The control it opens beside
+		//!\param trigger Trigger the buttons click with (null for the default, A)
+		//!\param screenWidth, screenHeight The screen it covers
+		GuiSchemePopover(const GuiPopoverAnchor& anchor, GuiTrigger * trigger, int screenWidth, int screenHeight);
+		//!The scheme that was picked, or -1 if it was closed without one
+		int chosen() const { return picked; }
+	private:
+		int picked;
+};
+
 //!The whole screen: title bar, two selectable player cards, a devices panel, a grid of buttons and a status line.
 class GuiLayoutDemo : public GuiColumn
 {
@@ -20,6 +38,10 @@ class GuiLayoutDemo : public GuiColumn
 		GuiButton& backButton() { return *backBtn; }
 		//!Opens the controller configuration screen
 		GuiButton& configButton() { return *configBtn; }
+		//!Asks which scheme to use: the page loop shows a GuiSchemePopover beside schemeAnchor() and calls setScheme()
+		GuiButton& schemeButton() { return *schemeBtn; }
+		GuiPopoverAnchor schemeAnchor();
+		void setScheme(int n) { scheme = n; status = GuiFormat("Scheme: %s", GuiSchemePopover::schemeName(n)); }
 	private:
 		struct Player {
 			const char * device;
@@ -38,6 +60,8 @@ class GuiLayoutDemo : public GuiColumn
 		std::string status;		// shown on the bottom line
 		GuiTextButton * backBtn;
 		GuiTextButton * configBtn;
+		GuiTextButton * schemeBtn;
+		int scheme;				// the index of the scheme in use
 };
 
 #endif

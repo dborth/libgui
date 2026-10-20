@@ -6,6 +6,8 @@
 #include <cstdio>
 
 extern bool g_triggerClicked;
+extern bool g_perController;
+extern int g_primaryMask, g_secondaryMask;
 
 static int failures = 0, checks = 0;
 #define CHECK(cond, ...) do { checks++; if(!(cond)) { failures++; printf("FAIL %s:%d  %s  ", __FILE__, __LINE__, #cond); printf(__VA_ARGS__); printf("\n"); } } while(0)
@@ -350,8 +352,8 @@ int main()
 		CHECK(card1->getState() == STATE::SELECTED && card0->getState() == STATE::DEFAULT, "down: second card");
 		host.page.moveSelectionVert(1);
 		host.page.update(nullptr);
-		GuiElement * map = btns[4];
-		CHECK(map->getState() == STATE::SELECTED && panel->getState() == STATE::DISABLED, "down skips the panel and lands on the button nearest the card's centre (Map)");
+		GuiElement * scheme = btns[4];
+		CHECK(scheme->getState() == STATE::SELECTED && panel->getState() == STATE::DISABLED, "down skips the panel and lands on the button nearest the card's centre (Scheme)");
 		host.page.moveSelectionHor(1);
 		CHECK(reset->getState() == STATE::SELECTED, "right: Reset");
 		host.page.moveSelectionHor(-1);
@@ -370,6 +372,50 @@ int main()
 		demo.backButton().setState(STATE::CLICKED);
 		host.page.update(nullptr);
 		CHECK(demo.backButton().getState() == STATE::CLICKED, "Go Back has no callback, so the page loop can poll it as before");
+	}
+
+	// ---- the Scheme popover of the Layout demo: the sample of how to use GuiPopover
+	{
+		Page host;
+		GuiLayoutDemo demo(nullptr);
+		host.page.append(&demo);
+		host.page.update(nullptr);
+		demo.layout();
+		const GuiPopoverAnchor a = demo.schemeAnchor();
+		CHECK(a.valid && a.w == 150 && a.h == 44 && a.x >= demo.getLeft() && a.y >= demo.getTop() && a.y + a.h <= demo.getTop() + demo.getHeight(), "the anchor is the Scheme button, on the page: %d,%d %dx%d", a.x, a.y, a.w, a.h);
+
+		InputController p1(0);
+		InputPadData pad;
+		g_perController = true;
+		for(int pick = -1; pick < GuiSchemePopover::SCHEMES; pick++)
+		{
+			GuiSchemePopover ask(a, nullptr, 640, 480);
+			ask.layout();
+			CHECK(ask.chosen() == -1 && !ask.isDismissed(), "it opens with nothing chosen");
+			std::vector<GuiElement *> all, rows;
+			collect(&ask, all);
+			for(GuiElement * e : all)
+				if(dynamic_cast<GuiTextButton *>(e))
+					rows.push_back(e);
+			CHECK((int)rows.size() == GuiSchemePopover::SCHEMES, "one button per scheme: %zu", rows.size());
+			CHECK(ask.position().x >= 24 && ask.position().x + 224 <= 640 - 24, "the panel is inside the side margins: %d", ask.position().x);
+			if(pick < 0)
+			{
+				pad.validPointer = true; pad.cursor_x = 5; pad.cursor_y = 5;
+				p1.update(pad, 0.016f);
+				g_primaryMask = 1;
+				ask.update(&p1);
+				g_primaryMask = 0;
+				CHECK(ask.isDismissed() && ask.chosen() == -1, "a click away closes it with nothing chosen");
+				continue;
+			}
+			rows[pick]->setState(STATE::CLICKED);
+			pad.validPointer = false;
+			p1.update(pad, 0.016f);
+			ask.update(&p1);
+			CHECK(ask.chosen() == pick && ask.isDismissed(), "clicking %s chooses it and closes the popover (chose %d)", GuiSchemePopover::schemeName(pick), ask.chosen());
+		}
+		g_perController = false;
 	}
 
 	// ---- the controller configuration screen
@@ -460,6 +506,75 @@ int main()
 	}
 
 	CHECK(live == 0, "nothing leaked: %d", live);
+	// GuiPopover: the panel goes where GuiPopoverPlace says, and the popover is dismissed by B, or by a click from a
+	// controller whose pointer is off the panel (each controller decides for itself)
+	{
+		struct Ask : public GuiPopover
+		{
+			GuiCard * card;
+			Ask(const GuiPopoverAnchor& a) : GuiPopover(640, 480), card(nullptr)
+			{
+				GuiCard& panel = ui.card().selectable(false).size(100, 100);
+				card = &panel;
+				mount(panel, 100, 100, a, GuiPopoverInsets(60, 60, 20));
+				ui.attachTo(*this);
+			}
+		};
+		const GuiPopoverAnchor anchor(400, 20, 150, 40);
+		Ask pop(anchor);
+		pop.layout();
+		const GuiPopoverPosition want = GuiPopoverPlace(anchor, 100, 100, 640, 480, GuiPopoverInsets(60, 60, 20));
+		CHECK(pop.position().x == want.x && pop.position().y == want.y, "the popover reports where the panel went");
+		CHECK(pop.card->getLeft() == want.x && pop.card->getTop() == want.y, "and the panel is there: %d,%d", pop.card->getLeft(), pop.card->getTop());
+		CHECK(!pop.isDismissed() && pop.dismissedBy() == -1, "it starts open");
+
+		g_perController = true;
+		InputController p1(0), p2(1);
+		InputPadData off, on;
+		off.validPointer = true; off.cursor_x = 40; off.cursor_y = 40;			// off the panel
+		on.validPointer = true; on.cursor_x = want.x + 10; on.cursor_y = want.y + 10;	// on it
+		const auto frame = [&](const InputPadData& a, const InputPadData& b, int primary, int secondary) {
+			p1.update(a, 0.016f);
+			p2.update(b, 0.016f);
+			g_primaryMask = primary; g_secondaryMask = secondary;
+			pop.update(&p2);	// the screen updates the later players first
+			pop.update(&p1);
+			g_primaryMask = 0; g_secondaryMask = 0;
+		};
+		frame(off, off, 0, 0);
+		CHECK(!pop.isDismissed(), "nobody pressed: still open");
+		frame(off, off, 1, 0);
+		CHECK(pop.isDismissed() && pop.dismissedBy() == 0, "player 1 clicks away: closed (by %d)", pop.dismissedBy());
+		pop.reopen();
+		CHECK(!pop.isDismissed() && pop.dismissedBy() == -1, "reopen keeps it open after all");
+		frame(off, off, 2, 0);
+		CHECK(pop.isDismissed() && pop.dismissedBy() == 1, "player 2 clicks away: closed by player 2 (%d)", pop.dismissedBy());
+		pop.reopen();
+		frame(on, off, 1, 0);
+		CHECK(!pop.isDismissed(), "a click on the panel is the panel's own");
+		frame(off, on, 1, 0);
+		CHECK(pop.isDismissed() && pop.dismissedBy() == 0, "player 1 clicks away while player 2 points at the panel: closed");
+		pop.reopen();
+		InputPadData lost = off; lost.validPointer = false;
+		frame(lost, lost, 3, 0);
+		CHECK(!pop.isDismissed(), "no pointer: a press is not a click away");
+		frame(on, on, 0, 2);
+		CHECK(pop.isDismissed() && pop.dismissedBy() == 1, "B closes it from anywhere, even with the pointer on the panel");
+		pop.reopen();
+		pop.setState(STATE::DISABLED);
+		frame(off, off, 3, 3);
+		CHECK(!pop.isDismissed(), "a disabled popover (something is on top of it) ignores input");
+		pop.setState(STATE::DEFAULT);
+		pop.dismiss();
+		CHECK(pop.isDismissed() && pop.dismissedBy() == -1, "dismiss() closes it as a close button would");
+		g_perController = false;
+
+		// no anchor: centered, and no tail on top of the panel
+		Ask centered{GuiPopoverAnchor()};
+		centered.layout();
+		CHECK(centered.card->getLeft() == 270 && centered.card->getTop() == 190, "centered: %d,%d", centered.card->getLeft(), centered.card->getTop());
+	}
+
 	printf("%d checks, %d failures\n", checks, failures);
 	return failures ? 1 : 0;
 }

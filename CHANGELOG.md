@@ -8,6 +8,21 @@ All notable changes to libgui are documented here. Versions follow
 
 ### Added
 
+**Popovers (`GuiPopover.h`, `GuiPopoverPlacement.h`)**
+* `GuiPopover`: a panel that opens beside the control that asked, over the screen it came from, with a tail that
+  points at the control. A full-screen overlay: derive from it, build the panel in `ui`, `mount()` it, attach `ui`.
+  It is dismissed by B, a click from any controller whose pointer is off the panel (each controller decides for
+  itself), or `dismiss()`; the screen watches `isDismissed()` / `dismissedBy()` and can `reopen()`. It does not run
+  itself, so the caller shows it on top of the screen it came from and disables that screen while it is open.
+* `GuiPopoverPlace()`, `GuiPopoverTailAt()` and `GuiPopoverMaxHeight()` (with `GuiPopoverAnchor`, `GuiPopoverInsets`,
+  `GuiPopoverPosition`, `GuiPopoverTail`): the placement arithmetic, with no platform, tested on the host. Below the
+  anchor when it fits, else above, else in the band between the bars; a popover whose anchor is in a bar comes
+  straight out of it; never outside the side margins.
+* The Layout demo's Scheme button opens a `GuiSchemePopover`, the sample of how to use it.
+* Host tests: `popover_test` (placement, including a sweep over many anchors and sizes) and popover behaviour in
+  `ui_test` (placement on screen, B, click away, click on the panel, two pointers, disabled). The host stubs can now
+  report presses per controller (`g_perController`, `g_primaryMask`, `g_secondaryMask`) and build an `InputController`.
+
 **Shape geometry (`GuiGeometry.h`)**
 * `GuiMesh` tessellates rectangles, rounded rectangles (per-corner
   radii, capsules), ellipses, convex polygons, lines, outlines (inside /

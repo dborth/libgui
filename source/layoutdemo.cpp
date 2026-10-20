@@ -5,6 +5,34 @@
  ***************************************************************************/
 #include "layoutdemo.h"
 
+const char * GuiSchemePopover::schemeName(int n)
+{
+	static const char * const names[SCHEMES] = { "Arrow keys", "Joystick", "Mouse" };
+	return names[n];
+}
+
+GuiSchemePopover::GuiSchemePopover(const GuiPopoverAnchor& anchor, GuiTrigger * trigger, int screenWidth, int screenHeight) :
+	GuiPopover(screenWidth, screenHeight), picked(-1)
+{
+	ui.setTrigger(trigger);
+	const GuiTheme& t = ui.theme();
+	const int rowW = 200, rowH = 40, pad = 12;
+	const int panelW = rowW + 2 * pad, panelH = SCHEMES * rowH + (SCHEMES - 1) * (int)t.spacing + 2 * pad;
+
+	GuiLayout& rows = ui.column().gap(t.spacing);
+	for(int i = 0; i < SCHEMES; i++)
+		rows.add(ui.button(schemeName(i)).size(rowW, rowH).onClick([this, i]{ picked = i; dismiss(); }));
+
+	GuiCard& panel = ui.card().selectable(false).size(panelW, panelH).pad(pad, pad).add(rows);
+	mount(panel, panelW, panelH, anchor, GuiPopoverInsets(8, 8, 24));
+	ui.attachTo(*this);
+}
+
+GuiPopoverAnchor GuiLayoutDemo::schemeAnchor()
+{
+	return GuiPopoverAnchor(schemeBtn->getLeft(), schemeBtn->getTop(), schemeBtn->getWidth(), schemeBtn->getHeight());
+}
+
 int GuiLayoutDemo::battery(int n) const
 {
 	return players[n].battery - (frame / 120) % 10; // draining, to show bound text updating
@@ -27,7 +55,7 @@ GuiCard& GuiLayoutDemo::playerCard(int n)
 }
 
 GuiLayoutDemo::GuiLayoutDemo(GuiTrigger * trigger) :
-	frame(0), focused(-1), status("Move with the D-pad or the pointer"), backBtn(nullptr), configBtn(nullptr)
+	frame(0), focused(-1), status("Move with the D-pad or the pointer"), backBtn(nullptr), configBtn(nullptr), schemeBtn(nullptr), scheme(0)
 {
 	players[0] = Player{ "Wiimote + Nunchuk", "Joystick 1", "Arrow keys", 80 };
 	players[1] = Player{ "Classic Controller", "Keys + mouse", "Arrow keys", 45 };
@@ -42,7 +70,7 @@ GuiLayoutDemo::GuiLayoutDemo(GuiTrigger * trigger) :
 	this->add(ui.row().size(592, 0)
 		.add(ui.label("Controllers").fontSize(28))
 		.addSpace()
-		.add(ui.label("Scheme: Arrow keys").fontSize(18).accent()));
+		.add(ui.label().bind([this]{ return std::string("Scheme: ") + GuiSchemePopover::schemeName(scheme); }).fontSize(18).accent()));
 
 	this->add(ui.column().gap(t.spacing)
 		.add(playerCard(0))
@@ -61,9 +89,11 @@ GuiLayoutDemo::GuiLayoutDemo(GuiTrigger * trigger) :
 	backBtn = &back;
 	GuiTextButton& config = ui.button("Config").size(150, 44);
 	configBtn = &config;
+	GuiTextButton& schemeAsk = ui.button("Scheme").size(150, 44);	// no callback: the page loop polls it and opens a GuiSchemePopover
+	schemeBtn = &schemeAsk;
 	this->add(ui.grid(3).gap(t.spacing + 4)
 		.add(ui.button("Test").size(150, 44).onClick([this]{ status = "Test pressed"; }))
-		.add(ui.button("Map").size(150, 44).onClick([this]{ status = "Map pressed"; }))
+		.add(schemeAsk)
 		.add(ui.button("Reset").size(150, 44).onClick([this]{ status = "Reset pressed"; }))
 		.add(ui.button("Identify").size(150, 44)
 			.onClick([this]{ status = GuiFormat("Identifying player %d", focused + 1); })

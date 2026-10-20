@@ -685,6 +685,31 @@ static int MenuLayout()
 
 		if(demo.backButton().getState() == STATE::CLICKED)
 			menu = MENU_SETTINGS;
+
+		if(demo.schemeButton().getState() == STATE::CLICKED)
+		{
+			// A popover does not run itself: put it on top of the screen it came from, dim and silence that
+			// screen, and wait for the popover to be dismissed
+			demo.schemeButton().resetState();
+			demo.setState(STATE::DISABLED);
+			GuiSchemePopover ask(demo.schemeAnchor(), &trigA, platform->getVideo()->getScreenWidth(), platform->getVideo()->getScreenHeight());
+			w.append(&ask);
+			bool quit = false;
+			while(!ask.isDismissed())
+			{
+				if(!UpdateGui())
+				{
+					quit = true;
+					break;
+				}
+			}
+			w.remove(&ask);
+			demo.setState(STATE::DEFAULT);
+			if(quit)
+				return MENU_EXIT;
+			if(ask.chosen() >= 0)
+				demo.setScheme(ask.chosen());
+		}
 	}
 
 	return menu;

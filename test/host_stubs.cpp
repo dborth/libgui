@@ -5,9 +5,14 @@
 #include <vector>
 
 Platform * platform = nullptr; // never used by the code under test
-bool g_triggerClicked = false; // what every GuiTrigger reports from isClicked()
+bool g_triggerClicked = false; // what every GuiTrigger reports from isClicked() ...
+bool g_perController = false;  // ... unless this is set: then a primary trigger reports bit n of g_primaryMask for the controller on
+int g_primaryMask = 0;         // channel n, and a secondary (B) trigger bit n of g_secondaryMask
+int g_secondaryMask = 0;
 
-// ---- controller
+// ---- controller (the real InputController needs a platform; update(nullptr) in these tests relies on the stubs not reading `this`)
+InputController::InputController(int ch) : channel(ch), sideways(false), scrollTimer(0.0f), internalScrollTimer(0.0f) {}
+void InputController::update(const InputPadData& data, float) { currentData = data; }
 bool InputController::up() const { return false; }
 bool InputController::down() const { return false; }
 bool InputController::left() const { return false; }
@@ -15,9 +20,16 @@ bool InputController::right() const { return false; }
 bool InputController::isSecondaryPressed() const { return false; }
 
 // ---- triggers and sounds
-GuiTrigger::GuiTrigger() {}
-void GuiTrigger::setPrimaryTrigger(int) {}
-bool GuiTrigger::isClicked(const InputController *) const { return g_triggerClicked; }
+GuiTrigger::GuiTrigger() : type(TRIGGER_TYPE::SIMPLE), action(TRIGGER_ACTION::NONE), chan(-1), conditionMask(0) {}
+void GuiTrigger::setPrimaryTrigger(int) { action = TRIGGER_ACTION::PRIMARY; }
+void GuiTrigger::setSecondaryTrigger(int) { action = TRIGGER_ACTION::SECONDARY; }
+bool GuiTrigger::isClicked(const InputController * c) const
+{
+	if(!g_perController)
+		return g_triggerClicked;
+	const int mask = action == TRIGGER_ACTION::SECONDARY ? g_secondaryMask : g_primaryMask;
+	return c && c->getChannel() >= 0 && ((mask >> c->getChannel()) & 1) != 0;
+}
 bool GuiTrigger::isHeld(const InputController *) const { return false; }
 
 // ---- text

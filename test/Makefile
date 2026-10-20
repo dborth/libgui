@@ -2,11 +2,12 @@
 CXX ?= g++
 CXXFLAGS ?= -std=c++11 -O2 -Wall -Wextra
 
-all: out geometry_test paint_test layout_test controller_test
+all: out geometry_test paint_test layout_test controller_test popover_test
 	./geometry_test
 	./paint_test
 	./layout_test
 	./controller_test
+	./popover_test
 
 controller_test: test_controller.cpp Raster.h ../source/controllerdraw.cpp ../source/controllerlayout.cpp ../source/libgui/GuiGeometry.cpp ../source/libgui/GuiPaint.cpp ../source/libgui/GuiTheme.cpp ../source/libgui/GuiGlyph.h
 	$(CXX) $(CXXFLAGS) -o $@ test_controller.cpp ../source/controllerdraw.cpp ../source/controllerlayout.cpp ../source/libgui/GuiGeometry.cpp ../source/libgui/GuiPaint.cpp ../source/libgui/GuiTheme.cpp
@@ -25,6 +26,9 @@ geometry_test: test_geometry.cpp Raster.h ../source/libgui/GuiGeometry.cpp ../so
 paint_test: test_paint.cpp ../source/libgui/GuiPaint.cpp ../source/libgui/GuiTheme.cpp ../source/libgui/GuiGeometry.cpp ../source/libgui/GuiPaint.h ../source/libgui/GuiTheme.h
 	$(CXX) $(CXXFLAGS) -o $@ test_paint.cpp ../source/libgui/GuiPaint.cpp ../source/libgui/GuiTheme.cpp ../source/libgui/GuiGeometry.cpp
 
+popover_test: test_popover.cpp ../source/libgui/GuiPopoverPlacement.cpp ../source/libgui/GuiPopoverPlacement.h
+	$(CXX) $(CXXFLAGS) -o $@ test_popover.cpp ../source/libgui/GuiPopoverPlacement.cpp
+
 layout_test: test_layout.cpp ../source/libgui/GuiLayoutSolver.cpp ../source/libgui/GuiLayoutSolver.h
 	$(CXX) $(CXXFLAGS) -o $@ test_layout.cpp ../source/libgui/GuiLayoutSolver.cpp ../source/libgui/GuiGeometry.cpp
 
@@ -36,7 +40,7 @@ FT_CFLAGS ?= $(shell pkg-config --cflags freetype2 2>/dev/null || echo -I/usr/in
 # which is all GuiMeshCache's lock needs in these single-threaded tests.
 HOST_SRC = host_stubs.cpp ../source/drivers/Mutex.cpp $(addprefix ../source/libgui/, GuiLayout.cpp GuiWindow.cpp GuiElement.cpp GuiLayoutSolver.cpp \
 	GuiGeometry.cpp GuiUi.cpp GuiButton.cpp GuiShape.cpp GuiPaint.cpp GuiTheme.cpp GuiText.cpp \
-	GuiGlyph.cpp GuiMeshCache.cpp GuiSound.cpp)
+	GuiGlyph.cpp GuiMeshCache.cpp GuiSound.cpp GuiPopover.cpp GuiPopoverPlacement.cpp)
 
 stubs: ../source/filelist.h
 	mkdir -p stubs
@@ -52,6 +56,6 @@ ui_test: test_ui.cpp ../source/layoutdemo.cpp ../source/layoutdemo.h $(CONTROLLE
 	$(CXX) $(CXXFLAGS) -fsanitize=address,undefined -fno-omit-frame-pointer -I../source $(FT_CFLAGS) -Istubs -o $@ test_ui.cpp ../source/layoutdemo.cpp $(CONTROLLER_SRC) $(HOST_SRC)
 
 clean:
-	rm -rf geometry_test paint_test layout_test controller_test elements_test ui_test stubs out
+	rm -rf geometry_test paint_test layout_test controller_test popover_test elements_test ui_test stubs out
 
 .PHONY: all elements stubs clean
