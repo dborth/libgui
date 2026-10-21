@@ -195,6 +195,16 @@ All notable changes to libgui are documented here. Versions follow
   and `outlineStrong` that the focused row used); a theme that changes those colors sets `highlight` as well.
 * `GuiCard::select()`, `deselect()` and `isSelected()`; `GuiTextButton::litTextColor()` for a light highlight.
 
+**Pictures on code-drawn buttons (`GuiImageData::loadClipped()`)**
+* `loadClipped()` loads a picture centred in a box with rounded corners (moved by an offset, optionally inset):
+  whatever falls outside the box or the corners is cropped and the mask edge is anti-aliased, so a picture on a
+  code-drawn button cannot spill over its border. The object takes the box size. It stages the picture in the same
+  scratch buffer as every other decode and reuses its texture the way `reload()` does. Nothing about `decodeImage()`
+  changed.
+* Host tests for `GuiImageData` (`make -C test elements`): PNGs built in memory against a fake renderer, covering
+  colour types, resizing, texture reuse, a caller-supplied or borrowed texture, failure cases and `loadClipped()`.
+
+
 ## [2.01] - October 1, 2026
 
 ### Added

@@ -12,10 +12,11 @@ controller_test: test_controller.cpp Raster.h ../source/controllerdraw.cpp ../so
 	$(CXX) $(CXXFLAGS) -o $@ test_controller.cpp ../source/controllerdraw.cpp ../source/controllerlayout.cpp ../source/libgui/GuiGeometry.cpp ../source/libgui/GuiPaint.cpp ../source/libgui/GuiTheme.cpp
 
 # Also runs the real container and window classes (needs FreeType headers; see below)
-elements: stubs elements_test ui_test popover_test
+elements: stubs elements_test ui_test popover_test imagedata_test
 	./elements_test
 	./ui_test
 	./popover_test
+	./imagedata_test
 
 out:
 	mkdir -p out
@@ -52,10 +53,15 @@ CONTROLLER_SRC = $(addprefix ../source/, controllerdemo.cpp controllerview.cpp c
 popover_test: test_popover.cpp $(HOST_SRC)
 	$(CXX) $(CXXFLAGS) -I../source $(FT_CFLAGS) -Istubs -o $@ test_popover.cpp $(HOST_SRC)
 
+# GuiImageData against a fake renderer, with PNGs built in memory (needs libpng; it brings its own fake platform, so it
+# does not use host_stubs.cpp)
+imagedata_test: test_imagedata.cpp ../source/libgui/GuiImageData.cpp ../source/libgui/GuiImageData.h ../source/drivers/Mutex.cpp
+	$(CXX) $(CXXFLAGS) -I../source $(FT_CFLAGS) -Istubs -o $@ test_imagedata.cpp ../source/libgui/GuiImageData.cpp ../source/drivers/Mutex.cpp -lpng -lz
+
 ui_test: test_ui.cpp ../source/layoutdemo.cpp ../source/layoutdemo.h $(CONTROLLER_SRC) ../source/controllerdemo.h ../source/controllerview.h $(HOST_SRC)
 	$(CXX) $(CXXFLAGS) -fsanitize=address,undefined -fno-omit-frame-pointer -I../source $(FT_CFLAGS) -Istubs -o $@ test_ui.cpp ../source/layoutdemo.cpp $(CONTROLLER_SRC) $(HOST_SRC)
 
 clean:
-	rm -rf geometry_test paint_test layout_test controller_test popover_test elements_test ui_test stubs out
+	rm -rf geometry_test paint_test layout_test controller_test popover_test elements_test ui_test imagedata_test stubs out
 
 .PHONY: all elements stubs clean

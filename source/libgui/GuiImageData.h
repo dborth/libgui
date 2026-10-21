@@ -49,6 +49,22 @@ class GuiImageData
 		//!\param maxh Max image height (0 = not set)
 		//!\return true on success
 		bool reload(const uint8_t * pngData, int maxw = 0, int maxh = 0);
+		//!Loads a picture into a box with rounded corners: the image is centred in the
+		//!box (moved by the offsets) at its own size, anything that falls outside the box
+		//!or the rounded corners is cropped, and the mask edge is anti-aliased. Replaces
+		//!this object's texture (reusing it when it is already large enough); its size
+		//!becomes the box size.
+		//!Use it for a picture that sits on a code-drawn button, so it can't spill over
+		//!the button's border or corners.
+		//!\param pngData Source image data (PNG)
+		//!\param boxW Box width, in design-canvas pixels
+		//!\param boxH Box height, in design-canvas pixels
+		//!\param radius Corner radius of the box (clamped to half the shorter side)
+		//!\param inset Shrinks the mask on every side, eg. to stay inside a stroke
+		//!\param offsetX Moves the image horizontally from centre (negative = left)
+		//!\param offsetY Moves the image vertically from centre (negative = up)
+		//!\return true on success
+		bool loadClipped(const uint8_t * pngData, int boxW, int boxH, float radius, float inset = 0.0f, float offsetX = 0.0f, float offsetY = 0.0f);
 		//!Gets the attached platform-native texture
 		//!\return opaque texture handle
 		void * getTexture() { return texture; }
@@ -59,7 +75,7 @@ class GuiImageData
 		//!\return image height
 		int getHeight() { return height; }
 		//!Sets the scratch buffer that every decode (the PNG-decoding
-		//!constructors, and reload()) will stage its raw, uncompressed pixel
+		//!constructors, reload() and loadClipped()) will stage its raw, uncompressed pixel
 		//!rows into while it runs.
 		//!\param buffer Scratch buffer, owned and sized by the caller
 		//!\param size Size of buffer, in bytes
