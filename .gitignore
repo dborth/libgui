@@ -17,4 +17,5 @@ build/
 /test/elements_test
 /test/stubs/
 /test/ui_test
+/test/popover_test
 /test/controller_test

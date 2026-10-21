@@ -8,18 +8,21 @@ All notable changes to libgui are documented here. Versions follow
 
 ### Added
 
-**Popovers (`GuiPopover.h`, `GuiPopoverPlacement.h`)**
+**Popovers (`GuiPopover.h`)**
 * `GuiPopover`: a panel that opens beside the control that asked, over the screen it came from, with a tail that
-  points at the control. A full-screen overlay: derive from it, build the panel in `ui`, `mount()` it, attach `ui`.
-  It is dismissed by B, a click from any controller whose pointer is off the panel (each controller decides for
-  itself), or `dismiss()`; the screen watches `isDismissed()` / `dismissedBy()` and can `reopen()`. It does not run
-  itself, so the caller shows it on top of the screen it came from and disables that screen while it is open.
-* `GuiPopoverPlace()`, `GuiPopoverTailAt()` and `GuiPopoverMaxHeight()` (with `GuiPopoverAnchor`, `GuiPopoverInsets`,
-  `GuiPopoverPosition`, `GuiPopoverTail`): the placement arithmetic, with no platform, tested on the host. Below the
-  anchor when it fits, else above, else in the band between the bars; a popover whose anchor is in a bar comes
-  straight out of it; never outside the side margins.
+  points at the control. A full-screen overlay: derive from it, say where it opens in the constructor
+  (`GuiPopover(Anchor(button), Insets(top, bottom, side))`), build the panel in `ui`, and hand it to `setPanel()`,
+  which sizes it from the card, places it and attaches `ui`. It is dismissed by B, a click from any controller whose
+  pointer is off the panel (each controller decides for itself), or `dismiss()`; the screen watches `isDismissed()` /
+  `dismissedBy()` and can `reopen()`. It does not run itself, so the caller shows it on top of the screen it came
+  from and disables that screen while it is open.
+* One class holds everything: `GuiPopover::Anchor` (a rectangle, or `Anchor(control)` from a control's own geometry),
+  `Insets`, `Position`, `Tail`, `TAIL`. The placement arithmetic is static (`GuiPopover::place()`, `tailAt()`,
+  `maxHeight()`), needs no popover and is tested on the host. Below the anchor when it fits, else above, else in the
+  band between the bars; a popover whose anchor is in a bar comes straight out of it; never outside the side margins.
+  `maxPanelHeight()` gives the band for the popover's own screen and insets, to size a panel before building it.
 * The Layout demo's Scheme button opens a `GuiSchemePopover`, the sample of how to use it.
-* Host tests: `popover_test` (placement, including a sweep over many anchors and sizes) and popover behaviour in
+* Host tests: `popover_test` (placement, including a sweep over many anchors and sizes; built with the element tests) and popover behaviour in
   `ui_test` (placement on screen, B, click away, click on the panel, two pointers, disabled). The host stubs can now
   report presses per controller (`g_perController`, `g_primaryMask`, `g_secondaryMask`) and build an `InputController`.
 

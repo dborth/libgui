@@ -11,8 +11,8 @@ const char * GuiSchemePopover::schemeName(int n)
 	return names[n];
 }
 
-GuiSchemePopover::GuiSchemePopover(const GuiPopoverAnchor& anchor, GuiTrigger * trigger, int screenWidth, int screenHeight) :
-	GuiPopover(screenWidth, screenHeight), picked(-1)
+GuiSchemePopover::GuiSchemePopover(const GuiPopover::Anchor& anchor, GuiTrigger * trigger, int screenWidth, int screenHeight) :
+	GuiPopover(anchor, Insets(8, 8, 24), screenWidth, screenHeight), picked(-1)
 {
 	ui.setTrigger(trigger);
 	const GuiTheme& t = ui.theme();
@@ -23,14 +23,7 @@ GuiSchemePopover::GuiSchemePopover(const GuiPopoverAnchor& anchor, GuiTrigger * 
 	for(int i = 0; i < SCHEMES; i++)
 		rows.add(ui.button(schemeName(i)).size(rowW, rowH).onClick([this, i]{ picked = i; dismiss(); }));
 
-	GuiCard& panel = ui.card().selectable(false).size(panelW, panelH).pad(pad, pad).add(rows);
-	mount(panel, panelW, panelH, anchor, GuiPopoverInsets(8, 8, 24));
-	ui.attachTo(*this);
-}
-
-GuiPopoverAnchor GuiLayoutDemo::schemeAnchor()
-{
-	return GuiPopoverAnchor(schemeBtn->getLeft(), schemeBtn->getTop(), schemeBtn->getWidth(), schemeBtn->getHeight());
+	setPanel(ui.card().selectable(false).size(panelW, panelH).pad(pad, pad).add(rows));
 }
 
 int GuiLayoutDemo::battery(int n) const

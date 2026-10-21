@@ -13,7 +13,7 @@
 
 //!A question asked in place: which control scheme to use. A GuiPopover with one button per scheme; the one the
 //!player picks is chosen(), and clicking a button (or B, or clicking away) closes it. Read it as the sample of how to
-//!use GuiPopover: build the panel in `ui`, mount() it beside the control that asked, attach `ui`.
+//!use GuiPopover: say where it opens in the constructor, build the panel in `ui`, hand it to setPanel().
 class GuiSchemePopover : public GuiPopover
 {
 	public:
@@ -22,7 +22,7 @@ class GuiSchemePopover : public GuiPopover
 		//!\param anchor The control it opens beside
 		//!\param trigger Trigger the buttons click with (null for the default, A)
 		//!\param screenWidth, screenHeight The screen it covers
-		GuiSchemePopover(const GuiPopoverAnchor& anchor, GuiTrigger * trigger, int screenWidth, int screenHeight);
+		GuiSchemePopover(const GuiPopover::Anchor& anchor, GuiTrigger * trigger, int screenWidth, int screenHeight);
 		//!The scheme that was picked, or -1 if it was closed without one
 		int chosen() const { return picked; }
 	private:
@@ -38,9 +38,8 @@ class GuiLayoutDemo : public GuiColumn
 		GuiButton& backButton() { return *backBtn; }
 		//!Opens the controller configuration screen
 		GuiButton& configButton() { return *configBtn; }
-		//!Asks which scheme to use: the page loop shows a GuiSchemePopover beside schemeAnchor() and calls setScheme()
+		//!Asks which scheme to use: the page loop shows a GuiSchemePopover beside the button (GuiPopover::Anchor(schemeButton())) and calls setScheme()
 		GuiButton& schemeButton() { return *schemeBtn; }
-		GuiPopoverAnchor schemeAnchor();
 		void setScheme(int n) { scheme = n; status = GuiFormat("Scheme: %s", GuiSchemePopover::schemeName(n)); }
 	private:
 		struct Player {

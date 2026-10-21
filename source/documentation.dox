@@ -86,7 +86,7 @@
  * GuiItem), plus the platform-agnostic solver behind them and selection
  * navigation across nested containers. GuiPopover builds on them: a panel that
  * opens beside the control that asked, placed by the platform-agnostic
- * GuiPopoverPlace().
+ * GuiPopover::place().
  */
 
 /*!

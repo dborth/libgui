@@ -381,7 +381,7 @@ int main()
 		host.page.append(&demo);
 		host.page.update(nullptr);
 		demo.layout();
-		const GuiPopoverAnchor a = demo.schemeAnchor();
+		const GuiPopover::Anchor a(demo.schemeButton());
 		CHECK(a.valid && a.w == 150 && a.h == 44 && a.x >= demo.getLeft() && a.y >= demo.getTop() && a.y + a.h <= demo.getTop() + demo.getHeight(), "the anchor is the Scheme button, on the page: %d,%d %dx%d", a.x, a.y, a.w, a.h);
 
 		InputController p1(0);
@@ -512,21 +512,49 @@ int main()
 		struct Ask : public GuiPopover
 		{
 			GuiCard * card;
-			Ask(const GuiPopoverAnchor& a) : GuiPopover(640, 480), card(nullptr)
+			int ticks;
+			Ask(const GuiPopover::Anchor& a) : GuiPopover(a, Insets(60, 60, 20), 640, 480), card(nullptr), ticks(0)
 			{
-				GuiCard& panel = ui.card().selectable(false).size(100, 100);
-				card = &panel;
-				mount(panel, 100, 100, a, GuiPopoverInsets(60, 60, 20));
-				ui.attachTo(*this);
+				ui.bind([this]{ ticks++; });
+				card = &ui.card().selectable(false).size(100, 100);
+				setPanel(*card);	// places the panel from its own size, and attaches `ui`
 			}
 		};
-		const GuiPopoverAnchor anchor(400, 20, 150, 40);
+		const GuiPopover::Anchor anchor(400, 20, 150, 40);
 		Ask pop(anchor);
 		pop.layout();
-		const GuiPopoverPosition want = GuiPopoverPlace(anchor, 100, 100, 640, 480, GuiPopoverInsets(60, 60, 20));
+		const GuiPopover::Position want = GuiPopover::place(anchor, 100, 100, 640, 480, GuiPopover::Insets(60, 60, 20));
 		CHECK(pop.position().x == want.x && pop.position().y == want.y, "the popover reports where the panel went");
 		CHECK(pop.card->getLeft() == want.x && pop.card->getTop() == want.y, "and the panel is there: %d,%d", pop.card->getLeft(), pop.card->getTop());
 		CHECK(!pop.isDismissed() && pop.dismissedBy() == -1, "it starts open");
+		CHECK(pop.maxPanelHeight() == GuiPopover::maxHeight(480, GuiPopover::Insets(60, 60, 20)), "the popover knows the band it was given: %d", pop.maxPanelHeight());
+		CHECK(pop.tail().shown && pop.tail().direction == GuiPopover::TAIL::UP, "the tail points up at the anchor above the panel");
+		{
+			// an anchor can be made from the control itself
+			GuiShape btn(150, 40);
+			btn.setPosition(400, 20);
+			const GuiPopover::Anchor fromControl(btn, GuiPopover::Anchor::LEFT_MARGIN);
+			CHECK(fromControl.valid && fromControl.x == btn.getLeft() && fromControl.y == btn.getTop() && fromControl.w == 150 && fromControl.h == 40 && fromControl.edge == GuiPopover::Anchor::LEFT_MARGIN, "Anchor(control) takes the control's rectangle");
+		}
+
+		pop.update(nullptr);
+		CHECK(pop.ticks > 0, "setPanel attached ui: its bindings run (%d)", pop.ticks);
+
+		{
+			// a panel that sizes itself to its content is measured the same way
+			struct Fit : public GuiPopover
+			{
+				GuiCard * card;
+				Fit() : GuiPopover(GuiPopover::Anchor(), GuiPopover::Insets(), 640, 480), card(nullptr)
+				{
+					card = &ui.card().selectable(false).pad(0, 0).add(ui.make<GuiShape>(80, 60));
+					setPanel(*card);
+				}
+			};
+			Fit fit;
+			fit.layout();
+			CHECK(fit.card->getWidth() == 80 && fit.position().x == 280 && fit.position().y == 210, "an unsized panel: measured, centered: %d,%d (%d wide)", fit.position().x, fit.position().y, fit.card->getWidth());
+		}
 
 		g_perController = true;
 		InputController p1(0), p2(1);
@@ -570,7 +598,7 @@ int main()
 		g_perController = false;
 
 		// no anchor: centered, and no tail on top of the panel
-		Ask centered{GuiPopoverAnchor()};
+		Ask centered{GuiPopover::Anchor()};
 		centered.layout();
 		CHECK(centered.card->getLeft() == 270 && centered.card->getTop() == 190, "centered: %d,%d", centered.card->getLeft(), centered.card->getTop());
 	}

@@ -692,7 +692,7 @@ static int MenuLayout()
 			// screen, and wait for the popover to be dismissed
 			demo.schemeButton().resetState();
 			demo.setState(STATE::DISABLED);
-			GuiSchemePopover ask(demo.schemeAnchor(), &trigA, platform->getVideo()->getScreenWidth(), platform->getVideo()->getScreenHeight());
+			GuiSchemePopover ask(GuiPopover::Anchor(demo.schemeButton()), &trigA, platform->getVideo()->getScreenWidth(), platform->getVideo()->getScreenHeight());
 			w.append(&ask);
 			bool quit = false;
 			while(!ask.isDismissed())
