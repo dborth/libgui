@@ -12,15 +12,16 @@ conceived and written after I started to design a GUI for Snes9x GX, and
 found libwiisprite and GRRLIB inadequate for the purpose.
 
 libgui powers the GUI of several Nintendo homebrew emulators, including
-Snes9x GX, FCE Ultra GX, and Visual Boy Advance GX. It is a single,
-shared codebase that targets three different consoles from one source
-tree - GameCube and Wii share one driver set, and Wii U runs on modern
-GX2/GPU hardware through an entirely separate one, but the `GuiElement`/
-`GuiWindow`/`GuiButton`/etc. class hierarchy your app is built from is
-identical on all three. It was designed to be flexible and is easy to
-modify - don't be afraid to change the way it works or expand it to suit
-your GUI's purposes! If you do, and you think your changes might benefit
-others, please share them so they might be added to the project!
+Snes9x GX, FCE Ultra GX, Visual Boy Advance GX, and DOSBox Wii. It is a 
+single, shared codebase that targets three different consoles from one 
+source tree - GameCube and Wii share one driver set, and Wii U runs on 
+modern GX2/GPU hardware through an entirely separate one, but the 
+`GuiElement`/`GuiWindow`/`GuiButton`/etc. class hierarchy your app
+is built from is identical on all three. It was designed to be flexible 
+and is easy to modify - don't be afraid to change the way it works or 
+expand it to suit your GUI's purposes! If you do, and you think your 
+changes might benefit others, please share them so they might be added 
+to the project!
 
 
 ### Features
@@ -146,6 +147,7 @@ That's the only platform branch an app needs to write. Everything else -
 `GuiElement::update()`, `GuiImage`, `GuiText`, the file browser, and so
 on - talks only to the interfaces below.
 
+
 #### The driver interfaces
 
 | Interface | Responsibility | GameCube/Wii (`drivers/ogc`) | Wii U (`drivers/wut`) |
@@ -163,6 +165,7 @@ backends.
 The UI is laid out on a fixed design canvas (640x480 in the demo) that the
 video driver maps onto the output, so widget positions and sizes are
 expressed in the same units on every platform.
+
 
 #### Application lifecycle
 
@@ -206,6 +209,7 @@ platform->init(config);
 Thread::JoinAll();
 platform->requestExit();
 ```
+
 
 #### Repository layout
 
@@ -278,7 +282,7 @@ Topic guides, each readable here on GitHub and included in the
 
 ### Building
 
-libgui, Snes9x GX, FCE Ultra GX and Visual Boy Advance GX share one toolchain
+libgui, Snes9x GX, FCE Ultra GX, Visual Boy Advance GX, and DOSBox Wii share one toolchain
 and one set of dependencies, so there is a single build guide for all of them:
 **[Building](doc/building.md)**. It covers installing devkitPro and `libogc2`
 (GameCube/Wii) or `wut` (Wii U), and building `libsmb2` (all platforms),
@@ -314,8 +318,8 @@ full startup and shutdown sequence: create the platform, size the image
 decode scratch buffer, create the font renderer and string table, start audio
 and the storage device-checking thread, run the menus, then join background
 threads and exit. For more advanced uses, see the source code for Snes9x GX,
-FCE Ultra GX, and Visual Boy Advance GX - all of which build their menu system
-on top of libgui.
+FCE Ultra GX, Visual Boy Advance GX, and DOSBox Wii - all of which build their
+menu system on top of the latest libgui.
 
 
 ### Contact
