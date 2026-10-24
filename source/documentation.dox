@@ -10,10 +10,22 @@
 /*!
  * \dir source/libgui
  * \brief Platform-agnostic core UI library: GuiElement, GuiWindow, GuiButton,
- * GuiImage, GuiText, GuiSound, the file/option browsers and the keyboard.
+ * GuiImage, GuiText, GuiSound, the layout, shape, theme and builder classes.
  *
- * Never includes a platform SDK header; all platform access goes through the
- * driver interfaces in source/drivers.
+ * Never includes a platform SDK header (all platform access goes through the
+ * driver interfaces in source/drivers) and never includes an application
+ * header or bin2o'd asset list, so the directory can be copied between
+ * applications unchanged.
+ */
+
+/*!
+ * \dir source/widgets
+ * \brief Widgets built from the core classes: the file and option browsers
+ * and the on-screen keyboard.
+ *
+ * Unlike the core, widgets may depend on application data and assets (the file
+ * list, filelist.h), so they belong to the application and may differ between
+ * applications. Include widgets/GuiWidgets.h to use them.
  */
 
 /*!
@@ -68,8 +80,8 @@
 /*!
  * \defgroup grp_core Core UI
  * \brief Platform-agnostic widgets and helpers: GuiElement, GuiWindow,
- * GuiButton, GuiImage, GuiText, GuiSound, GuiTrigger, the file/option
- * browsers and the on-screen keyboard.
+ * GuiButton, GuiImage, GuiText, GuiSound and GuiTrigger. The file/option
+ * browsers and the on-screen keyboard are widgets (source/widgets).
  */
 
 /*!

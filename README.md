@@ -238,19 +238,28 @@ libgui/
     │       │                   #   logging backends)
     │       └── shaders/        # the GX2 shader plumbing
     │
-    └── libgui/                 # ---- Platform-agnostic core UI library ----
-        ├── Gui.h                       # umbrella header; alignment/state/scroll enums
-        ├── GuiElement, GuiWindow, GuiButton, GuiImage, GuiImageData,
-        │   GuiText, GuiTextRenderer, GuiTextTranslator, GuiTrigger
-        ├── GuiSound, GuiSoundOggPlayer
-        ├── GuiFileBrowser, GuiOptionBrowser, GuiKeyboard
-        └── ...
+    ├── libgui/                 # ---- Platform-agnostic core UI library ----
+    │   ├── Gui.h                       # umbrella header; alignment/state/scroll enums
+    │   ├── GuiElement, GuiWindow, GuiButton, GuiImage, GuiImageData,
+    │   │   GuiText, GuiTextRenderer, GuiTextTranslator, GuiTrigger
+    │   ├── GuiSound, GuiSoundOggPlayer
+    │   └── ...
+    │
+    └── widgets/                # ---- Widgets built on the core (owned by the application) ----
+        ├── GuiWidgets.h                # umbrella header for the widgets below
+        └── GuiFileBrowser, GuiOptionBrowser, GuiKeyboard
 ```
 
 `menu.cpp`/`menu.h` and `filebrowser.cpp`/`.h` build the actual template
 screens (settings, storage file browser, network share) on top of the core
 library and are explicitly *not* part of the library itself - they're a
 recommended pattern to build from, not a hard dependency.
+
+`source/libgui/` is the core: it includes no application header and no asset
+list, so applications can share it unchanged. `source/widgets/` holds the
+widgets built from it (file and option browsers, keyboard). Widgets may use
+application data and assets, so they belong to the application and may differ
+between applications; include `widgets/GuiWidgets.h` to use them.
 
 
 ### Guides
@@ -284,8 +293,8 @@ make -f Makefile.wiiu   # Wii U -> .rpx / .wuhb
 make                    # builds all three
 ```
 
-Each Makefile builds the same `source`, `source/drivers`, and
-`source/libgui` trees, adding only the directories for its platform:
+Each Makefile builds the same `source`, `source/drivers`,
+`source/libgui` and `source/widgets` trees, adding only the directories for its platform:
 `drivers/ogc` plus `drivers/ogc/wii` or `drivers/ogc/gamecube` for Wii and
 GameCube, and `drivers/wut` plus `drivers/wut/shaders` for Wii U.
 

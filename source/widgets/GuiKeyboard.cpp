@@ -5,7 +5,9 @@
  * GuiKeyboard.cpp
  ***************************************************************************/
 
-#include "Gui.h"
+#include "libgui/Gui.h"
+#include "GuiKeyboard.h"
+#include "../filelist.h"
 
 #define KB_FONTSIZE 20
 

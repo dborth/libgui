@@ -1,6 +1,7 @@
 // Host-side tests for the builder layer: UiScope ownership and bindings, GuiLabel, GuiChip, GuiTextButton, GuiCard.
 // Built with AddressSanitizer, so a use-after-free in the teardown order fails the test. Run with `make -C test elements`.
 #include "../source/libgui/Gui.h"
+#include "../source/widgets/GuiOptionBrowser.h"
 #include "../source/layoutdemo.h"
 #include "../source/controllerdemo.h"
 #include <cstdio>

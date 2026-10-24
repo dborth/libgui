@@ -11,6 +11,7 @@
 #include <string.h>
 
 #include "libgui/Gui.h"
+#include "widgets/GuiWidgets.h"
 #include "drivers/Platform.h"
 
 #ifdef __WIIU__

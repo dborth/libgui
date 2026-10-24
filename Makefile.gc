@@ -20,7 +20,7 @@ export	FREETYPE_LIBS	:=	`$(DEVKITPRO)/portlibs/ppc/bin/powerpc-eabi-pkg-config -
 TARGET		:=	libgui-gc-demo
 BUILD		:=	build_gc
 SOURCES		:=	source source/drivers source/drivers/ogc source/drivers/ogc/gamecube \
-				source/libgui
+				source/libgui source/widgets
 INCLUDES	:=	source
 DATA		:=	data/images data/fonts data/sounds data/lang
 

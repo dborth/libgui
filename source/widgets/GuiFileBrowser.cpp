@@ -4,7 +4,9 @@
  * GuiFileBrowser.cpp
  ***************************************************************************/
 
-#include "Gui.h"
+#include "libgui/Gui.h"
+#include "GuiFileBrowser.h"
+#include "../filelist.h"
 #include "../filebrowser.h"
 
 GuiFileBrowser::GuiFileBrowser(int w, int h)

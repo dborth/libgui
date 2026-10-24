@@ -5,7 +5,9 @@
  * GuiOptionBrowser.cpp
  ***************************************************************************/
 
-#include "Gui.h"
+#include "libgui/Gui.h"
+#include "GuiOptionBrowser.h"
+#include "../filelist.h"
 
 GuiOptionBrowser::GuiOptionBrowser(int w, int h, OptionList * l)
 {

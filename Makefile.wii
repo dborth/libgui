@@ -20,7 +20,7 @@ export	FREETYPE_LIBS	:=	`$(DEVKITPRO)/portlibs/ppc/bin/powerpc-eabi-pkg-config -
 TARGET		:=	libgui-wii-demo
 BUILD		:=	build_wii
 SOURCES		:=	source source/drivers source/drivers/ogc source/drivers/ogc/wii \
-				source/libgui
+				source/libgui source/widgets
 INCLUDES	:=	source
 DATA		:=	data/images data/fonts data/sounds data/lang
 

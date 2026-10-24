@@ -205,6 +205,18 @@ All notable changes to libgui are documented here. Versions follow
   colour types, resizing, texture reuse, a caller-supplied or borrowed texture, failure cases and `loadClipped()`.
 
 
+### Changed
+
+**Core and widgets are separate (`source/widgets/`)**
+* `GuiFileBrowser`, `GuiOptionBrowser` and `GuiKeyboard` moved from `source/libgui/` to the new `source/widgets/`.
+  They are built from the core but may depend on application data and assets, so they belong to the application.
+  `widgets/GuiWidgets.h` includes them; `libgui/Gui.h` no longer does. Add `source/widgets` to `SOURCES` and
+  `#include "widgets/GuiWidgets.h"` where a widget is used.
+* `libgui/Gui.h` no longer includes the application's `filelist.h`. Nothing in the core uses an asset, so the host tests
+  no longer generate asset stubs. A file that uses bin2o'd assets includes `filelist.h` itself.
+* Every widget `.cpp` includes its own header, and widget headers include `libgui/Gui.h`, so each can be included on its own.
+
+
 ## [2.01] - October 1, 2026
 
 ### Added

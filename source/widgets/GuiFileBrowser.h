@@ -5,6 +5,8 @@
  ***************************************************************************/
 #pragma once
 
+#include "libgui/Gui.h"
+
 #define FILE_PAGESIZE 			8
 
 //!Display a list of files
