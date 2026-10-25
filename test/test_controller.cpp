@@ -181,6 +181,24 @@ int main()
 		CHECK(writePng(im, "out/glyphs.png", 3), "could not write out/glyphs.png");
 	}
 
+	// ---- glyph sizes and ink come from the theme
+	{
+		GuiTheme saved = GuiTheme::current();
+		GuiTheme& t = GuiTheme::current();
+		t.glyphSize = 30.0f; t.glyphBumperWidth = 44.0f; t.glyphBumperHeight = 26.0f; t.textInverse = { 1, 2, 3, 255 };
+		float w, h;
+		GuiGlyph::size(GLYPH::BUTTON, w, h);
+		CHECK(w == 30.0f && h == 30.0f, "a round glyph takes glyphSize: %gx%g", w, h);
+		GuiGlyph::size(GLYPH::BUMPER, w, h);
+		CHECK(w == 44.0f && h == 26.0f, "a bumper takes glyphBumperWidth/Height: %gx%g", w, h);
+		GuiMesh m(1.0f);
+		GuiGlyph::build(m, GLYPH::PLUS, 30.0f, 30.0f);
+		bool ink = false;
+		for(size_t i = 0; i < m.size(); i++) { const PixelColor& c = m.vertices()[i].c; if(c.r == 1 && c.g == 2 && c.b == 3) ink = true; }
+		CHECK(ink, "the symbol is drawn in textInverse");
+		GuiTheme::current() = saved;
+	}
+
 	printf("%d checks, %d failures\n", checks, failures);
 	return failures ? 1 : 0;
 }

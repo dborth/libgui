@@ -221,6 +221,7 @@ libgui/
 ├── meta/                      # Wii U .wuhb icon/splash assets
 └── source/
     ├── demo.cpp / demo.h      # entry point / app template
+    ├── theme.cpp              # template theme: GuiThemeInit(), the application's look (see doc/theming.md)
     ├── menu.cpp / menu.h      # template menu screens (not part of the library itself)
     ├── filebrowser.cpp/.h     # storage file browser built on GuiFileBrowser
     │
@@ -278,6 +279,7 @@ Topic guides, each readable here on GitHub and included in the
 * [Audio](doc/audio.md) - One-shot voices, the OGG stream and volume categories
 * [Threading](doc/threading.md) - Thread, Mutex, Cond and the cooperative stop protocol
 * [Logging](doc/logging.md) - The multi-backend logger and its configuration
+* [Theming](doc/theming.md) - `GuiThemeInit()`, the theme fields and the style recipes
 
 
 ### Building

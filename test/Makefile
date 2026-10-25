@@ -8,8 +8,8 @@ all: out geometry_test paint_test layout_test controller_test
 	./layout_test
 	./controller_test
 
-controller_test: test_controller.cpp Raster.h ../source/controllerdraw.cpp ../source/controllerlayout.cpp ../source/libgui/GuiGeometry.cpp ../source/libgui/GuiPaint.cpp ../source/libgui/GuiTheme.cpp ../source/libgui/GuiGlyph.h
-	$(CXX) $(CXXFLAGS) -o $@ test_controller.cpp ../source/controllerdraw.cpp ../source/controllerlayout.cpp ../source/libgui/GuiGeometry.cpp ../source/libgui/GuiPaint.cpp ../source/libgui/GuiTheme.cpp
+controller_test: test_controller.cpp Raster.h ../source/controllerdraw.cpp ../source/controllerlayout.cpp ../source/libgui/GuiGeometry.cpp ../source/libgui/GuiPaint.cpp ../source/libgui/GuiTheme.cpp ../source/libgui/GuiGlyph.h ../source/theme.cpp
+	$(CXX) $(CXXFLAGS) -o $@ test_controller.cpp ../source/controllerdraw.cpp ../source/controllerlayout.cpp ../source/libgui/GuiGeometry.cpp ../source/libgui/GuiPaint.cpp ../source/libgui/GuiTheme.cpp ../source/theme.cpp
 
 # Also runs the real container and window classes (needs FreeType headers; see below)
 elements: elements_test ui_test popover_test imagedata_test
@@ -24,8 +24,8 @@ out:
 geometry_test: test_geometry.cpp Raster.h ../source/libgui/GuiGeometry.cpp ../source/libgui/GuiGeometry.h
 	$(CXX) $(CXXFLAGS) -o $@ test_geometry.cpp ../source/libgui/GuiGeometry.cpp
 
-paint_test: test_paint.cpp ../source/libgui/GuiPaint.cpp ../source/libgui/GuiTheme.cpp ../source/libgui/GuiGeometry.cpp ../source/libgui/GuiPaint.h ../source/libgui/GuiTheme.h
-	$(CXX) $(CXXFLAGS) -o $@ test_paint.cpp ../source/libgui/GuiPaint.cpp ../source/libgui/GuiTheme.cpp ../source/libgui/GuiGeometry.cpp
+paint_test: test_paint.cpp ../source/libgui/GuiPaint.cpp ../source/libgui/GuiTheme.cpp ../source/libgui/GuiGeometry.cpp ../source/libgui/GuiPaint.h ../source/libgui/GuiTheme.h ../source/theme.cpp
+	$(CXX) $(CXXFLAGS) -o $@ test_paint.cpp ../source/libgui/GuiPaint.cpp ../source/libgui/GuiTheme.cpp ../source/libgui/GuiGeometry.cpp ../source/theme.cpp
 
 layout_test: test_layout.cpp ../source/libgui/GuiLayoutSolver.cpp ../source/libgui/GuiLayoutSolver.h
 	$(CXX) $(CXXFLAGS) -o $@ test_layout.cpp ../source/libgui/GuiLayoutSolver.cpp ../source/libgui/GuiGeometry.cpp
@@ -36,7 +36,8 @@ layout_test: test_layout.cpp ../source/libgui/GuiLayoutSolver.cpp ../source/libg
 FT_CFLAGS ?= $(shell pkg-config --cflags freetype2 2>/dev/null || echo -I/usr/include/freetype2)
 # Mutex.cpp is the real RAII wrapper; with platform == nullptr (host_stubs.cpp) it is a harmless no-op,
 # which is all GuiMeshCache's lock needs in these single-threaded tests.
-HOST_SRC = host_stubs.cpp ../source/drivers/Mutex.cpp $(addprefix ../source/libgui/, GuiLayout.cpp GuiWindow.cpp GuiElement.cpp GuiLayoutSolver.cpp \
+# theme.cpp is the template application's GuiThemeInit(): the core defines no look of its own
+HOST_SRC = host_stubs.cpp ../source/theme.cpp ../source/drivers/Mutex.cpp $(addprefix ../source/libgui/, GuiLayout.cpp GuiWindow.cpp GuiElement.cpp GuiLayoutSolver.cpp \
 	GuiGeometry.cpp GuiUi.cpp GuiButton.cpp GuiShape.cpp GuiPaint.cpp GuiTheme.cpp GuiText.cpp \
 	GuiGlyph.cpp GuiMeshCache.cpp GuiSound.cpp GuiPopover.cpp)
 

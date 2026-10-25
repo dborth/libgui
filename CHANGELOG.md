@@ -216,6 +216,22 @@ All notable changes to libgui are documented here. Versions follow
   no longer generate asset stubs. A file that uses bin2o'd assets includes `filelist.h` itself.
 * Every widget `.cpp` includes its own header, and widget headers include `libgui/Gui.h`, so each can be included on its own.
 
+**The core has no built-in look (`GuiThemeInit()`)**
+* `GuiTheme` no longer carries default colors or numbers. The application defines `void GuiThemeInit(GuiTheme&)` (the
+  template's is `source/theme.cpp`, with the values the library used to hard-code); `GuiTheme::current()` fills the
+  theme from it on first use. A program that does not define it fails to link, and `GuiTheme t;` is all zero.
+  `GuiTheme.cpp` contains no style literals. See `doc/theming.md`.
+* New theme fields replace numbers that were hard-coded in the core: `glyphSize`, `glyphBumperWidth`,
+  `glyphBumperHeight`, `glyphFontSize` and `glyphFontSizeSmall` (`GuiGlyph` sizes and letter sizes), and the recipe
+  tuning `shadowOffsetY`, `glowGrow`, `focusGlowAlpha`, `pressGlowAlpha`, `buttonGlowBlur`, `buttonGlowAlpha`,
+  `rowPressAlpha`, `cardDisabledAlpha`, `buttonDisabledAlpha`, `buttonStrokeLight` and `barDarken`. The template's values
+  reproduce the previous look exactly.
+* `textInverse` is the ink on a glyph badge (the badge is filled with `text`); `GuiGlyph` used `textOnAccent` for the
+  letter and for the symbol, which only worked because the two happened to contrast the same way.
+* `highlight` no longer has a computed default (it was a mix of `surfaceRaised` and `outlineStrong`); set it in
+  `GuiThemeInit()`.
+* Host tests link `source/theme.cpp`; new checks cover the zero theme, the tuning fields and glyph sizes and ink.
+
 
 ## [2.01] - October 1, 2026
 

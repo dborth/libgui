@@ -8,6 +8,8 @@ static int failures = 0, checks = 0;
 
 static PixelColor rgba(int r, int g, int b, int a = 255) { PixelColor c = { (uint8_t)r, (uint8_t)g, (uint8_t)b, (uint8_t)a }; return c; }
 static bool near8(int a, int b, int tol = 1) { return abs(a - b) <= tol; }
+// the template application's theme (source/theme.cpp), fresh: GuiTheme::current() is edited by some of the checks below
+static GuiTheme templateTheme() { GuiTheme t; GuiThemeInit(t); return t; }
 
 int main()
 {
@@ -98,7 +100,7 @@ int main()
 
 	// every theme style produces geometry in every state, and states differ
 	{
-		GuiTheme theme;
+		GuiTheme theme = templateTheme();
 		GuiShapeStyle styles[4] = { theme.panelStyle(), theme.cardStyle(), theme.buttonStyle(), theme.chipStyle() };
 		const char* names[4] = { "panel", "card", "button", "chip" };
 		GuiRect r = { 0, 0, 160, 44 };
@@ -126,7 +128,7 @@ int main()
 		CHECK(m.r == 50 && m.g == 150 && m.b == 100 && m.a == 155, "mix: %d,%d,%d,%d", m.r, m.g, m.b, m.a);
 		CHECK(GuiMixColor(a, b, 0.0f).g == 100 && GuiMixColor(a, b, 1.0f).g == 200 && GuiMixColor(a, b, 9.0f).g == 200, "mix ends and clamp");
 
-		GuiTheme gray;
+		GuiTheme gray = templateTheme();
 		gray.background = rgba(30, 30, 30); gray.surface = rgba(46, 46, 46); gray.surfaceRaised = rgba(62, 62, 62);
 		gray.outline = rgba(84, 84, 84); gray.outlineStrong = rgba(120, 120, 120);
 		gray.highlight = GuiMixColor(gray.surfaceRaised, gray.outlineStrong, 0.65f);
@@ -136,21 +138,53 @@ int main()
 		CHECK(bar.r == bar.g && bar.g == bar.b && bar.r < gray.background.r, "and a gray, darker bar: %d,%d,%d", bar.r, bar.g, bar.b);
 	}
 
-	// highlight, mark and shadow: new theme fields whose defaults leave the look as it was
+	// highlight, mark and shadow in the template theme
 	{
-		GuiTheme t;
+		GuiTheme t = templateTheme();
 		const PixelColor derived = GuiMixColor(t.surfaceRaised, t.outlineStrong, 0.65f);
 		PixelColor row = t.rowStyle().forState(SHAPE_STATE::FOCUSED).fill.from;
-		CHECK(t.highlight.a == 255 && t.highlight.r == derived.r && t.highlight.g == derived.g && t.highlight.b == derived.b, "highlight defaults to the mix the row bar always used");
-		CHECK(row.r == derived.r && row.g == derived.g && row.b == derived.b, "so the default row bar is unchanged");
+		CHECK(t.highlight.a == 255 && t.highlight.r == derived.r && t.highlight.g == derived.g && t.highlight.b == derived.b, "the template's highlight is the mix the row bar always used");
+		CHECK(row.r == derived.r && row.g == derived.g && row.b == derived.b, "so its row bar is that mix");
 		t.highlight = rgba(1, 2, 3);
 		row = t.rowStyle().forState(SHAPE_STATE::FOCUSED).fill.from;
 		CHECK(row.r == 1 && row.g == 2 && row.b == 3, "a set highlight is the row bar: %d,%d,%d", row.r, row.g, row.b);
-		CHECK(t.mark.r == 255 && t.mark.g == 150 && t.mark.b == 40, "mark defaults to the default accent");
-		GuiTheme u;
-		CHECK(u.cardStyle().forState(SHAPE_STATE::NORMAL).shadowColor.a == 150, "the card's shadow keeps its old strength");
+		CHECK(t.mark.r == 255 && t.mark.g == 150 && t.mark.b == 40, "the template's mark is its accent");
+		GuiTheme u = templateTheme();
+		CHECK(u.cardStyle().forState(SHAPE_STATE::NORMAL).shadowColor.a == 150, "the template card's shadow is its theme's shadow");
 		u.shadow = rgba(0, 0, 0, 64);
 		CHECK(u.cardStyle().forState(SHAPE_STATE::NORMAL).shadowColor.a == 64, "the card's shadow follows the theme");
+	}
+
+	// the core has no look of its own: a GuiTheme made by hand is all zero, GuiThemeInit() fills one in
+	{
+		GuiTheme z;
+		CHECK(z.accent.a == 0 && z.text.a == 0 && z.textInverse.a == 0 && z.radius == 0 && z.glyphSize == 0 && z.focusGlowAlpha == 0 && z.barDarken == 0,
+			"a default-constructed theme is all zero");
+		GuiTheme t = templateTheme();
+		CHECK(t.accent.a == 255 && t.text.a == 255 && t.textInverse.a == 255 && t.radius > 0 && t.padding > 0 && t.glyphSize > 0 && t.glyphFontSize > 0, "GuiThemeInit fills colors and metrics");
+		CHECK(GuiTheme::current().radius == t.radius, "current() is filled by GuiThemeInit");
+	}
+
+	// the recipe tuning fields reach the recipes
+	{
+		GuiTheme t = templateTheme();
+		t.shadowOffsetY = 9; t.glowGrow = 5; t.focusGlowAlpha = 33; t.pressGlowAlpha = 44; t.cardDisabledAlpha = 55;
+		t.buttonGlowBlur = 21; t.buttonGlowAlpha = 66; t.buttonDisabledAlpha = 77; t.rowPressAlpha = 88;
+		const GuiShapeStyle card = t.cardStyle(), button = t.buttonStyle();
+		CHECK(card.forState(SHAPE_STATE::NORMAL).shadowDy == 9, "shadowOffsetY is the card's shadow offset");
+		CHECK(card.forState(SHAPE_STATE::FOCUSED).shadowColor.a == 33 && card.forState(SHAPE_STATE::FOCUSED).shadowSpread == 5
+			&& card.forState(SHAPE_STATE::FOCUSED).shadowBlur == t.shadowBlur + 5, "focusGlowAlpha and glowGrow shape the focus glow");
+		CHECK(card.forState(SHAPE_STATE::PRESSED).shadowColor.a == 44, "pressGlowAlpha is the pressed glow");
+		CHECK(card.forState(SHAPE_STATE::DISABLED).fill.from.a == 55, "cardDisabledAlpha is a disabled card's opacity");
+		CHECK(button.forState(SHAPE_STATE::FOCUSED).shadowBlur == 21 && button.forState(SHAPE_STATE::FOCUSED).shadowColor.a == 66, "the button glow follows its fields");
+		CHECK(button.forState(SHAPE_STATE::DISABLED).fill.from.a == 77, "buttonDisabledAlpha is a disabled button's opacity");
+		CHECK(t.rowStyle().forState(SHAPE_STATE::PRESSED).fill.from.a == 88, "rowPressAlpha is a pressed row's tint");
+		t.buttonStrokeLight = 0.0f;
+		const PixelColor s0 = t.buttonStyle().forState(SHAPE_STATE::FOCUSED).strokeFill.from;
+		CHECK(s0.r == t.accentLight.r && s0.g == t.accentLight.g && s0.b == t.accentLight.b, "buttonStrokeLight 0 leaves the outline at accentLight");
+		t.barDarken = 0.0f;
+		const PixelColor bar0 = t.barStyle().forState(SHAPE_STATE::NORMAL).fill.from;
+		CHECK(bar0.r == t.background.r && bar0.g == t.background.g && bar0.b == t.background.b, "barDarken 0 leaves the bar at the background");
 	}
 
 	// triangles: fill only, one winding, the apex on the middle of a side, half of the rectangle covered
