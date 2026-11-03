@@ -18,7 +18,7 @@ void WiiPlatform::init(const PlatformConfig& config)
 	this->audioDriver = new OgcAudioDriver();
 	this->audioDriver->init();
 
-	this->inputDriver = new OgcInputDriver();
+	this->inputDriver = new WiiInputDriver();
 	this->inputDriver->init();
 
 	this->fileSystemDriver = new WiiFileSystemDriver();

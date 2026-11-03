@@ -46,8 +46,9 @@
 
 /*!
  * \dir source/drivers/ogc/wii
- * \brief Wii-only pieces: WiiPlatform, WiiFileSystemDriver (SD, up to three
- * USB drives, DVD) and WiiUsbMulti.
+ * \brief Wii-only pieces: WiiPlatform, WiiInputDriver (Wiimote and its
+ * extensions, the Wii U GamePad, built on the GameCube OgcInputDriver),
+ * WiiFileSystemDriver (SD, up to three USB drives, DVD) and WiiUsbMulti.
  */
 
 /*!

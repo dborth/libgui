@@ -3,6 +3,17 @@
 All notable changes to libgui are documented here. Versions follow
 `MAJOR.MINOR`; dates are approximate, taken from the commit history.
 
+## Unreleased
+
+### Changed
+
+**Wii input is a subclass of the GameCube driver**
+* `OgcInputDriver` is now the GameCube driver and the shared per-frame machinery (channel loop, merging per-hardware
+  state, menu rumble). Everything Wii-only (Wiimote, Nunchuk, Classic/Pro Controller, the Wii U GamePad, the rumble
+  setting) moved to `WiiInputDriver` (`drivers/ogc/wii/`), which `WiiPlatform` creates; `GameCubePlatform` still creates
+  a plain `OgcInputDriver`. `OgcInputDriver.cpp` no longer contains any `HW_RVL` code: a console with more hardware
+  overrides `initHardware()`, `scanHardware()`, `readChannel()`, `isSystemRumbleAllowed()` and `driveRumble()`.
+
 
 ## [3.00] - October 25, 2026
 

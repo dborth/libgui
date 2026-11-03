@@ -9,7 +9,7 @@
 
 #include "../../Platform.h"
 #include "../OgcVideoDriver.h"
-#include "../OgcInputDriver.h"
+#include "WiiInputDriver.h"
 #include "../OgcThreadDriver.h"
 #include "../OgcAudioDriver.h"
 #include "WiiFileSystemDriver.h"
@@ -21,7 +21,8 @@
 void NotifyWiiShutdownRequested();
 
 //!Wii Platform, built on the shared GC/Wii driver set (OgcVideoDriver,
-//!OgcAudioDriver, OgcInputDriver, OgcThreadDriver) plus WiiFileSystemDriver
+//!OgcAudioDriver, OgcThreadDriver), WiiInputDriver (the GameCube pads plus the
+//!Wiimote and its extensions) and WiiFileSystemDriver
 //!for hot-pluggable SD/USB/DVD.
 //!\ingroup grp_ogc
 class WiiPlatform : public Platform
@@ -50,7 +51,7 @@ class WiiPlatform : public Platform
 		Status status = Status::Running;
 		OgcAudioDriver* audioDriver = nullptr;
 		OgcVideoDriver* videoDriver = nullptr;
-		OgcInputDriver* inputDriver = nullptr;
+		WiiInputDriver* inputDriver = nullptr;
 		WiiFileSystemDriver* fileSystemDriver = nullptr;
 		OgcThreadDriver* threadDriver = nullptr;
 		Logger* logger = nullptr;
