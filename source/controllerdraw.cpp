@@ -8,12 +8,6 @@
 #include <cmath>
 #include <algorithm>
 
-static PixelColor rgb(uint8_t r, uint8_t g, uint8_t b, uint8_t a = 255)
-{
-	PixelColor c = { r, g, b, a };
-	return c;
-}
-
 static PixelColor withAlpha(PixelColor c, uint8_t a)
 {
 	c.a = a;
