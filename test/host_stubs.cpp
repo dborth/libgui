@@ -99,7 +99,7 @@ uint16_t GuiTextRenderer::getHeight(const wchar_t *) { return (uint16_t)(g_pixel
 uint16_t GuiTextRenderer::getLineHeight() { return (uint16_t)(g_pixelSize + 4); }
 uint16_t GuiTextRenderer::drawText(int16_t, int16_t, const wchar_t *, PixelColor, uint32_t) { return 0; }
 
-GuiTextTranslator::GuiTextTranslator() {}
+// (the constructor is constexpr and defined in the header; only the lookup is stubbed)
 const char * GuiTextTranslator::getText(const char * msgid) const { return msgid; }
 
 static char g_rendererStorage[sizeof(GuiTextRenderer)];

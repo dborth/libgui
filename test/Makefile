@@ -2,11 +2,12 @@
 CXX ?= g++
 CXXFLAGS ?= -std=c++11 -O2 -Wall -Wextra
 
-all: out geometry_test paint_test layout_test controller_test
+all: out geometry_test paint_test layout_test controller_test translator_test
 	./geometry_test
 	./paint_test
 	./layout_test
 	./controller_test
+	./translator_test
 
 controller_test: test_controller.cpp Raster.h ../source/controllerdraw.cpp ../source/controllerlayout.cpp ../source/libgui/GuiGeometry.cpp ../source/libgui/GuiPaint.cpp ../source/libgui/GuiTheme.cpp ../source/libgui/GuiGlyph.h ../source/theme.cpp
 	$(CXX) $(CXXFLAGS) -o $@ test_controller.cpp ../source/controllerdraw.cpp ../source/controllerlayout.cpp ../source/libgui/GuiGeometry.cpp ../source/libgui/GuiPaint.cpp ../source/libgui/GuiTheme.cpp ../source/theme.cpp
@@ -57,7 +58,11 @@ imagedata_test: test_imagedata.cpp ../source/libgui/GuiImageData.cpp ../source/l
 ui_test: test_ui.cpp ../source/layoutdemo.cpp ../source/layoutdemo.h $(CONTROLLER_SRC) ../source/controllerdemo.h ../source/controllerview.h $(HOST_SRC)
 	$(CXX) $(CXXFLAGS) -fsanitize=address,undefined -fno-omit-frame-pointer -I../source $(FT_CFLAGS) -o $@ test_ui.cpp ../source/layoutdemo.cpp $(CONTROLLER_SRC) $(HOST_SRC)
 
+# The real translator: it brings its own storage definition, so no host_stubs.cpp
+translator_test: test_translator.cpp ../source/libgui/GuiTextTranslator.cpp ../source/libgui/GuiTextTranslator.h
+	$(CXX) $(CXXFLAGS) -I../source -o $@ test_translator.cpp ../source/libgui/GuiTextTranslator.cpp
+
 clean:
-	rm -rf geometry_test paint_test layout_test controller_test popover_test elements_test ui_test imagedata_test out
+	rm -rf translator_test geometry_test paint_test layout_test controller_test popover_test elements_test ui_test imagedata_test out
 
 .PHONY: all elements clean
