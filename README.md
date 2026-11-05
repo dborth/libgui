@@ -11,7 +11,7 @@ an author to create a sophisticated, feature-rich GUI. It was originally
 conceived and written after I started to design a GUI for Snes9x GX, and
 found libwiisprite and GRRLIB inadequate for the purpose.
 
-libgui powers the GUI of several Nintendo homebrew emulators, including
+libgui powers the GUI of several homebrew emulators, including
 Snes9x GX, FCE Ultra GX, Visual Boy Advance GX, and DOSBox Wii. It is a 
 single, shared codebase that targets three different consoles from one 
 source tree - GameCube and Wii share one driver set, and Wii U runs on 
