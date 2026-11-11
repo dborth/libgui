@@ -7,7 +7,7 @@ all: out geometry_test paint_test layout_test controller_test translator_test
 	./paint_test
 	./layout_test
 	./controller_test
-	./translator_test
+	./translator_test fixtures/translator.mo
 
 controller_test: test_controller.cpp Raster.h ../source/controllerdraw.cpp ../source/controllerlayout.cpp ../source/libgui/GuiGeometry.cpp ../source/libgui/GuiPaint.cpp ../source/libgui/GuiTheme.cpp ../source/libgui/GuiGlyph.h ../source/theme.cpp
 	$(CXX) $(CXXFLAGS) -o $@ test_controller.cpp ../source/controllerdraw.cpp ../source/controllerlayout.cpp ../source/libgui/GuiGeometry.cpp ../source/libgui/GuiPaint.cpp ../source/libgui/GuiTheme.cpp ../source/theme.cpp
@@ -41,7 +41,7 @@ FT_CFLAGS ?= $(shell pkg-config --cflags freetype2 2>/dev/null || echo -I/usr/in
 # theme.cpp is the template application's GuiThemeInit(): the core defines no look of its own
 HOST_SRC = host_stubs.cpp ../source/theme.cpp ../source/drivers/Mutex.cpp $(addprefix ../source/libgui/, GuiLayout.cpp GuiWindow.cpp GuiElement.cpp GuiLayoutSolver.cpp \
 	GuiGeometry.cpp GuiUi.cpp GuiButton.cpp GuiShape.cpp GuiPaint.cpp GuiTheme.cpp GuiText.cpp \
-	GuiGlyph.cpp GuiMeshCache.cpp GuiSound.cpp GuiPopover.cpp)
+	GuiGlyph.cpp GuiMeshCache.cpp GuiSound.cpp GuiPopover.cpp GuiTextTranslator.cpp)
 
 elements_test: test_layout_elements.cpp $(HOST_SRC)
 	$(CXX) $(CXXFLAGS) -I../source $(FT_CFLAGS) -o $@ test_layout_elements.cpp $(HOST_SRC)
@@ -63,11 +63,27 @@ ui_test: test_ui.cpp ../source/layoutdemo.cpp ../source/layoutdemo.h $(CONTROLLE
 text_test: test_text.cpp $(HOST_SRC)
 	$(CXX) $(CXXFLAGS) -fsanitize=address,undefined -fno-omit-frame-pointer -I../source $(FT_CFLAGS) -o $@ test_text.cpp $(HOST_SRC)
 
-# The real translator: it brings its own storage definition, so no host_stubs.cpp
-translator_test: test_translator.cpp ../source/libgui/GuiTextTranslator.cpp ../source/libgui/GuiTextTranslator.h
-	$(CXX) $(CXXFLAGS) -I../source -o $@ test_translator.cpp ../source/libgui/GuiTextTranslator.cpp
+# The real translator, against a catalog that msgfmt (GNU gettext) builds from fixtures/translator.lang, the way the
+# application's own .lang files are built. It brings its own copy of nothing: no host_stubs.cpp. Built with the address
+# and undefined-behaviour sanitizers, because the catalogs it damages on purpose are exact-size heap blocks.
+fixtures/translator.mo: fixtures/translator.lang
+	msgfmt --no-hash -o $@ $<
+
+translator_test: test_translator.cpp ../source/libgui/GuiTextTranslator.cpp ../source/libgui/GuiTextTranslator.h fixtures/translator.mo
+	$(CXX) $(CXXFLAGS) -fsanitize=address,undefined -fno-omit-frame-pointer -I../source -o $@ test_translator.cpp ../source/libgui/GuiTextTranslator.cpp -pthread
+
+# The same, with ThreadSanitizer (the two sanitizers cannot be combined): the translator is read by other threads while
+# a language is loaded
+translator_tsan: test_translator.cpp ../source/libgui/GuiTextTranslator.cpp ../source/libgui/GuiTextTranslator.h fixtures/translator.mo
+	$(CXX) $(CXXFLAGS) -fsanitize=thread -I../source -o translator_tsan test_translator.cpp ../source/libgui/GuiTextTranslator.cpp -pthread
+	./translator_tsan fixtures/translator.mo
+
+# Checks a real application's catalogs against their .lang sources: make verify-lang LANG_DIR=../../fceugx/data/lang
+verify-lang: translator_test
+	@set -e; tmp=$$(mktemp -d); for f in $(LANG_DIR)/*.lang; do b=$$(basename $$f .lang); \
+		msgfmt --no-hash -o $$tmp/$$b.mo $$f; [ -f $$tmp/$$b.mo ] || { echo "$$f: no translations, so msgfmt writes no catalog"; continue; }; ./translator_test --verify $$f $$tmp/$$b.mo; done; rm -rf $$tmp
 
 clean:
-	rm -rf translator_test geometry_test paint_test layout_test controller_test popover_test elements_test ui_test text_test imagedata_test out
+	rm -rf translator_test translator_tsan fixtures/translator.mo geometry_test paint_test layout_test controller_test popover_test elements_test ui_test text_test imagedata_test out
 
-.PHONY: all elements clean
+.PHONY: all elements clean verify-lang translator_tsan

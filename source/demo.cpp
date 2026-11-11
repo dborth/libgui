@@ -70,7 +70,8 @@ int main(int, char **)
 	GuiImageData::setDecodeScratch(malloc(IMAGE_DECODE_SCRATCH_SIZE), IMAGE_DECODE_SCRATCH_SIZE);
 
 	fontSystem = new GuiTextRenderer(font_ttf, font_ttf_size, platform->getVideo()->getGlyphRenderer(), platform->getVideo()->getUIScale());
-	textTranslator->loadLanguage(en_lang, en_lang_size);
+	// English is the text in the program, so there is nothing to load. Another language: data/lang/xx.lang is compiled to
+	// xx.mo by the build, and textTranslator->loadLanguage(xx_mo, xx_mo_size) starts using it (see data/lang/README.md).
 
 	platform->getAudio()->start();
 

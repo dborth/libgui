@@ -88,8 +88,5 @@ void GuiTextRenderer::drawText(int16_t, int16_t, const GuiTextRun * runs, int co
 	g_drawnText.push_back(joined);
 }
 
-// (the constructor is constexpr and defined in the header; only the lookup is stubbed)
-const char * GuiTextTranslator::getText(const char * msgid) const { return msgid; }
-
 static char g_rendererStorage[sizeof(GuiTextRenderer)];
 GuiTextRenderer * fontSystem = reinterpret_cast<GuiTextRenderer *>(g_rendererStorage); // its stubbed methods never touch it

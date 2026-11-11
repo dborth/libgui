@@ -38,9 +38,10 @@ to the project!
   selection navigation, and a trigger-based input-condition system that
   auto-resolves "Accept"/"Cancel" semantics across button layouts.
 * **FreeType2-based text rendering** with glyph shaping/caching per
-  pixel size, UTF-8 string tables loaded from a compact binary `.lang`
-  blob, and bitmask text styling (justification, alignment, underline,
-  strike).
+  pixel size, translations read in place from gettext message catalogs
+  compiled from `.lang` files by the build (no memory allocated, and a
+  damaged catalog is simply not used), and bitmask text styling
+  (justification, alignment, underline, strike).
 * **PNG image decoding** straight to a platform-native texture, with a
   caller-supplied scratch buffer so decode memory is sized once by the
   app rather than allocated per image.

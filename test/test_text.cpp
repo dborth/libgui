@@ -38,6 +38,23 @@ static std::string show(const Lines & l)
 
 #define CHECK_LINES(t, ...) do { const Lines got = drawn(t); const Lines want = L(__VA_ARGS__); CHECK(got == want, "got %s, want %s", show(got).c_str(), show(want).c_str()); } while(0)
 
+// A message catalog (the gettext .mo format GuiTextTranslator reads), built by hand: IDs must be given in sorted order
+static std::vector<unsigned char> catalog(const std::vector<std::pair<std::string, std::string> > & e)
+{
+	std::vector<unsigned char> b(28 + 16 * e.size(), 0);
+	auto put = [&b](size_t at, uint32_t v) { for(int i = 0; i < 4; i++) b[at + i] = (unsigned char)(v >> (8 * i)); };
+	put(0, 0x950412DEu); put(8, (uint32_t)e.size()); put(12, 28); put(16, (uint32_t)(28 + 8 * e.size()));
+	for(size_t i = 0; i < e.size(); i++)
+		for(int k = 0; k < 2; k++)
+		{
+			const std::string & str = k ? e[i].second : e[i].first;
+			const size_t entry = (k ? 28 + 8 * e.size() : 28) + 8 * i;
+			put(entry, (uint32_t)str.size()); put(entry + 4, (uint32_t)b.size());
+			b.insert(b.end(), str.begin(), str.end()); b.push_back(0);
+		}
+	return b;
+}
+
 int main()
 {
 	// no width: the whole text, as given
@@ -116,6 +133,57 @@ int main()
 		CHECK(got.size() == 8 && got.back() == L"xxxx xx...", "%s", show(got).c_str());
 		std::string one(5000, 'x'); GuiText w(one.c_str(), 20, WHITE); w.setWrap(true, 100);
 		const Lines single = drawn(w); CHECK(single.size() == 1 && single[0].size() == 1023, "one word, one line: %zu lines", single.size());
+	}
+
+	// translation: setText looks the text up (and again when the language changes); setRawText shows exactly what it is given
+	{
+		const std::vector<unsigned char> german = catalog({ { "Back", "Zurueck" }, { "Save", "Speichern" } });
+		const std::vector<unsigned char> french = catalog({ { "Back", "Retour" }, { "Save", "Sauver" } });
+		CHECK(textTranslator->loadLanguage(german.data(), german.size()), "catalog loads");
+
+		GuiText a("Back", 20, WHITE), raw(nullptr, 20, WHITE);
+		CHECK_LINES(a, { L"Zurueck" });
+		raw.setRawText("Back"); CHECK_LINES(raw, { L"Back" });
+		CHECK(raw.getLength() == 4, "raw length %d", raw.getLength());
+
+		CHECK(textTranslator->loadLanguage(french.data(), french.size()), "another language");
+		a.resetText(); raw.resetText();
+		CHECK_LINES(a, { L"Retour" });
+		CHECK_LINES(raw, { L"Back" });
+
+		textTranslator->clear();
+		a.resetText(); raw.resetText();
+		CHECK_LINES(a, { L"Back" });
+		CHECK_LINES(raw, { L"Back" });
+
+		// the same element can be both, in turn, whichever allocation each leaves behind
+		CHECK(textTranslator->loadLanguage(german.data(), german.size()), "catalog again");
+		a.setRawText("Save"); CHECK_LINES(a, { L"Save" });
+		a.resetText(); CHECK_LINES(a, { L"Save" });			// still raw
+		a.setText("Save"); CHECK_LINES(a, { L"Speichern" });
+		a.setText("Back"); CHECK_LINES(a, { L"Zurueck" });
+		a.setRawText("Back"); a.resetText(); CHECK_LINES(a, { L"Back" });
+		a.setText("Back"); textTranslator->clear(); a.resetText(); CHECK_LINES(a, { L"Back" });	// the ID survived being raw in between
+		CHECK(textTranslator->loadLanguage(german.data(), german.size()), "catalog once more");
+		a.resetText(); CHECK_LINES(a, { L"Zurueck" });
+
+		// what is raw is not looked up: a typed or file name that equals a message stays as it is
+		GuiText name(nullptr, 20, WHITE); name.setRawText("Save"); CHECK_LINES(name, { L"Save" });
+
+		// null and empty, both ways
+		a.setRawText(nullptr); CHECK(a.getLength() == 0, "null raw text");
+		a.setRawText(""); CHECK(a.getLength() == 0, "empty raw text");
+		a.setText("Save"); a.setRawText(nullptr); a.resetText(); CHECK(a.getLength() == 0, "null raw after text");
+
+		// raw text is cut like any other, and a long one then a short one reuses its allocation
+		std::string huge(5000, 'x');
+		GuiText h(nullptr, 20, WHITE); h.setRawText(huge.c_str()); CHECK(h.getLength() == 1023, "%d", h.getLength());
+		h.setRawText("short"); CHECK_LINES(h, { L"short" });
+		h.setText("Save"); CHECK_LINES(h, { L"Speichern" });
+		h.setRawText(huge.c_str()); h.setText("Back"); CHECK_LINES(h, { L"Zurueck" });
+		h.resetText(); CHECK_LINES(h, { L"Zurueck" });
+
+		textTranslator->clear();
 	}
 
 	printf("%d checks, %d failures\n", checks, failures);

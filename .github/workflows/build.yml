@@ -25,7 +25,7 @@ jobs:
       run: dkp-pacman -Syu --noconfirm wiiu-dev
 
     - name: Install Ninja build tool
-      run: apt-get update && apt-get install -y ninja-build
+      run: apt-get update && apt-get install -y ninja-build gettext
 
     - name: Build and install libmocha
       if: ${{ matrix.image == 'WiiU' }}
@@ -161,7 +161,7 @@ jobs:
       uses: actions/checkout@v4
 
     - name: Install FreeType headers
-      run: sudo apt-get update && sudo apt-get install -y libfreetype-dev
+      run: sudo apt-get update && sudo apt-get install -y libfreetype-dev gettext
 
     - name: Build and run tests
       run: make -C test all elements

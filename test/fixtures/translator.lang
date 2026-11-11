@@ -1,0 +1,33 @@
+# Source of the catalog translator_test runs against (compiled with msgfmt, as the real .lang files are)
+msgid "Save"
+msgstr "Speichern"
+
+msgid "Save As"
+msgstr "Speichern unter"
+
+msgid "Save As..."
+msgstr "Speichern unter..."
+
+msgid "Saved"
+msgstr "Gespeichert"
+
+msgid "Cancel"
+msgstr ""
+
+msgid "Player %d"
+msgstr "Spieler %d"
+
+msgid "%s uses %s"
+msgstr "%s nutzt %s"
+
+msgid "%d of %d"
+msgstr "%d von %d"
+
+msgid "Mixed %s %d"
+msgstr "Gemischt %d %s"
+
+msgid "Settings"
+msgstr "設定"
+
+msgid "Zoom"
+msgstr "Größe"

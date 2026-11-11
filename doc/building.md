@@ -55,6 +55,10 @@ You also need **CMake** and **Ninja**, which are used to build `libsmb2`
 (section 2). If `ninja` is not on your `PATH`, install it with your system
 package manager (for example `apt install ninja-build`).
 
+The language files (`data/lang/*.lang`) are compiled to message catalogs by the build, so it also needs **msgfmt**
+from GNU gettext (for example `apt install gettext`; on devkitPro's MSYS2 `pacman -S gettext`). The build stops with a
+message if it is missing.
+
 ### GameCube and Wii
 
 Install `libogc2`, which provides the FAT, ISO9660, DVD, network and

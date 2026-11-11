@@ -7,6 +7,32 @@ All notable changes to libgui are documented here. Versions follow
 
 ### Changed
 
+**Translations are compiled at build time and read in place**
+* `GuiTextTranslator` no longer parses text, builds a list or allocates memory. The `.lang` files (a plain-text subset of
+  the gettext PO format, still edited the same way) are compiled by the build with `msgfmt` into standard gettext message
+  catalogs (`.mo`), which are linked into the program, and `loadLanguage()` uses a catalog where it lies: no `new`,
+  `malloc` or `strdup` (the old loader made about three allocations per message, around 1,200 per language load), no
+  string copies, and no state on the heap to be overwritten. Build requirement: `msgfmt` (GNU gettext); see
+  `doc/building.md`.
+* Lookup is exact. A message ID is found by binary search of the catalog's sorted IDs and compared byte for byte; it used
+  to be found by a 32-bit hash that was never checked against the ID, so two IDs that hashed alike (or a file or game
+  name that happened to hash like a message) would have been given the wrong text.
+* A catalog is checked once when it is loaded (magic number and byte order, revision, counts, every offset and length
+  inside the data, every string terminated and free of embedded NULs, IDs in strictly ascending order). One that fails
+  any check is not used at all; the translator then has no catalog and returns the English text. A translation that is
+  empty or not valid UTF-8 is not returned (the English text is, and the rest of the catalog is unaffected). A lookup
+  never reads outside the catalog, whatever its bytes. Both are covered by `translator_test`, which truncates a catalog
+  at every length and flips bits in every byte under AddressSanitizer and UndefinedBehaviorSanitizer, and by a
+  ThreadSanitizer run.
+* `loadLanguage()` and `clear()` may run while other threads look text up; a lookup that overlaps the switch returns the
+  English text once rather than waiting. The catalog must stay in memory for the life of the program (embedded data does).
+* `loadLanguage(buffer, size)` takes the compiled catalog (`xx_mo`, `xx_mo_size`), and English is the absence of one:
+  `clear()`. The empty `data/lang/en.lang` is gone (`msgfmt` writes nothing for a file without translations). The
+  `%.lang.o` build rule became `%.mo : %.lang` (msgfmt) and `%.mo.o`.
+* The translator is `constexpr`-constructible and trivially destructible, so the one instance (`textTranslator`, now
+  defined in `GuiTextTranslator.cpp` rather than `GuiText.cpp`) is constant-initialized and needs no special storage.
+
+
 **Wii input is a subclass of the GameCube driver**
 * `OgcInputDriver` is now the GameCube driver and the shared per-frame machinery (channel loop, merging per-hardware
   state, menu rumble). Everything Wii-only (Wiimote, Nunchuk, Classic/Pro Controller, the Wii U GamePad, the rumble
@@ -14,6 +40,19 @@ All notable changes to libgui are documented here. Versions follow
   a plain `OgcInputDriver`. `OgcInputDriver.cpp` no longer contains any `HW_RVL` code: a console with more hardware
   overrides `initHardware()`, `scanHardware()`, `readChannel()`, `isSystemRumbleAllowed()` and `driveRumble()`.
 
+
+### Added
+
+* `Tr()` and `TrFormat()` (pulled in from the emulators): translate text that is put together at run time. `TrFormat()`
+  uses the English format if the translation's conversions differ, so a typo in a `.lang` file can never run a
+  translation with the wrong arguments. The check (`GuiTextTranslator::sameConversions()`) no longer allocates.
+* `GuiText::setRawText()`: shows text exactly as given, for what is not a message ID (file and game names, text the user
+  typed, numbers, anything already translated). It is never looked up, so it cannot be mistaken for a message, it is not
+  changed when the language changes (`resetText()` skips it), and it keeps no message ID: it uses the same single
+  allocation as translated text, with an empty ID in it.
+* `data/lang/README.md` describes the `.lang` format and how a language is added.
+* `make -C test verify-lang LANG_DIR=<dir>` checks every catalog compiled from a directory of `.lang` files against its
+  source, and `make -C test translator_tsan` runs the translator test under ThreadSanitizer.
 
 ## [3.00] - October 25, 2026
 

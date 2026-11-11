@@ -24,6 +24,12 @@ class GuiText : public GuiElement
 		//!and the result is kept in one allocation that later calls reuse whenever the new text fits in it.
 		//!\param t Text (UTF-8)
 		void setText(const char * t);
+		//!Sets the text of the GuiText element to be shown exactly as it is. For text that is not a message ID: file and
+		//!game names, text the user typed, numbers, and anything already translated (Tr(), TrFormat()). It is never
+		//!looked up, so it can never be mistaken for a message; it is not changed by resetText(); and no copy of it is
+		//!kept besides the one that is drawn.
+		//!\param t Text (UTF-8)
+		void setRawText(const char * t);
 		//!Sets up preset values to be used by GuiText(t)
 		//!Useful when printing multiple text elements, all with the same attributes set
 		//!\param sz Font size
@@ -100,6 +106,7 @@ class GuiText : public GuiElement
 		uint16_t textLen = 0; //!< Characters in text
 		uint16_t textCap = 0; //!< Most characters the allocation holds in text
 		uint16_t msgCap = 0; //!< Most bytes the allocation holds in msgid
+		bool rawText = false; //!< The text was set with setRawText(): there is no message ID to translate again
 
 		int size; //!< Font size
 		int maxWidth; //!< Maximum width of the generated text object (for text wrapping)
@@ -136,7 +143,7 @@ class GuiText : public GuiElement
 		uint32_t fullWidthGen;
 
 		void setup(const char * t, int s, PixelColor c, uint16_t st, int mw, ALIGN_H h, ALIGN_V v);
-		void assign(const char * id);
+		void assign(const char * id, bool translate);
 		void release();
 		void buildLayout();
 		void breakLines();
@@ -147,5 +154,3 @@ class GuiText : public GuiElement
 		void forgetMeasurements();
 		int getFullWidth(int atSize);
 };
-
-extern GuiTextTranslator* textTranslator;

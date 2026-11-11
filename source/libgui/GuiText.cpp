@@ -6,17 +6,6 @@
 
 #include "Gui.h"
 
-// The one translator. Its constructor is constexpr, so this is constant-initialized: it is complete
-// before any dynamic initializer runs, and a static GuiText/GuiButton constructed in any translation
-// unit can resolve text through it without depending on link order. The union keeps it from ever being
-// destroyed: it lives until the process ends, so nothing can look up text in a list freed at exit.
-static union TranslatorStorage
-{
-	GuiTextTranslator translator;
-	constexpr TranslatorStorage() : translator() {}
-	~TranslatorStorage() {}
-} translatorStorage;
-GuiTextTranslator* textTranslator = &translatorStorage.translator;
 static PixelColor presetColor = (PixelColor){255, 255, 255, 255};
 static int presetSize = 0;
 static int presetMaxWidth = 0;
@@ -66,7 +55,7 @@ void GuiText::setup(const char * t, int s, PixelColor c, uint16_t st, int mw, AL
 	alignmentHor = h;
 	alignmentVert = v;
 
-	assign(t);
+	assign(t, true);
 }
 
 /**
@@ -83,14 +72,18 @@ void GuiText::release()
 	text = nullptr;
 	msgid = nullptr;
 	textLen = textCap = msgCap = 0;
+	rawText = false;
 }
 
 /**
  * Takes a message ID: translates it, and keeps the translation and the ID itself (resetText() translates
  * it again) in one allocation. When the text already held is in an allocation big enough, that is reused.
  * `id` may point into the allocation that is held (resetText() passes the ID it keeps).
+ *
+ * With translate false the text is not a message ID but the text to show: it is shown as it is, no ID is kept (the
+ * allocation then holds just an empty one), and resetText() leaves it alone.
  */
-void GuiText::assign(const char * id)
+void GuiText::assign(const char * id, bool translate)
 {
 	layoutValid = false;
 	textScrollPos = 0;
@@ -103,7 +96,7 @@ void GuiText::assign(const char * id)
 		return;
 	}
 
-	const char * translated = textTranslator->getText(id);
+	const char * translated = translate ? textTranslator->getText(id) : id;
 	if(!translated)
 		translated = id;
 
@@ -112,7 +105,7 @@ void GuiText::assign(const char * id)
 	if(n > MAX_TEXT_CHARS)
 		n = MAX_TEXT_CHARS;
 
-	size_t m = strlen(id);
+	size_t m = translate ? strlen(id) : 0;
 	if(m > MAX_MSGID_BYTES)
 	{
 		m = MAX_MSGID_BYTES;
@@ -127,6 +120,7 @@ void GuiText::assign(const char * id)
 		if(id != msgid)
 			memmove(msgid, id, m);
 		msgid[m] = 0;
+		rawText = !translate;
 		return;
 	}
 
@@ -151,11 +145,17 @@ void GuiText::assign(const char * id)
 	textLen = (uint16_t)len;
 	textCap = (uint16_t)n;
 	msgCap = (uint16_t)m;
+	rawText = !translate;
 }
 
 void GuiText::setText(const char * t)
 {
-	assign(t);
+	assign(t, true);
+}
+
+void GuiText::setRawText(const char * t)
+{
+	assign(t, false);
 }
 
 int GuiText::getLongestWordWidth()
@@ -327,10 +327,10 @@ void GuiText::setAlignment(ALIGN_H hor, ALIGN_V vert)
 
 void GuiText::resetText()
 {
-	if(!msgid)
+	if(!msgid || rawText)
 		return;
 
-	assign(msgid);
+	assign(msgid, true);
 }
 
 /**
