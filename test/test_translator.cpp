@@ -128,7 +128,7 @@ static void testMsgfmtCatalog(const char * path)
 	CHECK(!b.empty(), "read %s", path);
 	CHECK(loads(b), "the catalog msgfmt built loads");
 	CHECK(textTranslator->isLoaded(), "isLoaded");
-	CHECK(textTranslator->getCount() == 10, "msgfmt left out the untranslated message: %zu", textTranslator->getCount());
+	CHECK(textTranslator->getCount() == 11, "10 translated messages and the header entry, and not the untranslated one: %zu", textTranslator->getCount());
 	CHECK(eq(textTranslator->getText("Save"), "Speichern"), "translated");
 	CHECK(eq(textTranslator->getText("Save As"), "Speichern unter"), "an ID that starts another one is found as itself");
 	CHECK(eq(textTranslator->getText("Save As..."), "Speichern unter..."), "and so is the longer one");
@@ -141,7 +141,8 @@ static void testMsgfmtCatalog(const char * path)
 	CHECK(eq(textTranslator->getText("Settings"), "\xE8\xA8\xAD\xE5\xAE\x9A"), "UTF-8 comes through whole");
 	CHECK(eq(textTranslator->getText("Zoom"), "Gr\xC3\xB6\xC3\x9F" "e"), "so do accents");
 	CHECK(eq(textTranslator->getText(""), ""), "the empty string stays empty (an empty ID is the catalog's header entry)");
-	CHECK(textTranslator->find("") == nullptr, "and has no translation");
+	CHECK(textTranslator->find("") == nullptr, "and has no translation (so the header text is never returned)");
+	CHECK(textTranslator->find("Content-Type: text/plain; charset=UTF-8\n") == nullptr, "nor is the header text a message");
 	CHECK(textTranslator->getText(nullptr) == nullptr, "null in, null out");
 	CHECK(textTranslator->find(nullptr) == nullptr, "null has no translation");
 
@@ -491,7 +492,7 @@ static int verifySource(const char * langPath, const char * moPath)
 			pointers++;
 		}
 	}
-	CHECK(textTranslator->getCount() == translated, "the catalog holds %zu messages, the source has %zu translated", textTranslator->getCount(), translated);
+	CHECK(textTranslator->getCount() == translated + 1, "the catalog holds %zu messages, the source has %zu translated (and the header entry makes one more)", textTranslator->getCount(), translated);
 	printf("%s: %zu translated, %zu untranslated, %zu with different conversions\n", moPath, translated, empty, badConv);
 	(void)pointers;
 	textTranslator->clear();

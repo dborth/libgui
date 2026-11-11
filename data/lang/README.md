@@ -16,4 +16,5 @@ msgstr "Speichern unter"
 
 The build compiles each `xx.lang` with `msgfmt` (GNU gettext) into `xx.mo`, links it into the program, and
 `xx_mo` / `xx_mo_size` are declared by `xx_mo.h`. `msgfmt` stops the build on a malformed file or a duplicate `msgid`.
+The files carry no PO header: the build puts one (`charset=UTF-8`, which newer `msgfmt` requires for non-ASCII text) in front of each file as it compiles it.
 The program uses a catalog in place, without copying it: `textTranslator->loadLanguage(xx_mo, xx_mo_size)`.

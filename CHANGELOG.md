@@ -28,7 +28,9 @@ All notable changes to libgui are documented here. Versions follow
   English text once rather than waiting. The catalog must stay in memory for the life of the program (embedded data does).
 * `loadLanguage(buffer, size)` takes the compiled catalog (`xx_mo`, `xx_mo_size`), and English is the absence of one:
   `clear()`. The empty `data/lang/en.lang` is gone (`msgfmt` writes nothing for a file without translations). The
-  `%.lang.o` build rule became `%.mo : %.lang` (msgfmt) and `%.mo.o`.
+  `%.lang.o` build rule became `%.mo : %.lang` (msgfmt) and `%.mo.o`. The rule puts a `charset=UTF-8` header in
+  front of each file as it compiles it (newer msgfmt refuses non-ASCII text without one, and the `.lang` files have none)
+  and drops any CRs that git on Windows may have added.
 * The translator is `constexpr`-constructible and trivially destructible, so the one instance (`textTranslator`, now
   defined in `GuiTextTranslator.cpp` rather than `GuiText.cpp`) is constant-initialized and needs no special storage.
 

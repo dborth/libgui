@@ -66,8 +66,9 @@ text_test: test_text.cpp $(HOST_SRC)
 # The real translator, against a catalog that msgfmt (GNU gettext) builds from fixtures/translator.lang, the way the
 # application's own .lang files are built. It brings its own copy of nothing: no host_stubs.cpp. Built with the address
 # and undefined-behaviour sanitizers, because the catalogs it damages on purpose are exact-size heap blocks.
+# (the same way the applications' Makefiles do it: a charset header is put in front, which newer msgfmt insists on)
 fixtures/translator.mo: fixtures/translator.lang
-	msgfmt --no-hash -o $@ $<
+	{ grep -q 'charset=' $< || printf 'msgid ""\nmsgstr "Content-Type: text/plain; charset=UTF-8\\n"\n\n'; tr -d '\r' < $<; } | msgfmt --no-hash -o $@ -
 
 translator_test: test_translator.cpp ../source/libgui/GuiTextTranslator.cpp ../source/libgui/GuiTextTranslator.h fixtures/translator.mo
 	$(CXX) $(CXXFLAGS) -fsanitize=address,undefined -fno-omit-frame-pointer -I../source -o $@ test_translator.cpp ../source/libgui/GuiTextTranslator.cpp -pthread
@@ -81,7 +82,7 @@ translator_tsan: test_translator.cpp ../source/libgui/GuiTextTranslator.cpp ../s
 # Checks a real application's catalogs against their .lang sources: make verify-lang LANG_DIR=../../fceugx/data/lang
 verify-lang: translator_test
 	@set -e; tmp=$$(mktemp -d); for f in $(LANG_DIR)/*.lang; do b=$$(basename $$f .lang); \
-		msgfmt --no-hash -o $$tmp/$$b.mo $$f; [ -f $$tmp/$$b.mo ] || { echo "$$f: no translations, so msgfmt writes no catalog"; continue; }; ./translator_test --verify $$f $$tmp/$$b.mo; done; rm -rf $$tmp
+		{ grep -q 'charset=' $$f || printf 'msgid ""\nmsgstr "Content-Type: text/plain; charset=UTF-8\\n"\n\n'; tr -d '\r' < $$f; } | msgfmt --no-hash -o $$tmp/$$b.mo -; [ -f $$tmp/$$b.mo ] || { echo "$$f: no translations, so msgfmt writes no catalog"; continue; }; ./translator_test --verify $$f $$tmp/$$b.mo; done; rm -rf $$tmp
 
 clean:
 	rm -rf translator_test translator_tsan fixtures/translator.mo geometry_test paint_test layout_test controller_test popover_test elements_test ui_test text_test imagedata_test out
