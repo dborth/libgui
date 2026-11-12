@@ -99,7 +99,7 @@ int main()
 		UiScope ui;
 		Page host; GuiWindow& page = host.page;
 		int pct = 80;
-		GuiLabel& l = ui.label().bind([&]{ return GuiFormat("battery %d%%", pct); });
+		GuiLabel& l = ui.label().bind([&](UiText& t){ t.format("battery %d%%", pct); });
 		Tracked& next = ui.make<Tracked>(10, 10);
 		GuiRow& row = ui.row();
 		row.gap(5).add(l).add(next);
@@ -116,8 +116,49 @@ int main()
 		CHECK(next.getLeft() == before - 10, "the shorter label pulls its neighbour in by one character (10): %d -> %d", before, next.getLeft());
 		// an empty string clears the text rather than asking the translator for ""
 		pct = 80;
-		GuiLabel& e = ui.label().bind([&]{ return std::string(); });
+		GuiLabel& e = ui.label().bind([&](UiText&){});
 		CHECK(e.getLength() == 0, "empty bound text");
+	}
+
+	// ---- UiText: what a bound function writes into
+	{
+		UiText t;
+		CHECK(t.c_str()[0] == 0, "starts empty");
+		t.set("Hello"); CHECK(strcmp(t.c_str(), "Hello") == 0, "set");
+		t.set(nullptr); CHECK(t.c_str()[0] == 0, "null is no text");
+		t.format("%d of %d", 2, 5); CHECK(strcmp(t.c_str(), "2 of 5") == 0, "format");
+		t.tr("Untranslated"); CHECK(strcmp(t.c_str(), "Untranslated") == 0, "tr falls back to the text itself");
+		t.trFormat("Player %d", 3); CHECK(strcmp(t.c_str(), "Player 3") == 0, "trFormat");
+		std::string big(1000, 'x'); t.set(big.c_str());
+		CHECK(strlen(t.c_str()) == UiText::SIZE - 1, "long text is cut to the buffer: %zu", strlen(t.c_str()));
+		t.format("%s", big.c_str()); CHECK(strlen(t.c_str()) == UiText::SIZE - 1, "so is long formatted text");
+		// cut on a whole character: 3-byte characters into 255 usable bytes leaves 85 of them (255 bytes), never part of one
+		std::string wide; for(int i = 0; i < 100; i++) wide += "\xE6\x97\xA5";
+		t.set(wide.c_str()); CHECK(strlen(t.c_str()) == 255 && GuiTextTranslator::utf8Trim(t.c_str(), 255) == 255, "whole characters only: %zu", strlen(t.c_str()));
+		std::string odd = "a" + wide; t.set(odd.c_str()); CHECK(strlen(t.c_str()) == 253, "a character that does not fit whole is left out: %zu", strlen(t.c_str()));
+	}
+
+	// ---- a bound function runs once a frame, and the text is only set when it changes
+	{
+		UiScope ui;
+		Page host; GuiWindow& page = host.page;
+		int calls = 0; std::string value = "one";
+		GuiTextButton& b = ui.button("start").fitText(0, 0).bind([&](UiText& t){ calls++; t.set(value.c_str()); });
+		GuiLabel& l = ui.label().bind([&](UiText& t){ t.set(value.c_str()); });
+		page.append(&b); page.append(&l);
+		ui.attachTo(page);
+		const int attached = calls; // attachTo() runs the bindings once itself
+		page.update(nullptr);
+		CHECK(calls == attached + 1, "a text button runs its function once per frame, not once per label: %d", calls - attached);
+		{ int w = 0, h = 0; b.getNaturalSize(w, h); CHECK(l.getLength() == 3 && w == 30, "both show the text (the button is as wide as 3 characters: %d)", w); }
+		page.update(nullptr); page.update(nullptr);
+		CHECK(calls == attached + 3, "and once for each frame after: %d", calls - attached);
+		value = "three"; page.update(nullptr);
+		{ int w = 0, h = 0; b.getNaturalSize(w, h); CHECK(l.getLength() == 5 && w == 50, "a change is picked up by the label and the button: %d, %d", l.getLength(), w); }
+		value = ""; page.update(nullptr);
+		CHECK(l.getLength() == 0, "and so is an empty text");
+		value = std::string(300, 'z'); page.update(nullptr);
+		CHECK(l.getLength() == UiText::SIZE - 1, "a text longer than the buffer shows what fits: %d", l.getLength());
 	}
 
 	// ---- visibleWhen / enabledWhen
@@ -291,7 +332,7 @@ int main()
 		UiScope ui;
 		Page host; GuiWindow& page = host.page;
 		std::string role = "Joystick 1";
-		GuiChip& chip = ui.chip().bind([&]{ return role; });
+		GuiChip& chip = ui.chip().bind([&](UiText& t){ t.set(role.c_str()); });
 		page.append(&chip);
 		ui.attachTo(page);
 		page.update(nullptr);
@@ -313,8 +354,8 @@ int main()
 			.add(ui.column().gap(6)
 				.add(ui.row().size(476, 0).gap(8).align(LAYOUT_ALIGN::CENTRE)
 					.add(ui.label("P1").fontSize(22).accent())
-					.add(ui.label("Wiimote").bind([]{ return std::string("Wiimote"); }), GuiItem().grow(1))
-					.add(ui.label().bind([&]{ return GuiFormat("battery %d%%", pct); }).fontSize(16).muted())));
+					.add(ui.label("Wiimote").bind([](UiText& t){ t.set("Wiimote"); }), GuiItem().grow(1))
+					.add(ui.label().bind([&](UiText& t){ t.format("battery %d%%", pct); }).fontSize(16).muted())));
 		page.append(&card);
 		ui.attachTo(page);
 		page.update(nullptr);

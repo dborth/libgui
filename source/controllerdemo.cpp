@@ -103,7 +103,7 @@ GuiControllerDemo::GuiControllerDemo(GuiTrigger * trigger) :
 	this->add(groups);
 	this->add(ui.card().selectable(false).style(t.barStyle()).size(624, 0).pad(10, 6)
 		.add(ui.row().size(604, 0).align(LAYOUT_ALIGN::CENTRE)
-			.add(ui.label().bind([this]{ return status; }).fontSize(15).muted())
+			.add(ui.label().bind([this](UiText& t){ t.set(status.c_str()); }).fontSize(15).muted())
 			.addSpace()
 			.add(back)));
 

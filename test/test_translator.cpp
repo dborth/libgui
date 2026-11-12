@@ -153,13 +153,49 @@ static void testMsgfmtCatalog(const char * path)
 	CHECK(s && (const uint8_t *)s >= h.p && (const uint8_t *)s < h.p + h.n, "the translation is in the catalog, not a copy");
 
 	// Tr / TrFormat
-	CHECK(Tr("Save") == "Speichern" && Tr("nope") == "nope" && Tr(nullptr).empty(), "Tr");
+	CHECK(eq(Tr("Save"), "Speichern") && eq(Tr("nope"), "nope") && eq(Tr(nullptr), ""), "Tr");
+	CHECK(Tr("Save") == textTranslator->find("Save"), "Tr is the translation where it lies in the catalog, not a copy");
+	{ const char * id = "nope"; CHECK(Tr(id) == id, "untranslated, Tr is the ID itself"); }
 	CHECK(TrFormat("Player %d", 3) == "Spieler 3", "TrFormat: %s", TrFormat("Player %d", 3).c_str());
 	CHECK(TrFormat("%s uses %s", "A", "B") == "A nutzt B", "TrFormat with two arguments");
 	CHECK(TrFormat("%d of %d", 2, 5) == "2 von 5", "TrFormat repeated conversions");
 	CHECK(TrFormat("Mixed %s %d", "x", 7) == "Mixed x 7", "a translation whose conversions are out of order is not used: %s", TrFormat("Mixed %s %d", "x", 7).c_str());
 	CHECK(TrFormat("Untranslated %d%%", 50) == "Untranslated 50%", "TrFormat falls back to the format itself");
 	CHECK(TrFormat(nullptr).empty(), "TrFormat of null");
+
+	// TrFormatTo / TrMessage: the same messages, in a buffer
+	{
+		char out[64];
+		CHECK(TrFormatTo(out, sizeof(out), "Player %d", 3) == 9 && eq(out, "Spieler 3"), "TrFormatTo: %s", out);
+		CHECK(TrFormatTo(out, sizeof(out), "%s uses %s", "A", "B") == 9 && eq(out, "A nutzt B"), "TrFormatTo with two arguments: %s", out);
+		CHECK(TrFormatTo(out, sizeof(out), "Mixed %s %d", "x", 7) == 9 && eq(out, "Mixed x 7"), "an unusable translation is not used: %s", out);
+		CHECK(TrFormatTo(out, sizeof(out), nullptr) == 0 && out[0] == 0, "null message");
+		CHECK(TrFormatTo(nullptr, 10, "Player %d", 3) == 0 && TrFormatTo(out, 0, "Player %d", 3) == 0, "no buffer, no size: nothing is written");
+		char guard[8]; memset(guard, 'x', sizeof(guard));
+		CHECK(TrFormatTo(guard, 4, "Player %d", 3) == 3 && eq(guard, "Spi") && guard[4] == 'x', "cut to fit, NUL-terminated, nothing written past the size: %s", guard);
+		CHECK(TrFormatTo(guard, 1, "Player %d", 3) == 0 && guard[0] == 0, "room for only the NUL");
+		CHECK(TrMessage<>("Player %d", 3).c_str() != nullptr && eq(TrMessage<>("Player %d", 3), "Spieler 3"), "TrMessage");
+		const char * viaCall = TrMessage<16>("%s uses %s", "A", "B");
+		(void)viaCall;
+		CHECK(eq(TrMessage<8>("Untranslated %d%%", 50), "Untrans"), "TrMessage cuts to its size");
+	}
+
+	// text cut by a buffer that is too small ends on a whole character, never partway through one
+	{
+		const char * text = "a\xC3\xA9" "b\xE6\x97\xA5" "c\xF0\x9F\x98\x80" "d"; // a, e-acute, b, CJK, c, emoji, d
+		const size_t whole[] = { 0, 1, 3, 4, 7, 8, 12, 13 };			// the lengths at which a character ends
+		for(size_t n = 0; n <= strlen(text); n++)
+		{
+			const size_t t = GuiTextTranslator::utf8Trim(text, n);
+			bool boundary = false;
+			for(size_t w : whole) boundary = boundary || w == t;
+			CHECK(t <= n && boundary && (t == n) == [&]{ for(size_t w : whole) if(w == n) return true; return false; }(), "utf8Trim(%zu) = %zu", n, t);
+		}
+		CHECK(GuiTextTranslator::utf8Trim("\x80\x80", 2) == 2 && GuiTextTranslator::utf8Trim("", 0) == 0, "no character was cut in text that is not valid or is empty");
+		char buf[8];
+		TrFormatTo(buf, sizeof(buf), "%s", "ab\xE6\x97\xA5\xE6\x97\xA5"); // 2 + 3 + 3 bytes into room for 7
+		CHECK(eq(buf, "ab\xE6\x97\xA5"), "a character that does not fit whole is left out");
+	}
 }
 
 static void testLifecycle()

@@ -186,6 +186,21 @@ int main()
 		textTranslator->clear();
 	}
 
+	// setFormat: a message made from a format and arguments, straight into the text
+	{
+		GuiText t("start", 20, WHITE);
+		t.setFormat("Player %d of %d", 2, 4); CHECK_LINES(t, { L"Player 2 of 4" });
+		{ const char * longer = "a longer message than the one before, to grow the text"; t.setFormat("%s", longer); CHECK(t.getLength() == (int)strlen(longer), "%d", t.getLength()); }
+		t.setFormat("Hi"); CHECK_LINES(t, { L"Hi" });
+		t.setFormat(nullptr); CHECK(drawn(t).empty() && t.getLength() == 0, "no message, no text");
+		t.setFormat("%s", ""); CHECK(t.getLength() == 0, "an empty message");
+		std::string big(2000, 'y'); t.setFormat("%s", big.c_str()); CHECK(t.getLength() == 511, "a message too long for its 512-byte buffer is cut: %d", t.getLength());
+		t.setFormat("100%%"); CHECK_LINES(t, { L"100%" });
+		// like setRawText(): the result is not a message ID, so resetText() leaves it alone
+		t.setFormat("Player %d", 7); t.resetText(); CHECK_LINES(t, { L"Player 7" });
+		t.setFormat("Player %d", 8); t.setWrap(true, 60); CHECK_LINES(t, { L"Player", L"8" });
+	}
+
 	printf("%d checks, %d failures\n", checks, failures);
 	return failures ? 1 : 0;
 }

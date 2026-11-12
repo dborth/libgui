@@ -45,9 +45,8 @@ All notable changes to libgui are documented here. Versions follow
 
 ### Added
 
-* `Tr()` and `TrFormat()` (pulled in from the emulators): translate text that is put together at run time. `TrFormat()`
-  uses the English format if the translation's conversions differ, so a typo in a `.lang` file can never run a
-  translation with the wrong arguments. The check (`GuiTextTranslator::sameConversions()`) no longer allocates.
+* `Tr()` returns the translation in place, `TrMessage` shows a message once, `GuiText::setFormat` is for a label, 
+  `TrFormat` is printf for translated messages.
 * `GuiText::setRawText()`: shows text exactly as given, for what is not a message ID (file and game names, text the user
   typed, numbers, anything already translated). It is never looked up, so it cannot be mistaken for a message, it is not
   changed when the language changes (`resetText()` skips it), and it keeps no message ID: it uses the same single
@@ -190,7 +189,7 @@ All notable changes to libgui are documented here. Versions follow
   any parent/child order (elements made by a scope unhook themselves). `own<T>()` keeps any
   other object for the scope's lifetime. The scope also holds the defaults the widgets use: the
   click trigger, the sounds and the theme.
-* Bindings: `label.bind([&]{ return GuiFormat("battery %d%%", pct); })` keeps text equal to a
+* Bindings: `label.bind([&](UiText& t){ t.format("battery %d%%", pct); })` keeps text equal to a
   function's result, `visibleWhen()` and `enabledWhen()` do the same for visibility and enabled
   state, and `ui.bind(fn)` runs anything once per frame. They run when the scope is attached to
   a window (`ui.attachTo(window)`); the text is only rebuilt when the string changes.

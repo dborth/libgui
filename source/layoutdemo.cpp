@@ -41,7 +41,7 @@ GuiCard& GuiLayoutDemo::playerCard(int n)
 			.add(ui.row().size(568, 0).gap(8).align(LAYOUT_ALIGN::CENTRE)
 				.add(ui.label(n == 0 ? "P1" : "P2").fontSize(22).accent())
 				.add(ui.label(players[n].device), GuiItem().grow(1))
-				.add(ui.label().bind([this, n]{ return GuiFormat("battery %d%%", battery(n)); }).fontSize(16).muted()))
+				.add(ui.label().bind([this, n](UiText& t){ t.format("battery %d%%", battery(n)); }).fontSize(16).muted()))
 			.add(ui.row().gap(8).align(LAYOUT_ALIGN::CENTRE)
 				.add(ui.chip(players[n].role))
 				.add(ui.label(players[n].scheme).fontSize(16).muted())));
@@ -63,7 +63,7 @@ GuiLayoutDemo::GuiLayoutDemo(GuiTrigger * trigger) :
 	this->add(ui.row().size(592, 0)
 		.add(ui.label("Controllers").fontSize(28))
 		.addSpace()
-		.add(ui.label().bind([this]{ return std::string("Scheme: ") + GuiSchemePopover::schemeName(scheme); }).fontSize(18).accent()));
+		.add(ui.label().bind([this](UiText& t){ t.format("Scheme: %s", GuiSchemePopover::schemeName(scheme)); }).fontSize(18).accent()));
 
 	this->add(ui.column().gap(t.spacing)
 		.add(playerCard(0))
@@ -94,7 +94,7 @@ GuiLayoutDemo::GuiLayoutDemo(GuiTrigger * trigger) :
 		.add(config)
 		.add(back));
 
-	this->add(ui.label().bind([this]{ return status; }).fontSize(16).muted());
+	this->add(ui.label().bind([this](UiText& t){ t.set(status.c_str()); }).fontSize(16).muted());
 
 	this->setAlignment(ALIGN_H::LEFT, ALIGN_V::TOP);
 	this->setPosition(24, 16);
