@@ -3,7 +3,7 @@
 All notable changes to libgui are documented here. Versions follow
 `MAJOR.MINOR`; dates are approximate, taken from the commit history.
 
-## Unreleased
+## [3.01] - November 18, 2026
 
 ### Changed
 
